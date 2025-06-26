@@ -45,11 +45,8 @@ export default function GeneratePage() {
     <main className="flex min-h-screen flex-row items-center justify-center gap-16 bg-gradient-to-b from-[#2e026d] to-[#15162c] p-12 text-white transition-all duration-300">
       <PromptSection loading={isLoading} handleSubmit={handleSubmit} />
 
-      {/* Result Section */}
       {status && result && (
-        // {status && (
         <div className="w-full">
-          {/* <Separator className="my-4" /> */}
           <ResultSection status={status} result={result} />
         </div>
       )}
