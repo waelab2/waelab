@@ -9,7 +9,15 @@ import {
 } from "~/components/ui/table";
 import { models } from "~/lib/constants";
 
-export function ModelsTable() {
+export default function ModelsPage() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] p-12 text-white">
+      <ModelsTable />
+    </main>
+  );
+}
+
+function ModelsTable() {
   return (
     <Table className="border-2 border-white">
       <TableCaption className="text-white/75">
@@ -36,13 +44,5 @@ export function ModelsTable() {
         ))}
       </TableBody>
     </Table>
-  );
-}
-
-export default function ModelsPage() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] p-12 text-white">
-      <ModelsTable />
-    </main>
   );
 }
