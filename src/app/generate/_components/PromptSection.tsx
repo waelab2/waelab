@@ -158,7 +158,6 @@ function AspectRatioSelector({ isLoading }: { isLoading?: boolean }) {
           <SelectGroup>
             <SelectItem value="16:9">16:9</SelectItem>
             <SelectItem value="9:16">9:16</SelectItem>
-            <SelectItem value="4:3">4:3</SelectItem>
             <SelectItem value="1:1">1:1</SelectItem>
           </SelectGroup>
         </SelectContent>
