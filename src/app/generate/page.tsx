@@ -4,6 +4,7 @@ import { fal } from "@fal-ai/client";
 import { useEffect, useState } from "react";
 import { Separator } from "~/components/ui/separator";
 import type { Result, Status } from "~/lib/types";
+import ModelSelector from "./_components/ModelSelector";
 import PromptSection from "./_components/PromptSection";
 import ResultSection from "./_components/ResultSection";
 
@@ -43,6 +44,10 @@ export default function GeneratePage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-800 p-4 text-white">
+      <div className="mb-6 w-full max-w-2xl">
+        <ModelSelector isLoading={isLoading} />
+      </div>
+
       <PromptSection loading={isLoading} handleSubmit={handleSubmit} />
 
       {/* Result Section */}
