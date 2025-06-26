@@ -1,61 +1,57 @@
 "use client";
 
 import { fal } from "@fal-ai/client";
-import { useState } from "react";
-import { Button } from "~/components/ui/button";
-import { Textarea } from "~/components/ui/textarea";
+import { useEffect, useState } from "react";
+import { Separator } from "~/components/ui/separator";
+import type { Result, Status } from "~/lib/types";
+import PromptSection from "./_components/PromptSection";
+import ResultSection from "./_components/ResultSection";
 
 export default function GeneratePage() {
-  const [prompt, setPrompt] = useState<string>("");
+  const [status, setStatus] = useState<null | Status>(null);
+  const [result, setResult] = useState<null | Result>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (status === "IN_QUEUE" || status === "IN_PROGRESS") {
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+    }
+  }, [status]);
 
   fal.config({
     proxyUrl: "/api/fal/proxy",
   });
 
   async function handleSubmit(prompt: string) {
-    console.log("handleSubmit", prompt);
-
-    if (!prompt) {
-      throw new Error("Prompt is required");
-    }
-
-    const result = await fal.subscribe("fal-ai/flux/dev", {
-      input: {
-        prompt,
-        image_size: "square_hd",
-      },
-      pollInterval: 5000,
-      logs: true,
-      onQueueUpdate(update) {
-        console.log("queue update", update);
-      },
-    });
-
-    console.log("result", result);
-    console.log("###########");
-    // console.log("result.images", result.images);
+    setResult(
+      fal.subscribe("fal-ai/flux/dev", {
+        input: {
+          prompt,
+          image_size: "square_hd",
+        },
+        pollInterval: 5000,
+        logs: true,
+        onQueueUpdate(update) {
+          console.log("queue update", update);
+          setStatus(update.status);
+        },
+      }),
+    );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="mx-auto w-full max-w-2xl">
-        <div className="rounded-lg bg-white p-8 shadow-md">
-          <h1 className="mb-6 text-center text-2xl font-bold text-gray-900">
-            Generate Content
-          </h1>
-          <div className="grid w-full gap-4">
-            <Textarea
-              placeholder="Type your message here..."
-              className="min-h-[150px] resize-none"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
-            <Button className="w-full" onClick={() => handleSubmit(prompt)}>
-              Generate
-            </Button>
-          </div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-800 p-4 text-white">
+      <PromptSection loading={isLoading} handleSubmit={handleSubmit} />
+
+      {/* Result Section */}
+      {status && result && (
+        <div className="w-full">
+          <Separator className="my-4" />
+          <ResultSection status={status} result={result} />
         </div>
-      </div>
+      )}
     </div>
   );
 }
