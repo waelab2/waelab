@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Suspense, useEffect, useState } from "react";
+import { AspectRatio } from "~/components/ui/aspect-ratio";
 import { Skeleton } from "~/components/ui/skeleton";
 import type { Result, Status } from "~/lib/types";
 
@@ -31,19 +32,25 @@ export default function ResultSection({
   }, [status, result]);
 
   return (
-    <div>
-      <h2 className="text-center text-3xl">Result</h2>
-      {isLoading ? (
-        <ImageSkeleton />
-      ) : (
-        <Suspense fallback={<ImageSkeleton />}>
-          <Image src={imageUrl} alt="Result" width={384} height={384} />
-        </Suspense>
-      )}
+    <div className="flex flex-col items-center justify-center">
+      <AspectRatio ratio={16 / 9}>
+        {isLoading ? (
+          <ImageSkeleton />
+        ) : (
+          <Suspense fallback={<ImageSkeleton />}>
+            <Image
+              src={imageUrl}
+              alt="Result"
+              className="rounded-lg object-cover shadow-lg"
+              fill
+            />
+          </Suspense>
+        )}
+      </AspectRatio>
     </div>
   );
 }
 
 function ImageSkeleton() {
-  return <Skeleton className="h-[384px] w-[384px] rounded-lg shadow-lg" />;
+  return <Skeleton className="h-full w-full rounded-lg shadow-lg" />;
 }

@@ -2,13 +2,13 @@
 
 import { fal } from "@fal-ai/client";
 import { useEffect, useState } from "react";
-import { Separator } from "~/components/ui/separator";
-import type { Result, Status } from "~/lib/types";
+import useGenerateStore from "~/lib/stores/useGenerateStore";
+import type { Result } from "~/lib/types";
 import PromptSection from "./_components/PromptSection";
 import ResultSection from "./_components/ResultSection";
 
 export default function GeneratePage() {
-  const [status, setStatus] = useState<null | Status>(null);
+  const { status, setStatus } = useGenerateStore();
   const [result, setResult] = useState<null | Result>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -29,7 +29,7 @@ export default function GeneratePage() {
       fal.subscribe("fal-ai/flux/dev", {
         input: {
           prompt,
-          image_size: "square_hd",
+          image_size: "landscape_16_9",
         },
         pollInterval: 5000,
         logs: true,
@@ -42,16 +42,17 @@ export default function GeneratePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-800 p-4 text-white">
+    <main className="flex min-h-screen flex-row items-center justify-center gap-16 bg-gradient-to-b from-[#2e026d] to-[#15162c] p-12 text-white transition-all duration-300">
       <PromptSection loading={isLoading} handleSubmit={handleSubmit} />
 
       {/* Result Section */}
       {status && result && (
+        // {status && (
         <div className="w-full">
-          <Separator className="my-4" />
+          {/* <Separator className="my-4" /> */}
           <ResultSection status={status} result={result} />
         </div>
       )}
-    </div>
+    </main>
   );
 }

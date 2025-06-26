@@ -31,24 +31,28 @@ export default function PromptSection({
   handleSubmit: (prompt: string) => void;
 }) {
   const [prompt, setPrompt] = useState<string>("");
+  const { status, setStatus } = useGenerateStore();
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <div className="rounded-lg bg-zinc-100 p-8 text-zinc-900 shadow-md">
-        <h1 className="mb-6 text-center text-2xl font-bold">
+      <div className="rounded-lg bg-white/10 p-8 shadow-md">
+        <h1
+          className="mb-6 cursor-pointer text-center text-2xl font-bold"
+          onClick={() => setStatus(status === "IN_QUEUE" ? null : "IN_QUEUE")}
+        >
           Generate Content
         </h1>
         <div className="grid w-full gap-4">
           <Textarea
             placeholder="Type your prompt here..."
-            className="min-h-[150px] resize-none"
+            className="min-h-[150px] resize-none bg-white/10 text-white placeholder:text-white/50"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             disabled={loading}
           />
           <SettingsCollapsible isLoading={loading} />
           <Button
-            className="w-full bg-zinc-700 hover:bg-zinc-600"
+            className="w-full bg-white/10 transition hover:bg-white/20"
             disabled={!prompt || loading}
             onClick={() => handleSubmit(prompt)}
           >
@@ -92,7 +96,7 @@ function ModelSelector({ isLoading }: { isLoading?: boolean }) {
   const { model, setModel } = useGenerateStore();
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2">
       <Label>Model</Label>
       <Select
         value={model}
@@ -120,7 +124,7 @@ function DurationInput({ isLoading }: { isLoading?: boolean }) {
   const { duration, setDuration } = useGenerateStore();
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2">
       <Label htmlFor="duration">Duration (in seconds)</Label>
       <Input
         id="duration"
@@ -140,7 +144,7 @@ function AspectRatioSelector({ isLoading }: { isLoading?: boolean }) {
   const { aspect_ratio, setAspectRatio } = useGenerateStore();
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2">
       <Label>Aspect Ratio</Label>
       <Select
         value={aspect_ratio ?? undefined}
