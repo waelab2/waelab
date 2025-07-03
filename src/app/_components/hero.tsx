@@ -1,6 +1,8 @@
 import { ArrowRightIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import AccentedText from "~/components/accented-text";
+import PrimaryAccentedButton from "~/components/primary-accented-button";
 import { Button } from "~/components/ui/button";
 import {
   NavigationMenu,
@@ -20,8 +22,7 @@ export default function Hero() {
         <div className="flex items-center">
           <Button
             variant="ghost"
-            size="lg"
-            className="bg-transparent bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] bg-clip-text font-semibold text-transparent"
+            className="bg-transparent bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] bg-clip-text text-lg font-semibold text-transparent"
             style={{
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
@@ -38,6 +39,19 @@ export default function Hero() {
           </Button>
         </div>
       </div>
+      <div className="flex h-full flex-col items-center justify-center gap-8">
+        <h1 className="w-2/3 text-center text-6xl leading-tight font-bold">
+          Unleash <AccentedText>Your</AccentedText> Creativity With AI-Powered
+          Magic
+        </h1>
+        <p className="text-center text-lg">
+          Transform your photos and ideas into stunning visual content
+          effortlessly. The future starts here!
+        </p>
+        <PrimaryAccentedButton className="text-lg">
+          Start Now <ArrowRightIcon className="ml-2" />
+        </PrimaryAccentedButton>
+      </div>
     </ContentBox>
   );
 }
@@ -48,7 +62,7 @@ function ContentBox({ children }: { children: React.ReactNode }) {
       <div className="relative z-3 h-full w-full rounded-[2rem] border-3 border-[#EEEFF6] bg-[#EEEFF614] p-8">
         {children}
       </div>
-      <div className="absolute top-1/2 left-1/2 z-1 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-b-[3rem] opacity-50">
+      <div className="absolute top-1/2 left-1/2 z-1 h-full w-full -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-b-[3rem] opacity-50">
         <div className="absolute inset-0 bg-gradient-to-b from-[#3838401A] to-[#383840]" />
         <video
           src="/hero-video.mp4"
