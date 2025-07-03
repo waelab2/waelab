@@ -44,9 +44,35 @@ export default function Hero() {
 
 function ContentBox({ children }: { children: React.ReactNode }) {
   return (
-    <section className="flex h-screen w-screen rounded-b-[3rem] bg-[#282830] p-8 text-white">
-      <div className="h-full w-full rounded-[2rem] border-3 border-[#EEEFF6] bg-[#EEEFF614] p-8">
+    <section className="relative flex h-screen w-screen rounded-b-[3rem] bg-[#282830] p-8 text-white">
+      <div className="relative z-3 h-full w-full rounded-[2rem] border-3 border-[#EEEFF6] bg-[#EEEFF614] p-8">
         {children}
+      </div>
+      <div className="absolute top-1/2 left-1/2 z-1 h-full w-full -translate-x-1/2 -translate-y-1/2 opacity-50">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#3838401A] to-[#383840]" />
+        <video
+          src="/hero-video.mp4"
+          autoPlay
+          loop
+          muted
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <div className="absolute top-0 left-0 z-2">
+        <Image
+          src="/top-left-decoration.png"
+          alt="hero-bg"
+          width={500}
+          height={500}
+        />
+      </div>
+      <div className="absolute right-0 bottom-0 z-2">
+        <Image
+          src="/bottom-right-decoration.png"
+          alt="hero-bg"
+          width={500}
+          height={500}
+        />
       </div>
     </section>
   );
