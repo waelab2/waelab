@@ -1,4 +1,4 @@
-import Link from "next/link";
+import About from "./_components/about";
 import Hero from "./_components/hero";
 
 // import { LatestPost } from "~/app/_components/post";
@@ -9,7 +9,12 @@ export default async function Home() {
 
   // void api.post.getLatest.prefetch();
 
-  return <Hero />;
+  return (
+    <>
+      <Hero />
+      <About />
+    </>
+  );
 
   // return (
   //   // <HydrateClient>

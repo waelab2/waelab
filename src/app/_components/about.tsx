@@ -1,0 +1,48 @@
+import { ArrowRightIcon } from "lucide-react";
+import Image from "next/image";
+import AccentedText from "~/components/accented-text";
+import PrimaryAccentedButton from "~/components/primary-accented-button";
+
+export default function About() {
+  return (
+    <section className="flex items-center px-8 py-16">
+      <div className="flex-1">
+        <Image
+          src="/decoration-play-button.png"
+          alt="about"
+          width={500}
+          height={500}
+        />
+      </div>
+      <div className="flex flex-1 flex-col gap-4">
+        <h4 className="flex items-center gap-2 text-lg">
+          <AccentedText>About</AccentedText>
+          <Image src="/title-arrow.png" alt="arrow" width={64} height={2} />
+        </h4>
+        <h2 className="text-4xl leading-tight font-bold">
+          Elevating <AccentedText>Video Creation </AccentedText>
+          <br />
+          With AI-Powered Innovation
+        </h2>
+        <figure className="relative h-[300px] w-full">
+          <div className="absolute inset-0 z-10 bg-linear-to-r from-[#E9476E00] to-[#3B5DA84D]" />
+          <Image
+            className="rounded-lg"
+            src="/about-section-image.jpg"
+            alt="about"
+            fill
+            style={{ objectFit: "cover" }}
+          />
+        </figure>
+        <p className="text-base text-gray-500">
+          WELAB is the leading site in Saudi Arabia that combines artificial
+          intelligence and artistic creativity to create videos and cinematic
+          scenes in full. The site is designed to be an integrated platform...
+        </p>
+        <PrimaryAccentedButton className="w-fit">
+          Read More <ArrowRightIcon className="ml-2 h-4 w-4" />
+        </PrimaryAccentedButton>
+      </div>
+    </section>
+  );
+}

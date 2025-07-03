@@ -48,7 +48,7 @@ function ContentBox({ children }: { children: React.ReactNode }) {
       <div className="relative z-3 h-full w-full rounded-[2rem] border-3 border-[#EEEFF6] bg-[#EEEFF614] p-8">
         {children}
       </div>
-      <div className="absolute top-1/2 left-1/2 z-1 h-full w-full -translate-x-1/2 -translate-y-1/2 opacity-50">
+      <div className="absolute top-1/2 left-1/2 z-1 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-b-[3rem] opacity-50">
         <div className="absolute inset-0 bg-gradient-to-b from-[#3838401A] to-[#383840]" />
         <video
           src="/hero-video.mp4"
