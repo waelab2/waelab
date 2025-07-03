@@ -2,6 +2,7 @@ import { ArrowRightIcon } from "lucide-react";
 import Image from "next/image";
 import AccentedText from "~/components/accented-text";
 import PrimaryAccentedButton from "~/components/primary-accented-button";
+import SectionTitle from "~/components/section-title";
 
 export default function About() {
   return (
@@ -15,10 +16,7 @@ export default function About() {
         />
       </div>
       <div className="flex flex-1 flex-col gap-4">
-        <h4 className="flex items-center gap-2 text-lg">
-          <AccentedText>About</AccentedText>
-          <Image src="/title-arrow.png" alt="arrow" width={64} height={2} />
-        </h4>
+        <SectionTitle title="About" rightArrow />
         <h2 className="text-4xl leading-tight font-bold">
           Elevating <AccentedText>Video Creation </AccentedText>
           <br />
