@@ -48,9 +48,11 @@ export default function Hero() {
           Transform your photos and ideas into stunning visual content
           effortlessly. The future starts here!
         </p>
-        <PrimaryAccentedButton className="text-lg">
-          Start Now <ArrowRightIcon className="ml-2" />
-        </PrimaryAccentedButton>
+        <Link href="/generate">
+          <PrimaryAccentedButton className="text-lg">
+            Start Now <ArrowRightIcon className="ml-2" />
+          </PrimaryAccentedButton>
+        </Link>
       </div>
     </ContentBox>
   );
