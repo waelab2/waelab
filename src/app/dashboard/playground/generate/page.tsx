@@ -1,8 +1,6 @@
 "use client";
 
 import { fal } from "@fal-ai/client";
-import { api } from "convex/_generated/api";
-import { useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import useGenerateStore from "~/lib/stores/useGenerateStore";
 import type { Result } from "~/lib/types";
@@ -13,10 +11,6 @@ export default function GeneratePage() {
   const { status, setStatus } = useGenerateStore();
   const [result, setResult] = useState<null | Result>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const tasks = useQuery(api.tasks.get);
-
-  console.log(tasks);
 
   useEffect(() => {
     setIsLoading(status === "IN_QUEUE" || status === "IN_PROGRESS");
