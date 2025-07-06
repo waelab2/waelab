@@ -2,17 +2,14 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
-const isRootDashboardRoute = createRouteMatcher([
-  "/dashboard",
-  "/dashboard/playground",
-]);
 
+const isRootPlaygroundRoute = createRouteMatcher(["/dashboard/playground"]);
 const isRootModelsRoute = createRouteMatcher(["/dashboard/models"]);
 const isRootSettingsRoute = createRouteMatcher(["/dashboard/settings"]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) await auth.protect();
-  if (isRootDashboardRoute(req)) {
+  if (isRootPlaygroundRoute(req)) {
     return NextResponse.redirect(
       new URL("/dashboard/playground/generate", req.url),
     );
