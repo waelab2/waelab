@@ -20,6 +20,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.23.3",
     "@fal-ai/client": "^1.5.0",
     "@fal-ai/server-proxy": "^1.1.1",
     "@libsql/client": "^0.14.0",

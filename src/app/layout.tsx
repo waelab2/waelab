@@ -3,8 +3,9 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
+import { ClerkProvider } from "@clerk/nextjs";
 import { TRPCReactProvider } from "~/trpc/react";
-import { ConvexClientProvider } from "./ConvexClientProvider";
+import ConvexClientProvider from "./ConvexClientProvider";
 
 export const metadata: Metadata = {
   title: "Waelab",
@@ -23,9 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>
-        <TRPCReactProvider>
-          <ConvexClientProvider>{children}</ConvexClientProvider>
-        </TRPCReactProvider>
+        <ClerkProvider>
+          <TRPCReactProvider>
+            <ConvexClientProvider>{children}</ConvexClientProvider>
+          </TRPCReactProvider>
+        </ClerkProvider>
       </body>
     </html>
   );
