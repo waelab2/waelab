@@ -1,175 +1,82 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react"
+import { UserButton } from "@clerk/nextjs";
+import { Bot, Settings2, SquareTerminal } from "lucide-react";
+import { usePathname } from "next/navigation";
+import * as React from "react";
 
-import { NavMain } from "~/components/nav-main"
-import { NavProjects } from "~/components/nav-projects"
-import { NavUser } from "~/components/nav-user"
-import { TeamSwitcher } from "~/components/team-switcher"
+import { NavMain } from "~/components/nav-main";
+// import { NavOther } from "~/components/nav-other";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader,
   SidebarRail,
-} from "~/components/ui/sidebar"
-
-// This is sample data.
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
-  navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-}
+} from "~/components/ui/sidebar";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+  const segments = pathname.split("/");
+
+  const data = {
+    navMain: [
+      {
+        title: "Playground",
+        url: "/dashboard/playground/generate",
+        icon: SquareTerminal,
+        isActive: segments[segments.length - 2] === "playground",
+        items: [
+          {
+            title: "Generate",
+            url: "/dashboard/playground/generate",
+          },
+        ],
+      },
+      {
+        title: "Models",
+        url: "/dashboard/models/prices",
+        icon: Bot,
+        isActive: segments[segments.length - 2] === "models",
+        items: [
+          {
+            title: "List",
+            url: "/dashboard/models/list",
+          },
+        ],
+      },
+      {
+        title: "Settings",
+        url: "/dashboard/settings/general",
+        icon: Settings2,
+        isActive: segments[segments.length - 2] === "settings",
+        items: [
+          {
+            title: "General",
+            url: "/dashboard/settings/general",
+          },
+        ],
+      },
+    ],
+    other: [],
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
-      </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {/* <NavOther other={data.other} /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <UserButton
+          showName
+          appearance={{
+            elements: {
+              userButtonBox: "flex flex-row-reverse!",
+            },
+          }}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

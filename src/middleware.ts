@@ -1,6 +1,31 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-export default clerkMiddleware();
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+const isRootDashboardRoute = createRouteMatcher([
+  "/dashboard",
+  "/dashboard/playground",
+]);
+
+const isRootModelsRoute = createRouteMatcher(["/dashboard/models"]);
+const isRootSettingsRoute = createRouteMatcher(["/dashboard/settings"]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) await auth.protect();
+  if (isRootDashboardRoute(req)) {
+    return NextResponse.redirect(
+      new URL("/dashboard/playground/generate", req.url),
+    );
+  }
+  if (isRootModelsRoute(req)) {
+    return NextResponse.redirect(new URL("/dashboard/models/list", req.url));
+  }
+  if (isRootSettingsRoute(req)) {
+    return NextResponse.redirect(
+      new URL("/dashboard/settings/general", req.url),
+    );
+  }
+});
 
 export const config = {
   matcher: [
