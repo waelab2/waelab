@@ -19,11 +19,7 @@ export default function GeneratePage() {
   console.log(tasks);
 
   useEffect(() => {
-    if (status === "IN_QUEUE" || status === "IN_PROGRESS") {
-      setIsLoading(true);
-    } else {
-      setIsLoading(false);
-    }
+    setIsLoading(status === "IN_QUEUE" || status === "IN_PROGRESS");
   }, [status]);
 
   fal.config({
@@ -31,6 +27,7 @@ export default function GeneratePage() {
   });
 
   async function handleSubmit(prompt: string) {
+    setStatus("IN_QUEUE");
     setResult(
       fal.subscribe("fal-ai/flux/dev", {
         input: {
@@ -40,7 +37,6 @@ export default function GeneratePage() {
         pollInterval: 5000,
         logs: true,
         onQueueUpdate(update) {
-          console.log("queue update", update);
           setStatus(update.status);
         },
       }),
@@ -48,12 +44,17 @@ export default function GeneratePage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-row items-center justify-center gap-16 bg-gradient-to-b from-[#2e026d] to-[#15162c] p-12 text-white transition-all duration-300">
+    <main className="flex flex-col gap-4 pt-4 pb-16">
+      <h1 className="text-2xl font-semibold tracking-tight">Generate Video</h1>
       <PromptSection loading={isLoading} handleSubmit={handleSubmit} />
-
       {status && result && (
-        <div className="w-full">
-          <ResultSection status={status} result={result} />
+        <div className="mt-4">
+          <h2 className="mb-4 text-2xl font-semibold tracking-tight">
+            Results
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ResultSection status={status} result={result} />
+          </div>
         </div>
       )}
     </main>

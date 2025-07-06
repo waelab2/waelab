@@ -11,7 +11,8 @@ import { models } from "~/lib/constants";
 
 export default function ModelsListPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] p-12 text-white">
+    <main className="flex flex-col gap-6 pt-4 pb-16">
+      <h1 className="text-2xl font-semibold tracking-tight">Model Catalog</h1>
       <ModelsTable />
     </main>
   );
@@ -19,17 +20,13 @@ export default function ModelsListPage() {
 
 function ModelsTable() {
   return (
-    <Table className="border-2 border-white">
-      <TableCaption className="text-white/75">
-        A list of available models.
-      </TableCaption>
+    <Table className="border">
+      <TableCaption>A list of available models.</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead className="text-white">ID</TableHead>
-          <TableHead className="text-white">Name</TableHead>
-          <TableHead className="text-right text-white">
-            Price Per Second
-          </TableHead>
+          <TableHead>ID</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead className="text-right">Price / sec</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

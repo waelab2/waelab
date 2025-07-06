@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronsUpDown, Loader2Icon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Collapsible,
@@ -28,33 +28,61 @@ export default function PromptSection({
   handleSubmit,
 }: {
   loading: boolean;
-  handleSubmit: (prompt: string) => void;
+  handleSubmit: (prompt: string, count: number) => void;
 }) {
   const [prompt, setPrompt] = useState<string>("");
-  const { status, setStatus } = useGenerateStore();
+  const [count, setCount] = useState<number>(1);
+
+  const { model, duration } = useGenerateStore();
+  const [estimatedCost, setEstimatedCost] = useState(0);
+
+  useEffect(() => {
+    const modelPricePerSecond = models.find(
+      (m) => m.id === model,
+    )?.price_per_second;
+
+    if (!modelPricePerSecond) setEstimatedCost(0);
+    else {
+      const videoCost = modelPricePerSecond * duration;
+      setEstimatedCost(count * videoCost);
+    }
+  }, [count, model, duration]);
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
-      <div className="rounded-lg bg-white/10 p-8 shadow-md">
-        <h1
-          className="mb-6 cursor-pointer text-center text-2xl font-bold"
-          onClick={() => setStatus(status === "IN_QUEUE" ? null : "IN_QUEUE")}
-        >
-          Generate Content
-        </h1>
-        <div className="grid w-full gap-4">
-          <Textarea
-            placeholder="Type your prompt here..."
-            className="min-h-[150px] resize-none bg-white/10 text-white placeholder:text-white/50"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            disabled={loading}
-          />
+    <div className="flex-1">
+      <div className="grid w-full gap-4 lg:grid-cols-2">
+        <Textarea
+          placeholder="Type your prompt here..."
+          className="min-h-[150px] resize-none"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          disabled={loading}
+        />
+
+        <div className="flex flex-col gap-4">
           <SettingsCollapsible isLoading={loading} />
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="numResults">Number of results</Label>
+            <Input
+              id="numResults"
+              type="number"
+              min={1}
+              step={1}
+              value={count}
+              onChange={(e) => setCount(Math.max(1, Number(e.target.value)))}
+              disabled={loading}
+            />
+          </div>
+
+          <p className="text-muted-foreground text-sm">
+            Estimated cost: $ {estimatedCost.toFixed(2)}
+          </p>
+
           <Button
-            className="w-full bg-white/10 transition hover:bg-white/20"
+            className="w-full"
             disabled={!prompt || loading}
-            onClick={() => handleSubmit(prompt)}
+            onClick={() => handleSubmit(prompt, count)}
           >
             {loading && <Loader2Icon className="animate-spin" />}
             Generate
@@ -83,9 +111,9 @@ function SettingsCollapsible({ isLoading }: { isLoading: boolean }) {
           </Button>
         </CollapsibleTrigger>
       </div>
-      <DurationInput isLoading={isLoading} />
+      <ModelSelector isLoading={isLoading} />
       <CollapsibleContent className="flex flex-col gap-2">
-        <ModelSelector isLoading={isLoading} />
+        <DurationInput isLoading={isLoading} />
         <AspectRatioSelector isLoading={isLoading} />
       </CollapsibleContent>
     </Collapsible>

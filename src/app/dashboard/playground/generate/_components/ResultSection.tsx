@@ -32,22 +32,20 @@ export default function ResultSection({
   }, [status, result]);
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <AspectRatio ratio={16 / 9}>
-        {isLoading ? (
-          <ImageSkeleton />
-        ) : (
-          <Suspense fallback={<ImageSkeleton />}>
-            <Image
-              src={imageUrl}
-              alt="Result"
-              className="rounded-lg object-cover shadow-lg"
-              fill
-            />
-          </Suspense>
-        )}
-      </AspectRatio>
-    </div>
+    <AspectRatio ratio={16 / 9}>
+      {isLoading ? (
+        <ImageSkeleton />
+      ) : (
+        <Suspense fallback={<ImageSkeleton />}>
+          <Image
+            src={imageUrl}
+            alt="Result"
+            className="rounded-lg object-cover shadow-lg"
+            fill
+          />
+        </Suspense>
+      )}
+    </AspectRatio>
   );
 }
 
