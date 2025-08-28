@@ -1,6 +1,6 @@
 import About from "./_components/about";
 import ComingSoon from "./_components/coming-soon";
-import Hero from "./_components/hero";
+import HomeHero from "./_components/home-hero";
 import Services from "./_components/services";
 
 // import { LatestPost } from "~/app/_components/post";
@@ -13,7 +13,7 @@ export default async function Home() {
 
   return (
     <>
-      <Hero />
+      <HomeHero />
       <About />
       <Services />
       <ComingSoon />
