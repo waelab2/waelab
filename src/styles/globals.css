@@ -122,4 +122,8 @@
   body {
     @apply bg-background text-foreground;
   }
+  .waelab-gradient-border {
+  border-image: linear-gradient(45deg, #E9476E, #3B5DA8) 1;
+  border-radius: 9999px;
+  }
 }

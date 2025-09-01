@@ -6,6 +6,7 @@ import { Geist } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TRPCReactProvider } from "~/trpc/react";
 import ConvexClientProvider from "./ConvexClientProvider";
+import Footer from "./_components/footer";
 import Hero from "./_components/hero";
 
 export const metadata: Metadata = {
@@ -28,8 +29,9 @@ export default function RootLayout({
         <ClerkProvider>
           <TRPCReactProvider>
             <ConvexClientProvider>
-              <Hero />
+              {/* <Hero /> */}
               {children}
+              {/* <Footer /> */}
             </ConvexClientProvider>
           </TRPCReactProvider>
         </ClerkProvider>
