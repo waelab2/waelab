@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { models } from "~/lib/constants";
 import { falClient } from "~/lib/falClient";
 import useGenerateStore from "~/lib/stores/useGenerateStore";
 import type { Result, Status, VideoGenerationInput } from "~/lib/types";
@@ -8,10 +9,34 @@ import PromptSection from "./_components/PromptSection";
 import ResultSection from "./_components/ResultSection";
 
 export default function GeneratePage() {
-  const { status, setStatus, model, duration, aspect_ratio } =
-    useGenerateStore();
+  const {
+    status,
+    setStatus,
+    model,
+    duration,
+    aspect_ratio,
+    negative_prompt,
+    cfg_scale,
+    prompt_optimizer,
+  } = useGenerateStore();
+
   const [result, setResult] = useState<null | Result>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [estimatedCost, setEstimatedCost] = useState(0);
+
+  // Calculate estimated cost based on selected model and parameters
+  useEffect(() => {
+    const modelPricePerSecond = models.find(
+      (m) => m.id === model,
+    )?.price_per_second;
+
+    if (!modelPricePerSecond) {
+      setEstimatedCost(0);
+    } else {
+      const videoCost = modelPricePerSecond * (duration ?? 5);
+      setEstimatedCost(videoCost);
+    }
+  }, [model, duration]);
 
   useEffect(() => {
     setIsLoading(status === "IN_QUEUE" || status === "IN_PROGRESS");
@@ -24,24 +49,35 @@ export default function GeneratePage() {
     });
   }, []);
 
-  async function handleSubmit(prompt: string, _count = 1) {
+  async function handleSubmit(prompt: string) {
     setStatus("IN_QUEUE");
 
-    // Build input based on selected model and store settings
+    // Build input based on what the model actually supports
     const input: VideoGenerationInput = {
       prompt,
-      duration: duration ? (duration.toString() as "5" | "6" | "10") : "5",
-      aspect_ratio: aspect_ratio ?? "16:9",
     };
 
-    // Add model-specific parameters
-    if (model.includes("kling")) {
-      // Kling models support negative_prompt and cfg_scale
-      input.negative_prompt = "blur, distort, and low quality";
-      input.cfg_scale = 0.5;
-    } else if (model.includes("minimax")) {
-      // Minimax models support prompt_optimizer
-      input.prompt_optimizer = true;
+    // Only add parameters that the model supports
+    if (duration !== undefined) {
+      // Convert number to the expected string literal type
+      const durationStr = duration.toString() as "5" | "6" | "10";
+      input.duration = durationStr;
+    }
+
+    if (aspect_ratio) {
+      input.aspect_ratio = aspect_ratio;
+    }
+
+    if (negative_prompt) {
+      input.negative_prompt = negative_prompt;
+    }
+
+    if (cfg_scale !== undefined) {
+      input.cfg_scale = cfg_scale;
+    }
+
+    if (prompt_optimizer !== undefined) {
+      input.prompt_optimizer = prompt_optimizer;
     }
 
     console.log(`🎬 Starting video generation with model: ${model}`);
@@ -60,19 +96,100 @@ export default function GeneratePage() {
   }
 
   return (
-    <main className="flex flex-col gap-4 pt-4 pb-16">
-      <h1 className="text-2xl font-semibold tracking-tight">Generate Video</h1>
-      <PromptSection loading={isLoading} handleSubmit={handleSubmit} />
-      {status && result && (
-        <div className="mt-4">
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight">
-            Results
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <ResultSection status={status} result={result} />
+    <main className="min-h-screen">
+      {/* Header Section */}
+      <div className="border-b backdrop-blur-sm">
+        <div className="sm:px-6g:px-8 mx-auto max-w-7xl px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                Generate Video
+              </h1>
+              <p className="mt-2 text-sm text-gray-600">
+                Create stunning videos with AI-powered generation
+              </p>
+            </div>
+            {isLoading && (
+              <div className="flex items-center space-x-2 rounded-full bg-blue-50 px-4 py-2">
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                <span className="text-sm font-medium text-blue-700">
+                  {status === "IN_QUEUE" ? "Queued..." : "Generating..."}
+                </span>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Main Content */}
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Left Column: Form */}
+          <div className="lg:col-span-2">
+            <PromptSection loading={isLoading} handleSubmit={handleSubmit} />
+          </div>
+
+          {/* Right Column: Cost & Actions */}
+          <div className="space-y-6">
+            {/* Cost Card */}
+            <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Cost Estimate
+              </h3>
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Model Cost</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    ${estimatedCost.toFixed(2)}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center justify-between border-t pt-2">
+                  <span className="text-base font-semibold text-gray-900">
+                    Total
+                  </span>
+                  <span className="text-xl font-bold text-blue-600">
+                    ${estimatedCost.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Quick Actions
+              </h3>
+              <div className="mt-4 space-y-3">
+                <button className="w-full rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                  Save as Template
+                </button>
+                <button className="w-full rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                  View History
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Results Section */}
+        {status && result && (
+          <div className="mt-12">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+                Generated Video
+              </h2>
+              <div className="flex items-center space-x-2">
+                <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
+                  {status === "COMPLETED" ? "✓ Complete" : status}
+                </span>
+              </div>
+            </div>
+            <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+              <ResultSection status={status} result={result} />
+            </div>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
