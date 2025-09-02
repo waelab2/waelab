@@ -1,0 +1,34 @@
+---
+alwaysApply: true
+---
+
+# Common Rules
+
+## Development Server
+
+- **NEVER** attempt to run the development server
+- **NEVER** use commands like `npm run dev`, `yarn dev`, `pnpm dev`, or similar
+- **NEVER** suggest starting the development server
+- If asked about running the app, explain that you cannot start the dev server
+
+## Browser Operations
+
+- **NEVER** attempt to open the browser
+- **NEVER** use commands like `open`, `start`, or browser-specific commands
+- **NEVER** suggest opening URLs in the browser
+- If asked about viewing the app in browser, explain that you cannot open browsers
+
+## Linting and Code Quality
+
+- When running lint commands (e.g., `npm run lint`, `eslint`, etc.):
+  - **IGNORE** errors and warnings in files not related to the current task
+  - Focus only on issues in files being actively worked on
+  - Do not attempt to fix linting issues in unrelated files
+  - If linting reveals issues in other files, mention them but do not attempt to fix them unless specifically requested
+
+## General Guidelines
+
+- Always focus on the specific task at hand
+- Do not perform actions that could interfere with the development environment
+- Prioritize code quality and correctness in the files being modified
+- Provide helpful guidance without making unnecessary system changes

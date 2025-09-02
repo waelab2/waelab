@@ -1,0 +1,231 @@
+---
+alwaysApply: false
+---
+
+# Fal.ai Mock Implementation - Cursor Rules
+
+## Overview
+
+This project implements a zero-cost development environment for fal.ai video generation models using dynamic schema fetching and comprehensive mocking. The system automatically switches between mock (development) and real (production) fal.ai clients based on environment.
+
+## Architecture
+
+### 1. Core Components
+
+#### Constants (`src/lib/constants.ts`)
+
+- **Models Array**: Contains model IDs, names, and pricing
+- **Dynamic URL Generation**: `getModelUrls()` generates schema/LLMs URLs from model IDs
+- **Fallback Preview URLs**: `getModelPreviewUrl()` provides reliable preview videos for development
+
+#### Schema Fetcher (`src/lib/utils/schema-fetcher.ts`)
+
+- **OpenAPI 3.0.4 Types**: Proper TypeScript interfaces for fal.ai schemas
+- **Dynamic Schema Fetching**: Fetches real API schemas from fal.ai endpoints
+- **Next.js Caching**: Uses `unstable_cache` with 1-hour revalidation
+- **Robust Parsing**: Extracts input/output schemas, constraints, and preview URLs
+- **Fallback Handling**: Graceful degradation when schema fetching fails
+
+#### Mock Client (`src/lib/mocks/falMock.ts`)
+
+- **Perfect API Simulation**: Mimics exact fal.ai client behavior
+- **Dynamic Validation**: Uses fetched schemas for input validation
+- **Realistic Timing**: Model-specific generation times (6-10 seconds)
+- **Preview Video Integration**: Returns actual model preview videos
+- **Comprehensive Logging**: Detailed console output for debugging
+
+#### Client Selector (`src/lib/falClient.ts`)
+
+- **Environment-Based Switching**: Development = mock, Production = real
+- **Unified Interface**: Same API regardless of environment
+- **Type Safety**: Full TypeScript support for both clients
+
+#### Types (`src/lib/types.ts`)
+
+- **Video Generation Interfaces**: Input/output types for all models
+- **Model Support**: Handles various video generation models dynamically
+- **Parameter Flexibility**: Supports duration, aspect_ratio, cfg_scale, etc.
+
+### 2. Key Patterns
+
+#### Dynamic Schema Fetching
+
+```typescript
+// URLs follow predictable patterns
+schema_url: `https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=${modelId}`;
+llms_url: `https://fal.ai/models/${modelId}/llms.txt`;
+
+// Preview URLs extracted from schema examples
+const previewUrl = outputSchema?.properties?.video?.examples?.[0]?.url;
+```
+
+#### Environment-Based Client Selection
+
+```typescript
+export const falClient: FalClient =
+  process.env.NODE_ENV === "development" ? falMock : fal;
+```
+
+#### Schema Validation
+
+```typescript
+// Validates against actual fal.ai API constraints
+const validationResult = validateInput(input, modelInfo.schema);
+if (!validationResult.isValid) {
+  throw new Error(`Invalid input: ${validationResult.errors.join(", ")}`);
+}
+```
+
+### 3. Model Support
+
+#### Dynamic Model Discovery
+
+- **No Hardcoded Model Lists**: Models are discovered dynamically from constants
+- **Schema-Driven Validation**: Each model's capabilities determined from OpenAPI schemas
+- **Extensible Architecture**: New models can be added without code changes
+
+#### Model Parameter Support
+
+- **Common Parameters**: `prompt`, `duration` (model-specific options)
+- **Advanced Features**: `negative_prompt`, `cfg_scale`, `prompt_optimizer` (when supported)
+- **Automatic Detection**: Model capabilities detected from schema, not hardcoded
+
+### 4. Development Workflow
+
+#### Zero-Cost Development
+
+1. Mock client automatically active in development
+2. Real fal.ai schemas fetched and cached
+3. Preview videos from actual model examples
+4. No API credits consumed during development
+
+#### Production Deployment
+
+1. Set `NODE_ENV=production`
+2. Real fal.ai client automatically used
+3. No code changes required
+4. Full production functionality
+
+### 5. Error Handling
+
+#### Graceful Degradation
+
+- Schema fetching failures fall back to hardcoded defaults
+- Network issues don't break development experience
+- Comprehensive error logging for debugging
+
+#### Fallback Mechanisms
+
+- Hardcoded preview URLs when schema examples unavailable
+- Default parameter constraints when parsing fails
+- Mock generation continues even with schema issues
+
+### 6. Performance Optimizations
+
+#### Caching Strategy
+
+- **Schema Cache**: 1-hour revalidation for OpenAPI schemas
+- **LLMs Cache**: 1-hour revalidation for documentation
+- **Tag-Based Invalidation**: Selective cache clearing per model
+
+#### Mock Performance
+
+- **Realistic Timing**: Simulates actual API response times
+- **Efficient Validation**: Schema parsing only when needed
+- **Memory Management**: No unnecessary object creation
+
+### 7. Testing & Validation
+
+#### Input Validation
+
+- **Prompt Length**: Respects model-specific limits (2000-2500 chars)
+- **Parameter Ranges**: Validates cfg_scale, duration, aspect_ratio
+- **Required Fields**: Ensures prompt is always provided
+
+#### Output Simulation
+
+- **File Metadata**: Realistic file sizes, names, and types
+- **Video URLs**: Actual preview videos from fal.ai
+- **Response Format**: Matches real API exactly
+
+### 8. Best Practices
+
+#### Code Organization
+
+- **Separation of Concerns**: Mock logic separate from business logic
+- **Type Safety**: Full TypeScript coverage with proper interfaces
+- **Error Boundaries**: Graceful handling of all failure scenarios
+
+#### Maintainability
+
+- **Dynamic URLs**: No hardcoded fal.ai endpoints
+- **Schema-Driven**: Validation based on actual API specifications
+- **Environment-Aware**: Automatic client selection
+
+### 9. Troubleshooting
+
+#### Common Issues
+
+1. **Schema Fetching Fails**: Check network connectivity to fal.ai
+2. **Preview Videos Broken**: Verify fallback URLs in constants
+3. **Type Errors**: Ensure OpenAPI interfaces match actual schemas
+4. **Mock Not Working**: Verify `NODE_ENV=development`
+
+#### Debug Mode
+
+- Console logs show mock generation progress
+- Schema fetching status displayed
+- Validation errors provide detailed feedback
+
+### 10. Future Enhancements
+
+#### Potential Improvements
+
+- **Real-time Schema Updates**: Webhook-based cache invalidation
+- **Advanced Mocking**: Error scenario simulation
+- **Performance Metrics**: Mock vs real API timing comparison
+- **Schema Versioning**: Support for multiple API versions
+
+## Usage Examples
+
+### Basic Video Generation
+
+```typescript
+const result = await falClient.subscribe(
+  "fal-ai/kling-video/v2.1/master/text-to-video",
+  {
+    input: {
+      prompt: "A beautiful sunset over mountains",
+      duration: "5",
+      aspect_ratio: "16:9",
+    },
+    pollInterval: 5000,
+    logs: true,
+    onQueueUpdate: (update) => {
+      console.log("Status:", update.status);
+    },
+  },
+);
+```
+
+### Model-Specific Parameters
+
+```typescript
+// Kling models support advanced parameters
+if (model.includes("kling")) {
+  input.negative_prompt = "blur, distort, and low quality";
+  input.cfg_scale = 0.5;
+}
+
+// Minimax models support prompt optimization
+if (model.includes("minimax")) {
+  input.prompt_optimizer = true;
+}
+```
+
+This implementation provides a production-ready, cost-effective development environment for fal.ai video generation while maintaining full compatibility with the real API.
+description:
+globs:
+alwaysApply: true
+
+---
