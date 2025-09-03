@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const schemaData = await response.json();
+    const schemaData = (await response.json()) as unknown;
     console.log(`🔍 Schema API: Successfully fetched schema for ${endpointId}`);
 
     return NextResponse.json(schemaData, {

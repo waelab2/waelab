@@ -18,6 +18,25 @@ export default function PlaygroundPage() {
         model.id.toLowerCase().includes(query),
     );
   }, [searchQuery]);
+
+  const modelsByCategory = useMemo(() => {
+    const categorized: Record<string, (typeof models)[number][]> = {};
+
+    filteredModels.forEach((model) => {
+      const category = model.category;
+      if (!categorized[category]) {
+        categorized[category] = [];
+      }
+      categorized[category].push(model);
+    });
+
+    return categorized;
+  }, [filteredModels]);
+
+  const categoryDisplayNames = {
+    "text-to-video": "Text-to-Video Models",
+    "image-to-video": "Image-to-Video Models",
+  } as const;
   return (
     <main className="flex flex-col gap-6 py-6">
       <div className="space-y-4">
@@ -46,43 +65,68 @@ export default function PlaygroundPage() {
         </div>
       </div>
 
-      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filteredModels.length === 0 ? (
-          <div className="col-span-full py-12 text-center">
-            <div className="text-gray-500">
-              <Search className="mx-auto mb-4 h-12 w-12 opacity-50" />
-              <p className="text-lg font-medium">No models found</p>
-              <p className="text-sm">Try adjusting your search query</p>
-            </div>
+      {filteredModels.length === 0 ? (
+        <div className="py-12 text-center">
+          <div className="text-gray-500">
+            <Search className="mx-auto mb-4 h-12 w-12 opacity-50" />
+            <p className="text-lg font-medium">No models found</p>
+            <p className="text-sm">Try adjusting your search query</p>
           </div>
-        ) : (
-          filteredModels.map((model) => {
-            return (
-              <Link
-                key={model.id}
-                href={`/dashboard/playground/generate?model=${encodeURIComponent(model.id)}`}
-                className="group relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                {/* Custom gradient overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] opacity-0 transition-all duration-300 group-hover:opacity-100" />
-
-                {/* Content */}
-                <div className="relative z-10 space-y-3">
-                  {/* Model ID (small) */}
-                  <p className="text-xs text-gray-500 transition-colors group-hover:text-gray-300">
-                    {model.id}
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {Object.entries(modelsByCategory).map(
+            ([category, categoryModels]) => (
+              <section key={category} className="space-y-4">
+                <div className="border-b border-gray-200 pb-2">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {
+                      categoryDisplayNames[
+                        category as keyof typeof categoryDisplayNames
+                      ]
+                    }
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {categoryModels.length} model
+                    {categoryModels.length !== 1 ? "s" : ""} available
                   </p>
-
-                  {/* Model name */}
-                  <h3 className="font-semibold text-gray-900 transition-colors group-hover:text-white">
-                    {model.name}
-                  </h3>
                 </div>
-              </Link>
-            );
-          })
-        )}
-      </section>
+
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {categoryModels.map((model) => (
+                    <Link
+                      key={model.id}
+                      href={`/dashboard/playground/generate?model=${encodeURIComponent(model.id)}`}
+                      className="group relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                    >
+                      {/* Custom gradient overlay on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] opacity-0 transition-all duration-300 group-hover:opacity-100" />
+
+                      {/* Content */}
+                      <div className="relative z-10 space-y-3">
+                        {/* Model ID (small) */}
+                        <p className="text-xs text-gray-500 transition-colors group-hover:text-gray-300">
+                          {model.id}
+                        </p>
+
+                        {/* Model name */}
+                        <h3 className="font-semibold text-gray-900 transition-colors group-hover:text-white">
+                          {model.name}
+                        </h3>
+
+                        {/* Price per second */}
+                        <div className="text-xs text-gray-600 transition-colors group-hover:text-gray-300">
+                          ${model.price_per_second}/sec
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ),
+          )}
+        </div>
+      )}
 
       {/* Info section */}
       <section className="mt-8 rounded-xl border bg-gray-50/50 p-6">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { models, type Model } from "~/lib/constants";
 import { falClient } from "~/lib/falClient";
 import useGenerateStore from "~/lib/stores/useGenerateStore";
@@ -10,7 +10,7 @@ import type { Result, Status, VideoGenerationInput } from "~/lib/types";
 import PromptSection from "./_components/PromptSection";
 import ResultSection from "./_components/ResultSection";
 
-export default function GeneratePage() {
+function GeneratePageContent() {
   const searchParams = useSearchParams();
   const {
     status,
@@ -145,7 +145,7 @@ export default function GeneratePage() {
                 </Link>
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Selected Model:</span>{" "}
-                  {models.find((m) => m.id === model)?.name || model}
+                  {models.find((m) => m.id === model)?.name ?? model}
                 </div>
               </div>
             </div>
@@ -231,5 +231,15 @@ export default function GeneratePage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function GeneratePage() {
+  return (
+    <Suspense
+      fallback={<div className="min-h-screen bg-white p-8">Loading...</div>}
+    >
+      <GeneratePageContent />
+    </Suspense>
   );
 }

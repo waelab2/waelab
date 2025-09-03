@@ -47,6 +47,9 @@ export default function ResultSection({
             <video
               src={videoData?.url}
               controls
+              autoPlay
+              loop
+              muted
               className="h-full w-full rounded-lg object-cover shadow-lg"
               preload="metadata"
             >
