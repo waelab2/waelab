@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { models } from "~/lib/constants";
+import { models, type Model } from "~/lib/constants";
 import { falClient } from "~/lib/falClient";
 import useGenerateStore from "~/lib/stores/useGenerateStore";
 import type { Result, Status, VideoGenerationInput } from "~/lib/types";
@@ -9,10 +11,12 @@ import PromptSection from "./_components/PromptSection";
 import ResultSection from "./_components/ResultSection";
 
 export default function GeneratePage() {
+  const searchParams = useSearchParams();
   const {
     status,
     setStatus,
     model,
+    setModel,
     duration,
     aspect_ratio,
     negative_prompt,
@@ -23,6 +27,14 @@ export default function GeneratePage() {
   const [result, setResult] = useState<null | Result>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [estimatedCost, setEstimatedCost] = useState(0);
+
+  // Handle model selection from URL parameter
+  useEffect(() => {
+    const modelFromUrl = searchParams.get("model");
+    if (modelFromUrl && models.some((m) => m.id === modelFromUrl)) {
+      setModel(modelFromUrl as Model["id"]);
+    }
+  }, [searchParams, setModel]);
 
   // Calculate estimated cost based on selected model and parameters
   useEffect(() => {
@@ -97,9 +109,25 @@ export default function GeneratePage() {
 
   return (
     <main className="min-h-screen">
+      {/* Breadcrumb Navigation */}
+      <div className="border-b bg-gray-50/50">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+          <nav className="flex items-center space-x-2 text-sm">
+            <Link
+              href="/dashboard/playground"
+              className="text-gray-500 transition-colors hover:text-gray-700"
+            >
+              Playground
+            </Link>
+            <span className="text-gray-400">/</span>
+            <span className="font-medium text-gray-900">Generate Video</span>
+          </nav>
+        </div>
+      </div>
+
       {/* Header Section */}
       <div className="border-b backdrop-blur-sm">
-        <div className="sm:px-6g:px-8 mx-auto max-w-7xl px-4 py-6">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -108,6 +136,18 @@ export default function GeneratePage() {
               <p className="mt-2 text-sm text-gray-600">
                 Create stunning videos with AI-powered generation
               </p>
+              <div className="mt-3 space-y-2">
+                <Link
+                  href="/dashboard/playground"
+                  className="inline-flex items-center gap-2 text-sm text-blue-600 transition-colors hover:text-blue-700"
+                >
+                  ← Back to Models
+                </Link>
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Selected Model:</span>{" "}
+                  {models.find((m) => m.id === model)?.name || model}
+                </div>
+              </div>
             </div>
             {isLoading && (
               <div className="flex items-center space-x-2 rounded-full bg-blue-50 px-4 py-2">

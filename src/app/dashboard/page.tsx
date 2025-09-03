@@ -7,9 +7,9 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Welcome back!</h1>
       <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <QuickLinkCard
-          href="/dashboard/playground/generate"
+          href="/dashboard/playground"
           title="Playground"
-          description="Generate videos with AI models."
+          description="Browse and select AI video models."
           Icon={SquareTerminal}
         />
         <QuickLinkCard
