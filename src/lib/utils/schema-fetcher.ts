@@ -1,4 +1,10 @@
 import { getModelPreviewUrl, getModelUrls } from "~/lib/constants";
+import {
+  determineFieldConfig,
+  type ExtendedOpenAPISchemaProperty,
+  type FormField,
+  getFallbackConfig,
+} from "~/lib/parameter-registry";
 
 // OpenAPI 3.0.4 types based on the actual fal.ai schemas
 interface OpenAPISchema {
@@ -26,18 +32,22 @@ interface OpenAPISchemaProperty {
   type: string;
   title?: string;
   description?: string;
-  enum?: string[];
+  enum?: string[] | number[];
   default?: string | number | boolean;
   minimum?: number;
   maximum?: number;
   maxLength?: number;
   minLength?: number;
+  format?: string;
+  contentType?: string;
   allOf?: OpenAPISchemaObject[];
   examples?: Array<{ url: string }>;
+  items?: OpenAPISchemaProperty;
+  properties?: Record<string, OpenAPISchemaProperty>;
 }
 
 export interface ModelSchema {
-  input: {
+  input: Record<string, unknown> & {
     prompt: {
       type: string;
       maxLength: number;
@@ -70,7 +80,19 @@ export interface ModelSchema {
     };
   };
   output: {
-    video: {
+    video?: {
+      url: string;
+      file_size: number;
+      file_name: string;
+      content_type: string;
+    };
+    audio?: {
+      url: string;
+      file_size: number;
+      file_name: string;
+      content_type: string;
+    };
+    image?: {
       url: string;
       file_size: number;
       file_name: string;
@@ -85,6 +107,10 @@ export interface ModelSchema {
     supports_prompt_optimizer?: boolean;
   };
   preview_url: string | null;
+  // New fields for extensibility
+  fields?: Record<string, FormField>;
+  category?: string;
+  model_id?: string;
 }
 
 export interface ModelLLMs {
@@ -175,6 +201,8 @@ export class ModelSchemaFetcher {
     modelId: string,
   ): ModelSchema {
     try {
+      console.log(`🔍 Parsing OpenAPI schema for model: ${modelId}`);
+
       // Find input schema (follows naming pattern: [Model]Input)
       const inputSchemaKey = Object.keys(openAPIData.components.schemas).find(
         (key) => key.includes("Input"),
@@ -186,6 +214,10 @@ export class ModelSchemaFetcher {
       );
 
       if (!inputSchemaKey || !outputSchemaKey) {
+        console.warn(
+          `Could not find input/output schemas for ${modelId}. Available schemas:`,
+          Object.keys(openAPIData.components.schemas),
+        );
         throw new Error(`Could not find input/output schemas for ${modelId}`);
       }
 
@@ -196,12 +228,22 @@ export class ModelSchemaFetcher {
         throw new Error(`Invalid schema structure for ${modelId}`);
       }
 
+      console.log(
+        `🔍 Found schemas - Input: ${inputSchemaKey}, Output: ${outputSchemaKey}`,
+      );
+      console.log(
+        `🔍 Input schema properties:`,
+        Object.keys(inputSchema.properties ?? {}),
+      );
+
       // Extract preview URL from output schema examples
       const previewUrl =
         outputSchema.properties?.video?.examples?.[0]?.url ??
+        outputSchema.properties?.audio?.examples?.[0]?.url ??
+        outputSchema.properties?.image?.examples?.[0]?.url ??
         getModelPreviewUrl(modelId);
 
-      // Parse input parameters
+      // Parse input parameters using the new registry system
       const input: ModelSchema["input"] = {
         prompt: {
           type: inputSchema.properties?.prompt?.type ?? "string",
@@ -210,56 +252,170 @@ export class ModelSchemaFetcher {
         },
       };
 
-      // Add optional parameters based on what's available
-      if (inputSchema.properties?.duration) {
-        input.duration = {
-          enum: inputSchema.properties.duration.enum ?? ["5", "10"],
-          default: String(inputSchema.properties.duration.default ?? "5"),
-          type: inputSchema.properties.duration.type ?? "string",
-        };
+      // Parse all input fields dynamically using the parameter registry
+      const fields: Record<string, FormField> = {};
+      const requiredFields = inputSchema.required ?? [];
+
+      if (inputSchema.properties) {
+        for (const [propertyName, property] of Object.entries(
+          inputSchema.properties,
+        )) {
+          try {
+            // Convert OpenAPISchemaProperty to ExtendedOpenAPISchemaProperty
+            const extendedProperty: ExtendedOpenAPISchemaProperty = {
+              type: property.type,
+              title: property.title,
+              description: property.description,
+              enum: property.enum,
+              default: property.default,
+              minimum: property.minimum,
+              maximum: property.maximum,
+              maxLength: property.maxLength,
+              minLength: property.minLength,
+              format: property.format,
+              contentType: property.contentType,
+              examples: property.examples,
+              required: requiredFields.includes(propertyName),
+              // Handle items recursively if it exists
+              items: property.items
+                ? {
+                    type: property.items.type,
+                    title: property.items.title,
+                    description: property.items.description,
+                    enum: property.items.enum,
+                    default: property.items.default,
+                    minimum: property.items.minimum,
+                    maximum: property.items.maximum,
+                    maxLength: property.items.maxLength,
+                    minLength: property.items.minLength,
+                    format: property.items.format,
+                    contentType: property.items.contentType,
+                    examples: property.items.examples,
+                  }
+                : undefined,
+              // Handle properties recursively if it exists
+              properties: property.properties
+                ? Object.fromEntries(
+                    Object.entries(property.properties).map(([key, prop]) => {
+                      const typedProp = prop;
+                      return [
+                        key,
+                        {
+                          type: typedProp.type,
+                          title: typedProp.title,
+                          description: typedProp.description,
+                          enum: typedProp.enum,
+                          default: typedProp.default,
+                          minimum: typedProp.minimum,
+                          maximum: typedProp.maximum,
+                          maxLength: typedProp.maxLength,
+                          minLength: typedProp.minLength,
+                          format: typedProp.format,
+                          contentType: typedProp.contentType,
+                          examples: typedProp.examples,
+                        } as ExtendedOpenAPISchemaProperty,
+                      ];
+                    }),
+                  )
+                : undefined,
+            };
+
+            // Use the parameter registry to determine field configuration
+            const fieldConfig = determineFieldConfig(
+              extendedProperty,
+              propertyName,
+            );
+            fields[propertyName] = fieldConfig;
+
+            console.log(
+              `🔍 Parsed field: ${propertyName} -> ${fieldConfig.uiComponent}`,
+            );
+
+            // Maintain backward compatibility for known fields
+            if (propertyName === "duration" && property.enum) {
+              input.duration = {
+                enum: property.enum as string[],
+                default: String(property.default ?? "5"),
+                type: property.type ?? "string",
+              };
+            }
+
+            if (propertyName === "aspect_ratio" && property.enum) {
+              input.aspect_ratio = {
+                enum: property.enum as string[],
+                default: String(property.default ?? "16:9"),
+                type: property.type ?? "string",
+              };
+            }
+
+            if (propertyName === "negative_prompt") {
+              input.negative_prompt = {
+                type: property.type ?? "string",
+                maxLength: property.maxLength ?? 2500,
+                default: String(
+                  property.default ?? "blur, distort, and low quality",
+                ),
+              };
+            }
+
+            if (propertyName === "cfg_scale") {
+              input.cfg_scale = {
+                type: property.type ?? "number",
+                minimum: Number(property.minimum ?? 0),
+                maximum: Number(property.maximum ?? 1),
+                default: Number(property.default ?? 0.5),
+              };
+            }
+
+            if (propertyName === "prompt_optimizer") {
+              input.prompt_optimizer = {
+                type: property.type ?? "boolean",
+                default: Boolean(property.default ?? true),
+              };
+            }
+          } catch (error) {
+            console.warn(`Failed to parse field ${propertyName}:`, error);
+
+            // Use fallback configuration
+            const fallbackField = getFallbackConfig(
+              {
+                type: property.type,
+                title: property.title,
+                description: property.description,
+                enum: property.enum,
+                default: property.default,
+                minimum: property.minimum,
+                maximum: property.maximum,
+                maxLength: property.maxLength,
+                minLength: property.minLength,
+                format: property.format,
+                contentType: property.contentType,
+                examples: property.examples,
+                required: requiredFields.includes(propertyName),
+              },
+              propertyName,
+            );
+
+            fields[propertyName] = fallbackField;
+          }
+        }
       }
 
-      if (inputSchema.properties?.aspect_ratio) {
-        input.aspect_ratio = {
-          enum: inputSchema.properties.aspect_ratio.enum ?? [
-            "16:9",
-            "9:16",
-            "1:1",
-          ],
-          default: String(
-            inputSchema.properties.aspect_ratio.default ?? "16:9",
-          ),
-          type: inputSchema.properties.aspect_ratio.type ?? "string",
-        };
+      console.log(
+        `🔍 Parsed ${Object.keys(fields).length} fields for ${modelId}`,
+      );
+
+      // Determine model category based on output types
+      let category = "text-to-video"; // default
+      if (outputSchema.properties?.audio) {
+        category = "text-to-audio";
+      } else if (outputSchema.properties?.image) {
+        category = "text-to-image";
       }
 
-      if (inputSchema.properties?.negative_prompt) {
-        input.negative_prompt = {
-          type: inputSchema.properties.negative_prompt.type ?? "string",
-          maxLength: inputSchema.properties.negative_prompt.maxLength ?? 2500,
-          default: String(
-            inputSchema.properties.negative_prompt.default ??
-              "blur, distort, and low quality",
-          ),
-        };
-      }
-
-      if (inputSchema.properties?.cfg_scale) {
-        input.cfg_scale = {
-          type: inputSchema.properties.cfg_scale.type ?? "number",
-          minimum: Number(inputSchema.properties.cfg_scale.minimum ?? 0),
-          maximum: Number(inputSchema.properties.cfg_scale.maximum ?? 1),
-          default: Number(inputSchema.properties.cfg_scale.default ?? 0.5),
-        };
-      }
-
-      if (inputSchema.properties?.prompt_optimizer) {
-        input.prompt_optimizer = {
-          type: inputSchema.properties.prompt_optimizer.type ?? "boolean",
-          default: Boolean(
-            inputSchema.properties.prompt_optimizer.default ?? true,
-          ),
-        };
+      // Check for input image field to detect image-to-video models
+      if (fields.image || fields.image_url) {
+        category = category.replace("text-to-", "image-to-");
       }
 
       // Build constraints
@@ -276,18 +432,54 @@ export class ModelSchemaFetcher {
         supports_prompt_optimizer: !!input.prompt_optimizer,
       };
 
+      // Build output schema dynamically
+      const output: ModelSchema["output"] = {};
+
+      if (outputSchema.properties?.video) {
+        output.video = {
+          url: "string",
+          file_size: 0,
+          file_name: "string",
+          content_type: "video/mp4",
+        };
+      }
+
+      if (outputSchema.properties?.audio) {
+        output.audio = {
+          url: "string",
+          file_size: 0,
+          file_name: "string",
+          content_type: "audio/wav",
+        };
+      }
+
+      if (outputSchema.properties?.image) {
+        output.image = {
+          url: "string",
+          file_size: 0,
+          file_name: "string",
+          content_type: "image/png",
+        };
+      }
+
+      // Fallback to video if no output type detected
+      if (Object.keys(output).length === 0) {
+        output.video = {
+          url: "string",
+          file_size: 0,
+          file_name: "string",
+          content_type: "video/mp4",
+        };
+      }
+
       return {
         input,
-        output: {
-          video: {
-            url: "string",
-            file_size: 0,
-            file_name: "string",
-            content_type: "video/mp4",
-          },
-        },
+        output,
         constraints,
         preview_url: previewUrl,
+        fields,
+        category,
+        model_id: modelId,
       };
     } catch (error) {
       console.error(`Error parsing OpenAPI schema for ${modelId}:`, error);

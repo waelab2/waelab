@@ -1,0 +1,287 @@
+---
+alwaysApply: false
+---
+
+# New Model Implementation - Cursor Rules
+
+## Overview
+
+When adding new models to WaeLab, follow these guidelines to ensure the dynamic form system remains robust and extensible. The system is designed to automatically adapt to new model capabilities through OpenAPI schema parsing.
+
+## Critical Requirements
+
+### 1. Schema Analysis First
+
+- **ALWAYS** analyze the model's OpenAPI schema before implementation
+- **NEVER** assume parameter types or structures
+- **ALWAYS** check for new parameter types not currently handled
+- **VERIFY** the model category (text-to-video, image-to-video, text-to-audio, etc.)
+
+### 2. Current System Architecture
+
+The system now includes a comprehensive **parameter registry** and **dynamic field renderer** that handles all parameter types:
+
+#### **Supported Parameter Types**
+
+- `string` → Input field or Textarea (based on maxLength)
+- `number/integer` → Input field or Slider (based on min/max range)
+- `boolean` → Switch component
+- `enum` → Select dropdown
+- `array` → Multi-select component
+- `object` → Nested form
+- `file` → File upload (image/audio/video with validation)
+
+#### **Key Components**
+
+- **Parameter Registry** (`src/lib/parameter-registry.ts`) - Central type definitions
+- **Dynamic Field Renderer** (`src/components/dynamic-field-renderer.tsx`) - Universal component renderer
+- **Enhanced Schema Parser** (`src/lib/utils/schema-fetcher.ts`) - OpenAPI schema processing
+- **Enhanced Form** (`src/app/dashboard/playground/generate/_components/EnhancedDynamicModelForm.tsx`) - Main form component
+
+#### **Automatic Features**
+
+- **Schema-driven form generation** - Forms adapt automatically to any OpenAPI schema
+- **Fallback handling** - Unknown parameter types gracefully degrade
+- **Validation pipeline** - Real-time validation based on schema constraints
+- **Smart layouts** - Form sections organize based on model category
+
+### 3. Implementation Checklist
+
+#### Before Adding a Model
+
+- [ ] **Fetch and analyze** the model's OpenAPI schema
+- [ ] **Identify new parameter types** not currently supported
+- [ ] **Check parameter data types** (string, number, boolean, array, object, file)
+- [ ] **Verify parameter constraints** (min/max values, enum options, required fields)
+- [ ] **Assess model category** and its specific requirements
+
+#### During Implementation
+
+- [ ] **Add model to constants** with proper pricing
+- [ ] **Update fallback preview URLs** if needed
+- [ ] **Test schema fetching** works correctly
+- [ ] **Verify form rendering** shows all supported parameters
+- [ ] **Test parameter validation** and constraints
+- [ ] **Ensure cost calculation** works correctly
+
+#### After Implementation
+
+- [ ] **Test with mock client** in development
+- [ ] **Verify real API integration** works
+- [ ] **Check error handling** for edge cases
+- [ ] **Validate user experience** is intuitive
+
+## Model Categories
+
+### Text-to-Video Models (Currently Supported)
+
+- **Input**: Text prompt + optional video settings
+- **Parameters**: prompt, duration, aspect_ratio, negative_prompt, cfg_scale, prompt_optimizer
+- **Implementation**: ✅ Fully supported
+
+### Image-to-Video Models (✅ Fully Supported)
+
+- **Input**: Image file + text prompt + optional settings
+- **Parameters**: image upload (with preview), prompt, video settings
+- **Implementation**: File upload component with drag-and-drop, validation, and preview
+
+### Text-to-Audio Models (✅ Fully Supported)
+
+- **Input**: Text prompt + audio-specific settings
+- **Parameters**: prompt, sample_rate, audio_format, quality_settings
+- **Implementation**: Audio-specific parameter handling and validation
+
+### Text-to-Image Models (✅ Fully Supported)
+
+- **Input**: Text prompt + image generation settings
+- **Parameters**: prompt, dimensions, style, quality settings
+- **Implementation**: Standard parameter handling with image output support
+
+## Parameter Type Handling
+
+### Currently Supported Types
+
+```typescript
+// String with max length
+if (property.type === 'string' && property.maxLength) {
+  return <Textarea maxLength={property.maxLength} />;
+}
+
+// Enum values
+if (property.enum) {
+  return <Select options={property.enum} />;
+}
+
+// Number with range
+if (property.type === 'number' && property.minimum !== undefined) {
+  return <Input type="number" min={property.minimum} max={property.maximum} />;
+}
+
+// Boolean
+if (property.type === 'boolean') {
+  return <Switch />;
+}
+```
+
+### All Types Now Implemented
+
+The system automatically handles all parameter types through the parameter registry:
+
+```typescript
+// The registry automatically maps schema types to UI components
+import { determineFieldConfig } from '~/lib/parameter-registry';
+
+// Usage: Automatic field configuration
+const fieldConfig = determineFieldConfig(openAPIProperty, fieldName);
+// Returns: { type, uiComponent, validation, defaultValue, etc. }
+
+// The DynamicFieldRenderer handles all types automatically
+<DynamicFieldRenderer
+  field={fieldConfig}
+  value={currentValue}
+  onChange={handleChange}
+  onValidationChange={handleValidation}
+/>
+```
+
+## Implementation Steps (Simplified)
+
+### Step 1: Add Model to Constants
+
+```typescript
+// src/lib/constants.ts
+export const models = [
+  // ... existing models
+  {
+    id: "new-model-endpoint-id",
+    name: "New Model Name",
+    price_per_second: 0.XX,
+  },
+] as const;
+```
+
+### Step 2: System Automatically Handles Everything
+
+The enhanced system automatically:
+
+1. **Fetches OpenAPI schema** via `ModelSchemaFetcher.getModelInfo()`
+2. **Parses all parameters** using the parameter registry
+3. **Generates appropriate UI** through the dynamic field renderer
+4. **Handles validation** based on schema constraints
+5. **Organizes form layout** based on detected model category
+6. **Provides fallback UI** for any unexpected parameter types
+
+### Step 3: Verify and Test
+
+```typescript
+// The system logs detailed information for debugging
+// Check browser console for:
+// - "🔍 Parsing OpenAPI schema for model: {modelId}"
+// - "🔍 Parsed field: {fieldName} -> {uiComponent}"
+// - "✅ Loaded {count} fields for model: {modelId}"
+// - "✅ Model category: {category}"
+```
+
+## Error Handling
+
+### Graceful Degradation
+
+```typescript
+try {
+  const field = renderParameterField(paramName, schema);
+  return field;
+} catch (error) {
+  console.warn(`Failed to render field for ${paramName}:`, error);
+  return <FallbackField name={paramName} />;
+}
+```
+
+### Fallback UI
+
+```typescript
+function FallbackField({ name, type }: { name: string; type: string }) {
+  return (
+    <div className="p-4 border border-orange-200 bg-orange-50 rounded-lg">
+      <p className="text-sm text-orange-800">
+        <strong>Unsupported parameter:</strong> {name} ({type})
+      </p>
+      <p className="text-xs text-orange-600 mt-1">
+        This parameter type is not yet supported. Please contact support.
+      </p>
+    </div>
+  );
+}
+```
+
+## Testing Requirements
+
+### Schema Validation
+
+- [ ] **OpenAPI schema** parses without errors
+- [ ] **Input parameters** are correctly identified
+- [ ] **Parameter constraints** are properly extracted
+- [ ] **Default values** are set correctly
+
+### Form Rendering
+
+- [ ] **All parameters** are displayed
+- [ ] **Input validation** works correctly
+- [ ] **Parameter dependencies** are handled
+- [ ] **Error states** are properly managed
+
+### Integration Testing
+
+- [ ] **Mock client** works with new model
+- [ ] **Real API** integration functions
+- [ ] **Cost calculation** is accurate
+- [ ] **User experience** remains smooth
+
+## Common Pitfalls
+
+### ❌ Don't Do This
+
+- **Hardcode parameter assumptions** based on existing models
+- **Skip schema analysis** and assume parameter types
+- **Ignore new parameter types** that aren't currently supported
+- **Assume all models** follow the same parameter structure
+
+### ✅ Do This Instead
+
+- **Always analyze schemas** before implementation
+- **Implement fallback handling** for unknown types
+- **Extend the system** to handle new parameter types
+- **Test thoroughly** with both mock and real clients
+- **Document changes** for future reference
+
+## Success Criteria
+
+A new model is successfully implemented when:
+
+1. **Schema parsing** works without errors
+2. **All parameters** are properly displayed in the form
+3. **Input validation** respects parameter constraints
+4. **Cost calculation** is accurate
+5. **User experience** remains intuitive
+6. **Existing functionality** is not broken
+7. **Error handling** is graceful for edge cases
+
+## Key Architecture Files
+
+- **Parameter Registry**: `src/lib/parameter-registry.ts` - Central type system
+- **Enhanced Schema Parser**: `src/lib/utils/schema-fetcher.ts` - OpenAPI processing
+- **Dynamic Field Renderer**: `src/components/dynamic-field-renderer.tsx` - Universal UI component
+- **Enhanced Form**: `src/app/dashboard/playground/generate/_components/EnhancedDynamicModelForm.tsx` - Main form
+- **File Upload Component**: `src/components/ui/file-upload.tsx` - File handling
+- **Slider Component**: `src/components/ui/slider.tsx` - Range inputs
+- **Model Constants**: `src/lib/constants.ts` - Model definitions
+- **Enhanced Store**: `src/lib/stores/useGenerateStore.ts` - State management
+
+## System Status: ✅ COMPLETE
+
+The dynamic form system is **fully implemented** and **production-ready**. Adding new models now requires only:
+
+1. **Add model to constants** with endpoint ID, name, and pricing
+2. **Test in browser** - system automatically adapts to any parameter structure
+3. **Verify user experience** - form organizes intelligently based on model category
+
+The system handles **all parameter types**, provides **fallback UI** for unknown types, includes **comprehensive validation**, and maintains **full backward compatibility**.

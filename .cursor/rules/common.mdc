@@ -26,6 +26,11 @@ alwaysApply: true
   - Do not attempt to fix linting issues in unrelated files
   - If linting reveals issues in other files, mention them but do not attempt to fix them unless specifically requested
 
+## Coding Standards
+
+- Use '??' instead of '||' for nullish coalescing
+- Never use 'any' type - always use proper types or unions
+
 ## General Guidelines
 
 - Always focus on the specific task at hand

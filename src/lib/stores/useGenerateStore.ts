@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Model } from "../constants";
+import type { ParameterValue } from "../parameter-registry";
 import type { AspectRatio, Status } from "../types";
 import type { ModelSchema } from "../utils/schema-fetcher";
 
@@ -16,6 +17,14 @@ type State = {
   // Model metadata
   modelSchema: ModelSchema | null;
   isLoadingModel: boolean;
+  // Enhanced dynamic form system
+  formValues: Record<string, ParameterValue>;
+  validationErrors: Record<string, string | null>;
+  generatedAudio: string | null;
+  generatedImage: string | null;
+  generatedVideo: string | null;
+  isGenerating: boolean;
+  cost: number | null;
 };
 
 type Actions = {
@@ -29,6 +38,17 @@ type Actions = {
   setPromptOptimizer: (prompt_optimizer: boolean) => void;
   setModelSchema: (schema: ModelSchema | null) => void;
   setLoadingModel: (loading: boolean) => void;
+  // Enhanced dynamic form actions
+  setFormValue: (key: string, value: ParameterValue) => void;
+  setFormValues: (values: Record<string, ParameterValue>) => void;
+  clearFormValues: () => void;
+  setValidationError: (key: string, error: string | null) => void;
+  clearValidationErrors: () => void;
+  setGeneratedAudio: (audio: string | null) => void;
+  setGeneratedImage: (image: string | null) => void;
+  setGeneratedVideo: (video: string | null) => void;
+  setGenerating: (generating: boolean) => void;
+  setCost: (cost: number) => void;
   // Reset parameters when model changes
   resetModelParameters: () => void;
 };
@@ -44,7 +64,7 @@ const useGenerateStore = create<State & Actions>()((set, get) => ({
     get().resetModelParameters();
   },
 
-  // Dynamic parameters
+  // Dynamic parameters (backward compatibility)
   prompt: "",
   setPrompt: (prompt) => set({ prompt }),
 
@@ -70,6 +90,38 @@ const useGenerateStore = create<State & Actions>()((set, get) => ({
   isLoadingModel: false,
   setLoadingModel: (loading) => set({ isLoadingModel: loading }),
 
+  // Enhanced dynamic form system
+  formValues: {},
+  setFormValue: (key, value) =>
+    set((state) => ({
+      formValues: { ...state.formValues, [key]: value },
+    })),
+  setFormValues: (values) => set({ formValues: values }),
+  clearFormValues: () => set({ formValues: {} }),
+
+  validationErrors: {},
+  setValidationError: (key, error) =>
+    set((state) => ({
+      validationErrors: { ...state.validationErrors, [key]: error },
+    })),
+  clearValidationErrors: () => set({ validationErrors: {} }),
+
+  // Generation results
+  generatedAudio: null,
+  setGeneratedAudio: (audio) => set({ generatedAudio: audio }),
+
+  generatedImage: null,
+  setGeneratedImage: (image) => set({ generatedImage: image }),
+
+  generatedVideo: null,
+  setGeneratedVideo: (video) => set({ generatedVideo: video }),
+
+  isGenerating: false,
+  setGenerating: (generating) => set({ isGenerating: generating }),
+
+  cost: null,
+  setCost: (cost) => set({ cost }),
+
   resetModelParameters: () =>
     set({
       duration: undefined,
@@ -78,6 +130,12 @@ const useGenerateStore = create<State & Actions>()((set, get) => ({
       cfg_scale: undefined,
       prompt_optimizer: undefined,
       modelSchema: null,
+      formValues: {},
+      validationErrors: {},
+      generatedAudio: null,
+      generatedImage: null,
+      generatedVideo: null,
+      cost: null,
     }),
 }));
 

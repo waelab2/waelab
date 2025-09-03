@@ -3,7 +3,7 @@
 import { Loader2Icon } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import useGenerateStore from "~/lib/stores/useGenerateStore";
-import DynamicModelForm from "./DynamicModelForm";
+import EnhancedDynamicModelForm from "./EnhancedDynamicModelForm";
 
 export default function PromptSection({
   loading,
@@ -32,7 +32,7 @@ export default function PromptSection({
           </p>
         </div>
 
-        <DynamicModelForm />
+        <EnhancedDynamicModelForm />
 
         {/* Generate Button Section */}
         <div className="mt-8 flex items-center justify-end border-t pt-6">
