@@ -165,6 +165,7 @@ export interface ExtendedOpenAPISchemaProperty {
   allOf?: ExtendedOpenAPISchemaProperty[];
   examples?: Array<{ url: string }>;
   required?: boolean;
+  anyOf?: ExtendedOpenAPISchemaProperty[]; // Added for nullable types
 }
 
 /**
@@ -236,6 +237,30 @@ function determineParameterType(
       uiComponent: "select",
       options: property.enum,
     };
+  }
+
+  // Handle anyOf union types (OpenAPI nullable types)
+  if (property.anyOf && property.anyOf.length > 0) {
+    // Find the primary type (non-null type)
+    const primaryType = property.anyOf.find((type) => type.type !== "null");
+    if (primaryType) {
+      // Create a new property object with the primary type
+      const primaryProperty: ExtendedOpenAPISchemaProperty = {
+        ...property,
+        type: primaryType.type,
+        // Merge other properties from the primary type
+        minimum: primaryType.minimum ?? property.minimum,
+        maximum: primaryType.maximum ?? property.maximum,
+        maxLength: primaryType.maxLength ?? property.maxLength,
+        minLength: primaryType.minLength ?? property.minLength,
+        enum: primaryType.enum ?? property.enum,
+        format: primaryType.format ?? property.format,
+        contentType: primaryType.contentType ?? property.contentType,
+      };
+
+      // Recursively determine the type for the primary property
+      return determineParameterType(primaryProperty);
+    }
   }
 
   // Handle file uploads based on format or content type

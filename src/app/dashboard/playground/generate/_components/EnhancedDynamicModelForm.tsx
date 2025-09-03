@@ -96,7 +96,7 @@ export default function EnhancedDynamicModelForm() {
     }
 
     void fetchModelSchema();
-  }, [model, setModelSchema, setLoadingModel, prompt]);
+  }, [model, setModelSchema, setLoadingModel]);
 
   const handleFieldChange = useCallback(
     (fieldName: string, value: ParameterValue) => {
