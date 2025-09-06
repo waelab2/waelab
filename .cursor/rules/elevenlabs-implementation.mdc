@@ -1,0 +1,380 @@
+# ElevenLabs Text-to-Speech Integration
+
+## Overview
+
+Complete implementation of ElevenLabs "Eleven Multilingual v2" model for Arabic text-to-speech conversion with Saudi accent. This integration is separate from the existing fal.ai pipeline and uses a dedicated UI and backend structure.
+
+## Architecture
+
+### Core Components
+
+#### 1. Types & Interfaces (`src/lib/types.ts`)
+
+```typescript
+// ElevenLabs-specific types (not generic)
+export interface ElevenLabsTextToSpeechInput {
+  text: string;
+  voice_id: string;
+}
+
+export interface ElevenLabsTextToSpeechOutput {
+  audio: {
+    url: string;
+    file_size: number;
+    duration_ms?: number;
+    content_type: string;
+    file_name: string;
+  };
+  metadata?: {
+    character_count: number;
+    generation_time_ms: number;
+    model_id: string;
+    voice_id: string;
+  };
+}
+
+export type ElevenLabsStatus =
+  | "PREPARING"
+  | "GENERATING"
+  | "COMPLETED"
+  | "FAILED";
+export type ElevenLabsResult = Promise<{ data: ElevenLabsTextToSpeechOutput }>;
+```
+
+#### 2. Constants (`src/lib/constants.ts`)
+
+- **Model Definition**: `elevenlabs/eleven_multilingual_v2` added to models array
+- **Saudi Arabic Voices**: Array of voice configurations with IDs, names, gender, accent
+- **Pricing**: Estimated $0.30 per 50 characters
+- **Category**: "text-to-audio" for proper routing
+
+#### 3. Client Architecture (`src/lib/elevenLabsClient.ts`)
+
+**Key Features:**
+
+- **Server-side only**: Uses Proxy pattern to prevent client-side access
+- **Environment safety**: Only accesses `ELEVENLABS_API_KEY` on server
+- **Mock support**: Toggle between mock and production clients
+- **Debug logging**: Extensive logging with `DEBUG_ELEVENLABS` flag
+
+**Client Interface:**
+
+```typescript
+interface ElevenLabsClientInterface {
+  generate(options: {
+    input: ElevenLabsTextToSpeechInput;
+    onProgress?: (progress: { status: ElevenLabsStatus }) => void;
+  }): ElevenLabsResult;
+
+  getVoices(): Promise<
+    Array<{
+      /* voice data */
+    }>
+  >;
+}
+```
+
+**Factory Pattern:**
+
+```typescript
+export function createElevenLabsClient(): ElevenLabsClientInterface;
+export const elevenLabsClient: ElevenLabsClientInterface; // Server-only proxy
+```
+
+#### 4. Mock Implementation (`src/lib/mocks/elevenLabsMock.ts`)
+
+- **Zero-cost development**: Simulates API responses without real calls
+- **Realistic delays**: Mimics actual API response times
+- **Validation**: Checks input parameters like production
+- **Debug logging**: Separate `mockLog` and `mockError` functions
+- **Easy toggling**: `USE_MOCK_IN_DEV` flag in elevenLabsClient.ts
+
+### API Layer
+
+#### API Route (`src/app/api/elevenlabs/text-to-speech/route.ts`)
+
+**Features:**
+
+- **Server-side processing**: Direct ElevenLabs SDK usage
+- **Input validation**: Text length, voice_id presence
+- **Error handling**: Comprehensive error types and user-friendly messages
+- **Streaming**: Converts ElevenLabs stream to audio blob
+- **Debug logging**: Request tracking with unique IDs
+
+**Request/Response:**
+
+```typescript
+// Request
+POST /api/elevenlabs/text-to-speech
+{
+  "text": "مرحبا، هذا اختبار للصوت العربي",
+  "voice_id": "saudi_male_voice_001"
+}
+
+// Response: audio/mpeg blob
+```
+
+**Error Handling:**
+
+- Invalid voice ID
+- Missing API key
+- Rate limiting
+- Text length validation
+- Network errors
+
+### UI Implementation
+
+#### Dedicated Page (`src/app/dashboard/playground/elevenlabs/eleven_multilingual_v2/page.tsx`)
+
+**Key Features:**
+
+- **RTL Support**: Right-to-left text input for Arabic
+- **Voice Selection**: Dropdown with Saudi Arabic voices
+- **Real-time Cost**: Character-based pricing estimation
+- **Status Tracking**: Loading states with progress indicators
+- **Audio Playback**: Built-in player with metadata display
+- **Download**: Direct audio file download functionality
+
+**State Management:**
+
+```typescript
+const [text, setText] = useState("");
+const [selectedVoice, setSelectedVoice] = useState("");
+const [status, setStatus] = useState<ElevenLabsStatus | null>(null);
+const [audioData, setAudioData] = useState(/* audio data structure */);
+const [audioDuration, setAudioDuration] = useState<number | null>(null);
+const [error, setError] = useState<string | null>(null);
+```
+
+**Audio Duration Handling:**
+
+- Uses `onLoadedMetadata` to extract real duration from audio element
+- Shows "Loading..." initially, then actual duration (e.g., "2.1s")
+
+**Generation Time Tracking:**
+
+- Measures actual elapsed time from start to completion
+- Formats milliseconds to human-readable format (ms/s/m:s)
+
+#### Routing Logic (`src/app/dashboard/playground/page.tsx`)
+
+**Smart Model Routing:**
+
+```typescript
+function getModelUrl(model: ModelType): string {
+  if (model.id.startsWith("elevenlabs/")) {
+    // ElevenLabs models → /playground/elevenlabs/model_name
+    const modelPath = model.id.replace("elevenlabs/", "");
+    return `/dashboard/playground/elevenlabs/${modelPath}`;
+  } else {
+    // fal.ai models → /playground/generate?model=model_id
+    return `/dashboard/playground/generate?model=${encodeURIComponent(model.id)}`;
+  }
+}
+```
+
+### Development Tools
+
+## Configuration
+
+### Environment Variables
+
+```bash
+ELEVENLABS_API_KEY=your_api_key_here  # Required for production
+```
+
+### Debug Flags
+
+```typescript
+// src/lib/elevenLabsClient.ts
+const DEBUG_ELEVENLABS = true; // Enable/disable debug logging
+const USE_MOCK_IN_DEV = false; // Toggle mock vs real API in development
+```
+
+### Model Configuration
+
+```typescript
+// src/lib/constants.ts
+{
+  id: "elevenlabs/eleven_multilingual_v2",
+  name: "Eleven Multilingual v2 (Arabic)",
+  price_per_second: 0.3,
+  category: "text-to-audio",
+  description: "Advanced multilingual TTS supporting Arabic with Saudi accent"
+}
+```
+
+## Data Flow
+
+### Complete Request Flow
+
+```
+1. User Input → ElevenLabs UI Page
+   ↓
+2. Form Submission → /api/elevenlabs/text-to-speech
+   ↓
+3. API Route → ElevenLabs SDK (server-side)
+   ↓
+4. ElevenLabs API → Audio Stream Response
+   ↓
+5. Stream Processing → Audio Blob
+   ↓
+6. Client Response → Object URL Creation
+   ↓
+7. UI Update → Audio Player + Metadata Display
+```
+
+### Error Flow
+
+```
+1. Error Occurs → API Route Error Handling
+   ↓
+2. Error Classification → User-friendly Messages
+   ↓
+3. Client Handling → Error State + Retry Option
+```
+
+## Security Considerations
+
+### Server-Side Protection
+
+- **Environment variables**: Only accessible on server
+- **Client prevention**: Proxy throws error if accessed from browser
+- **API key safety**: Never exposed to client-side code
+
+### Input Validation
+
+- **Text length limits**: 5000 characters maximum
+- **Voice ID validation**: Checks against known voice list
+- **Request sanitization**: JSON parsing with error handling
+
+## Performance Optimizations
+
+### Lazy Loading
+
+- **Client instantiation**: Only created when needed
+- **Dynamic imports**: SDK imported only in API routes
+- **Audio processing**: Streaming for large files
+
+### Caching Strategy
+
+- **Audio URLs**: Object URLs for immediate playback
+- **Voice list**: Could be cached (not implemented yet)
+- **Client instances**: Singleton pattern on server
+
+## Future Enhancements
+
+### Potential Improvements
+
+1. **Voice caching**: Cache available voices list
+2. **Audio quality options**: Multiple format support
+3. **Batch processing**: Multiple text inputs
+4. **Voice cloning**: Custom voice integration
+5. **Pronunciation controls**: SSML support
+6. **Real-time streaming**: WebSocket-based streaming
+7. **Cost tracking**: Usage analytics
+8. **Voice previews**: Sample audio for voice selection
+
+### Scaling Considerations
+
+1. **Rate limiting**: Request throttling
+2. **Queue management**: Background processing
+3. **CDN integration**: Audio file distribution
+4. **Database storage**: Persist generated audio
+5. **User management**: Per-user quotas
+
+## Troubleshooting
+
+### Common Issues
+
+**1. Client-side Environment Error**
+
+```
+Error: Attempted to access server-side environment variable on client
+```
+
+**Solution**: Use API route instead of direct client import
+
+**2. Voice ID Not Found**
+
+```
+Error: Invalid voice ID provided
+```
+
+**Solution**: Check voice exists in saudiArabicVoices array
+
+**3. API Key Missing**
+
+```
+Error: ELEVENLABS_API_KEY environment variable not set
+```
+
+**Solution**: Add API key to .env file
+
+**4. Duration Shows "Loading..."**
+
+```
+Issue: Audio duration not updating
+```
+
+**Solution**: Check onLoadedMetadata handler is attached
+
+### Debug Steps
+
+1. **Check debug logs**: Look for `🎵 [ElevenLabs Debug]` messages
+2. **Verify API key**: Ensure environment variable is set
+3. **Test mock client**: Set `USE_MOCK_IN_DEV = true`
+4. **Check network**: Monitor API calls in browser dev tools
+5. **Validate input**: Ensure text and voice_id are provided
+
+## Dependencies
+
+### Required Packages
+
+```json
+{
+  "@elevenlabs/elevenlabs-js": "2.14.0",
+  "next": "latest",
+  "react": "latest",
+  "typescript": "latest"
+}
+```
+
+### File Structure
+
+```
+src/
+├── lib/
+│   ├── elevenLabsClient.ts      # Main client implementation
+│   ├── types.ts                 # TypeScript interfaces
+│   ├── constants.ts             # Model and voice configuration
+│   └── mocks/
+│       └── elevenLabsMock.ts    # Development mock client
+├── app/
+│   ├── api/elevenlabs/text-to-speech/
+│   │   └── route.ts             # API endpoint
+│   └── dashboard/playground/
+│       ├── page.tsx             # Main playground with routing
+│       └── elevenlabs/eleven_multilingual_v2/
+│           └── page.tsx         # Dedicated ElevenLabs UI
+```
+
+## Implementation Notes
+
+### Design Decisions
+
+1. **Separation of concerns**: Completely separate from fal.ai pipeline
+2. **Type specificity**: ElevenLabs-specific types, not generic
+3. **Minimal implementation**: Focus on core Arabic TTS functionality
+4. **Server-side safety**: Environment variables only on server
+5. **User experience**: Real-time feedback and error handling
+
+### Code Quality
+
+- **TypeScript strict mode**: No `any` types used
+- **ESLint compliance**: Follows project linting rules
+- **Error handling**: Comprehensive error catching and user feedback
+- **Debugging**: Extensive logging for troubleshooting
+- **Testing**: Utility functions for various test scenarios
+
+This implementation provides a robust, scalable foundation for Arabic text-to-speech using ElevenLabs, with clear separation from existing fal.ai functionality and comprehensive error handling.

@@ -3,7 +3,7 @@
 import { Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { getModelPreviewUrl, models } from "~/lib/constants";
+import { models } from "~/lib/constants";
 
 export default function PlaygroundPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,9 +24,7 @@ export default function PlaygroundPage() {
 
     filteredModels.forEach((model) => {
       const category = model.category;
-      if (!categorized[category]) {
-        categorized[category] = [];
-      }
+      categorized[category] ??= [];
       categorized[category].push(model);
     });
 
@@ -36,14 +34,30 @@ export default function PlaygroundPage() {
   const categoryDisplayNames = {
     "text-to-video": "Text-to-Video Models",
     "image-to-video": "Image-to-Video Models",
+    "text-to-audio": "Text-to-Audio Models",
   } as const;
+
+  // Function to get the correct URL for a model
+  function getModelUrl(model: (typeof models)[number]): string {
+    if (model.id.startsWith("elevenlabs/")) {
+      // ElevenLabs models go to their specific page
+      const modelPath = model.id.replace("elevenlabs/", "");
+      return `/dashboard/playground/elevenlabs/${modelPath}`;
+    } else {
+      // fal.ai models go to the generate page
+      return `/dashboard/playground/generate?model=${encodeURIComponent(model.id)}`;
+    }
+  }
   return (
     <main className="flex flex-col gap-6 py-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">AI Video Models</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            AI Models Playground
+          </h1>
           <p className="text-muted-foreground">
-            Choose from our collection of state-of-the-art text-to-video models
+            Choose from our collection of state-of-the-art AI models for video
+            generation and text-to-speech
           </p>
         </div>
 
@@ -96,7 +110,7 @@ export default function PlaygroundPage() {
                   {categoryModels.map((model) => (
                     <Link
                       key={model.id}
-                      href={`/dashboard/playground/generate?model=${encodeURIComponent(model.id)}`}
+                      href={getModelUrl(model)}
                       className="group relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
                     >
                       {/* Custom gradient overlay on hover */}
@@ -137,9 +151,9 @@ export default function PlaygroundPage() {
           <div className="space-y-2">
             <h3 className="font-semibold text-gray-900">Getting Started</h3>
             <p className="text-sm text-gray-600">
-              Select a model above to start generating videos. Each model has
-              different strengths and pricing. Higher-priced models typically
-              offer better quality and more realistic outputs.
+              Select a model above to start generating content. Video models
+              create stunning visual content, while audio models convert text to
+              natural speech. Each model has different strengths and pricing.
             </p>
           </div>
         </div>

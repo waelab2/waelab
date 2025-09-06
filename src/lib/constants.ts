@@ -139,6 +139,16 @@ export const models = [
     category: "image-to-video",
     description: "Premium 1080p videos at 30fps with up to 6 seconds duration",
   },
+
+  // === TEXT-TO-AUDIO MODELS ===
+  {
+    id: "elevenlabs/eleven_multilingual_v2",
+    name: "Eleven Multilingual v2 (Arabic)",
+    price_per_second: 0.3, // Estimate based on ElevenLabs pricing
+    category: "text-to-audio",
+    description:
+      "Advanced multilingual TTS supporting Arabic with Saudi accent",
+  },
 ] as const;
 
 export type Model = (typeof models)[number];
@@ -194,4 +204,156 @@ export function getModelPreviewUrl(modelId: string): string | null {
   };
 
   return fallbackUrls[modelId] ?? null;
+}
+
+// === ELEVENLABS CONSTANTS ===
+
+/**
+ * Arabic voices for ElevenLabs - Verified working voice IDs
+ * Includes voices with Egyptian, Moroccan, Modern Standard Arabic, Levantine, and Jordanian accents
+ * All voices are confirmed to be available and working with the ElevenLabs API
+ */
+export const saudiArabicVoices = [
+  // Male voices
+  {
+    voice_id: "IES4nrmZdUBHByLBde0P",
+    name: "Haytham - Conversation (Egyptian)",
+    language: "ar",
+    accent: "egyptian",
+    gender: "male",
+    age: "middle_aged",
+    description:
+      "Middle aged Arab male voice, warm, energetic, suitable for casual conversations, voice acting and story telling",
+    preview_url:
+      "https://storage.googleapis.com/eleven-public-prod/database/user/9QU6MqZNA2gQa3xJofEAkVetJtm1/voices/IES4nrmZdUBHByLBde0P/k0uwHjffW70gT6nJ9gW5.mp3",
+    use_case: "narrative_story",
+  },
+  {
+    voice_id: "A9ATTqUUQ6GHu0coCz8t",
+    name: "Hamid (Moroccan)",
+    language: "ar",
+    accent: "moroccan",
+    gender: "male",
+    age: "young",
+    description: "Young voice male with a pleasant tone. Perfect for news.",
+    preview_url:
+      "https://storage.googleapis.com/eleven-public-prod/custom/voices/A9ATTqUUQ6GHu0coCz8t/52WpzlQwppmSVSQXa65L.mp3",
+    use_case: "entertainment_tv",
+  },
+  {
+    voice_id: "UR972wNGq3zluze0LoIp",
+    name: "Haytham (Egyptian)",
+    language: "ar",
+    accent: "egyptian",
+    gender: "male",
+    age: "middle_aged",
+    description:
+      "Middle aged warm male voice good for narration, podcast, voice overs, voice acting.",
+    preview_url:
+      "https://storage.googleapis.com/eleven-public-prod/database/user/9QU6MqZNA2gQa3xJofEAkVetJtm1/voices/UR972wNGq3zluze0LoIp/5ME1JisfmtWiIpzDDyIY.mp3",
+    use_case: "narrative_story",
+  },
+  {
+    voice_id: "R6nda3uM038xEEKi7GFl",
+    name: "Anas (Modern Standard Arabic)",
+    language: "ar",
+    accent: "modern standard",
+    gender: "male",
+    age: "middle_aged",
+    description:
+      "Middle-aged Arabic male with a gentle conversational tone. Ideal for engaging listeners.",
+    preview_url:
+      "https://storage.googleapis.com/eleven-public-prod/database/user/COWGBw0EVLcZa92K5IDgvpaUttd2/voices/R6nda3uM038xEEKi7GFl/hyjPYHgaCHfuSSap6ALl.mp3",
+    use_case: "narrative_story",
+  },
+
+  // Female voices
+  {
+    voice_id: "mRdG9GYEjJmIzqbYTidv",
+    name: "Sana (Modern Standard Arabic)",
+    language: "ar",
+    accent: "modern standard",
+    gender: "female",
+    age: "middle_aged",
+    description:
+      "A middle-aged woman with an Arabic accent and a slightly soft quality to her voice. The tone is upbeat, a little bouncy and direct. Great for news, media texts, documentaries, podcast ads, and audiobooks.",
+    preview_url:
+      "https://storage.googleapis.com/eleven-public-prod/custom/voices/mRdG9GYEjJmIzqbYTidv/QDWxPOKqyxeNJEgcmVIY.mp3",
+    use_case: "narrative_story",
+  },
+  {
+    voice_id: "u0TsaWvt0v8migutHM3M",
+    name: "GHIZLANE (Modern Standard Arabic)",
+    language: "ar",
+    accent: "modern standard",
+    gender: "female",
+    age: "middle_aged",
+    description:
+      "A smooth, balanced, and tranquil female voice, perfectly suited for podcasts, YouTube content, and news broadcasts. Its clear and pristine quality is paired with an exceptional ability to communicate information with precision and professionalism.",
+    preview_url:
+      "https://storage.googleapis.com/eleven-public-prod/database/user/FLoNmOwfdyVstAmMeF1WDQhJF6k2/voices/u0TsaWvt0v8migutHM3M/oxi7BOeX3pB7YElCrYvu.mp3",
+    use_case: "narrative_story",
+  },
+  {
+    voice_id: "a1KZUXKFVFDOb33I1uqr",
+    name: "Salma - Conversational Expressive (Levantine)",
+    language: "ar",
+    accent: "levantine",
+    gender: "female",
+    age: "young",
+    description:
+      "Salma is a young and talented artist from Dubai. Her extensive experience is not just in voice but also in the Arabic language. Perfect for voiceovers, audiobooks, commercials, podcasts, and language learning content.",
+    preview_url:
+      "https://storage.googleapis.com/eleven-public-prod/database/workspace/ed9b05e6324c457685490352e9a1ec90/voices/a1KZUXKFVFDOb33I1uqr/UiaMs7jj02K2CGN2TPAU.mp3",
+    use_case: "conversational",
+  },
+  {
+    voice_id: "jAAHNNqlbAX9iWjJPEtE",
+    name: "Sara - Kind & Expressive (Jordanian)",
+    language: "ar",
+    accent: "jordanian",
+    gender: "female",
+    age: "young",
+    description:
+      "This voice clone is based on a natural female voice with a calm, expressive, and intelligent tone. It reflects a neutral Middle Eastern accent with clear articulation and a warm delivery, making it ideal for AI assistants, educational content, and professional narrations.",
+    preview_url:
+      "https://storage.googleapis.com/eleven-public-prod/database/user/DwdAk2uej6WPGjINOlwLmUTaLvP2/voices/jAAHNNqlbAX9iWjJPEtE/uQYquZVfZqWsdvz9SKxs.mp3",
+    use_case: "social_media",
+  },
+  {
+    voice_id: "VwC51uc4PUblWEJSPzeo",
+    name: "Abrar Sabbah (Modern Standard Arabic)",
+    language: "ar",
+    accent: "modern standard",
+    gender: "female",
+    age: "middle_aged",
+    description:
+      "A young Arabic female voice perfect for podcasts, advertisements, documentaries, news, stories.",
+    preview_url:
+      "https://storage.googleapis.com/eleven-public-prod/database/user/DbfkQZv5ZVMdj86CaPWYiB0CRk82/voices/VwC51uc4PUblWEJSPzeo/081ff9df-1d74-47c0-9d69-5a1f488046bc.mp3",
+    use_case: "narrative_story",
+  },
+  {
+    voice_id: "4wf10lgibMnboGJGCLrP",
+    name: "Farah - Premium Arabic Female (Jordanian)",
+    language: "ar",
+    accent: "jordanian",
+    gender: "female",
+    age: "young",
+    description:
+      "A premium Arabic female voice with a warm, clear, and expressive tone, ideal for ads, narration, storytelling, audiobooks, YouTube content, podcasts, educational videos, and AI avatars. Features a natural Levantine accent (Jordanian/Ammani) blended with modern Arabic fluency.",
+    preview_url:
+      "https://storage.googleapis.com/eleven-public-prod/database/user/jhEhUZqX3mQ2LTrq3iBVeixuIsy1/voices/4wf10lgibMnboGJGCLrP/10Ff0P9ozKLVa4QSSIvC.mp3",
+    use_case: "advertisement",
+  },
+];
+
+/**
+ * Get ElevenLabs URLs for API endpoints
+ */
+export function getElevenLabsUrls() {
+  return {
+    voices_url: `/api/elevenlabs/voices`,
+    tts_url: `/api/elevenlabs/text-to-speech`,
+  };
 }
