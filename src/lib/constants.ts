@@ -27,25 +27,25 @@ export const models = [
   {
     id: "moonvalley/marey/t2v",
     name: "Marey Realism V1.5",
-    price_per_second: 0.15,
+    price_per_second: 0.3,
     category: "text-to-video",
   },
   {
     id: "fal-ai/pixverse/v5/text-to-video",
     name: "Pixverse V5",
-    price_per_second: 0.12,
+    price_per_second: 0.08,
     category: "text-to-video",
   },
   {
     id: "fal-ai/veo3/fast",
     name: "Veo3 Fast",
-    price_per_second: 0.25,
+    price_per_second: 0.4,
     category: "text-to-video",
   },
   {
     id: "fal-ai/veo3",
     name: "Veo3",
-    price_per_second: 0.35,
+    price_per_second: 0.75,
     category: "text-to-video",
   },
 
@@ -55,7 +55,7 @@ export const models = [
   {
     id: "fal-ai/kling-video/v2.1/master/image-to-video",
     name: "Kling 2.1 Master (I2V)",
-    price_per_second: 0.12,
+    price_per_second: 0.28,
     category: "image-to-video",
     description:
       "Premium endpoint for Kling 2.1 with unparalleled motion fluidity and cinematic visuals",
@@ -63,7 +63,7 @@ export const models = [
   {
     id: "fal-ai/kling-video/v2.1/standard/image-to-video",
     name: "Kling 2.1 Standard (I2V)",
-    price_per_second: 0.08,
+    price_per_second: 0.05,
     category: "image-to-video",
     description:
       "Cost-efficient Kling 2.1 with high-quality image-to-video generation",
@@ -71,7 +71,7 @@ export const models = [
   {
     id: "fal-ai/kling-video/v2/master/image-to-video",
     name: "Kling 2.0 Master (I2V)",
-    price_per_second: 0.1,
+    price_per_second: 0.28,
     category: "image-to-video",
     description:
       "Kling 2.0 Master for high-quality image-to-video with advanced motion control",
@@ -79,7 +79,7 @@ export const models = [
   {
     id: "fal-ai/kling-video/v1.6/pro/image-to-video",
     name: "Kling 1.6 Pro (I2V)",
-    price_per_second: 0.08,
+    price_per_second: 0.095,
     category: "image-to-video",
     description:
       "Professional Kling 1.6 with advanced parameters including aspect ratio control",
@@ -89,7 +89,7 @@ export const models = [
   {
     id: "fal-ai/minimax/hailuo-02/standard/image-to-video",
     name: "MiniMax Hailuo 02 (I2V)",
-    price_per_second: 0.06,
+    price_per_second: 0.045,
     category: "image-to-video",
     description:
       "Advanced image-to-video with 768p/512p resolutions and prompt optimization",
@@ -97,7 +97,7 @@ export const models = [
   {
     id: "fal-ai/minimax/video-01/image-to-video",
     name: "MiniMax Video 01 (I2V)",
-    price_per_second: 0.05,
+    price_per_second: 0.01,
     category: "image-to-video",
     description:
       "Motion and transformation focused video generation with prompt optimization",
@@ -107,7 +107,7 @@ export const models = [
   {
     id: "fal-ai/veo2/image-to-video",
     name: "Veo 2 (I2V)",
-    price_per_second: 0.08,
+    price_per_second: 0.5,
     category: "image-to-video",
     description:
       "Realistic motion with very high quality output and flexible duration options",
@@ -117,7 +117,7 @@ export const models = [
   {
     id: "fal-ai/bytedance/seedance/v1/pro/image-to-video",
     name: "Seedance 1.0 Pro (I2V)",
-    price_per_second: 0.1,
+    price_per_second: 0.124,
     category: "image-to-video",
     description:
       "High quality 1080p video generation with advanced camera and safety controls",
@@ -135,7 +135,7 @@ export const models = [
   {
     id: "fal-ai/wan-pro/image-to-video",
     name: "Wan 2.1 Pro (I2V)",
-    price_per_second: 0.12,
+    price_per_second: 0.16,
     category: "image-to-video",
     description: "Premium 1080p videos at 30fps with up to 6 seconds duration",
   },
