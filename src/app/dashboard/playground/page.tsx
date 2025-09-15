@@ -55,10 +55,10 @@ export default function PlaygroundPage() {
     <main className="flex flex-col gap-6 py-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <h1 className="animate-fade-in text-3xl font-bold tracking-tight">
+          <h1 className="animate-fade-in text-3xl font-bold tracking-tight text-white">
             AI Models Playground
           </h1>
-          <p className="text-muted-foreground animate-fade-in animate-delay-100">
+          <p className="animate-fade-in animate-delay-100 text-white/80">
             Choose from our collection of state-of-the-art AI models for video
             generation and text-to-speech
           </p>
@@ -67,16 +67,16 @@ export default function PlaygroundPage() {
         {/* Search Bar and Model Count */}
         <div className="animate-fade-in animate-delay-200 flex items-center justify-between">
           <div className="relative max-w-md">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white/60" />
             <input
               type="text"
               placeholder="Search models..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white py-2 pr-4 pl-10 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-white/20 bg-white/10 py-2 pr-4 pl-10 text-sm text-white placeholder-white/60 backdrop-blur-sm focus:border-white/40 focus:ring-1 focus:ring-white/40 focus:outline-none"
             />
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-white/80">
             {filteredModels.length} of {models.length} models
           </div>
         </div>
@@ -84,10 +84,12 @@ export default function PlaygroundPage() {
 
       {filteredModels.length === 0 ? (
         <div className="py-12 text-center">
-          <div className="text-gray-500">
+          <div className="text-white/60">
             <Search className="mx-auto mb-4 h-12 w-12 opacity-50" />
-            <p className="text-lg font-medium">No models found</p>
-            <p className="text-sm">Try adjusting your search query</p>
+            <p className="text-lg font-medium text-white">No models found</p>
+            <p className="text-sm text-white/80">
+              Try adjusting your search query
+            </p>
           </div>
         </div>
       ) : (
@@ -98,15 +100,15 @@ export default function PlaygroundPage() {
                 key={category}
                 className={`animate-fade-in-up space-y-4 animate-delay-${Math.min((index + 1) * 100, 400)}`}
               >
-                <div className="border-b border-gray-200 pb-2">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                <div className="border-b border-white/20 pb-2">
+                  <h2 className="text-xl font-semibold text-white">
                     {
                       categoryDisplayNames[
                         category as keyof typeof categoryDisplayNames
                       ]
                     }
                   </h2>
-                  <p className="mt-1 text-sm text-gray-600">
+                  <p className="mt-1 text-sm text-white/80">
                     {categoryModels.length} model
                     {categoryModels.length !== 1 ? "s" : ""} available
                   </p>
@@ -126,25 +128,22 @@ export default function PlaygroundPage() {
                       <Link
                         key={model.id}
                         href={getModelUrl(model)}
-                        className={`group animate-fade-in-up relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg animate-delay-${totalDelay}`}
+                        className={`group animate-fade-in-up relative flex flex-col items-start rounded-lg bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-[#E9476E] hover:to-[#3B5DA8] hover:text-white hover:shadow-none focus-visible:outline-none animate-delay-${totalDelay}`}
                       >
-                        {/* Custom gradient overlay on hover */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] opacity-0 transition-all duration-300 group-hover:opacity-100" />
-
                         {/* Content */}
-                        <div className="relative z-10 space-y-3">
+                        <div className="space-y-3">
                           {/* Model ID (small) */}
-                          <p className="text-xs text-gray-500 transition-colors group-hover:text-gray-300">
+                          <p className="text-xs text-white/60 transition-colors group-hover:text-white">
                             {model.id}
                           </p>
 
                           {/* Model name */}
-                          <h3 className="font-semibold text-gray-900 transition-colors group-hover:text-white">
+                          <h3 className="text-lg leading-none font-semibold tracking-tight text-white transition-colors group-hover:text-white">
                             {model.name}
                           </h3>
 
                           {/* Price per second */}
-                          <div className="text-xs text-gray-600 transition-colors group-hover:text-gray-300">
+                          <div className="text-sm text-white/80 transition-colors group-hover:text-white">
                             ${model.price_per_second}/sec
                           </div>
                         </div>
@@ -159,14 +158,14 @@ export default function PlaygroundPage() {
       )}
 
       {/* Info section */}
-      <section className="animate-fade-in animate-delay-400 mt-8 rounded-xl border bg-gray-50/50 p-6">
+      <section className="animate-fade-in animate-delay-400 mt-8 rounded-xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
         <div className="flex items-start gap-4">
-          <div className="rounded-full bg-blue-100 p-2">
-            <Sparkles className="h-5 w-5 text-blue-600" />
+          <div className="rounded-full bg-white/20 p-2">
+            <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold text-gray-900">Getting Started</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="font-semibold text-white">Getting Started</h3>
+            <p className="text-sm text-white/80">
               Select a model above to start generating content. Video models
               create stunning visual content, while audio models convert text to
               natural speech. Each model has different strengths and pricing.
