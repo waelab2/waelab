@@ -21,40 +21,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const data = {
     navMain: [
       {
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: Bot,
+        isActive: pathname === "/dashboard",
+      },
+      {
         title: "Playground",
-        url: "/dashboard/playground/generate",
+        url: "/dashboard/playground",
         icon: SquareTerminal,
-        isActive: segments[segments.length - 2] === "playground",
-        items: [
-          {
-            title: "Generate",
-            url: "/dashboard/playground/generate",
-          },
-        ],
+        isActive: pathname.startsWith("/dashboard/playground"),
       },
       {
         title: "Models",
-        url: "/dashboard/models/prices",
+        url: "/dashboard/models/list",
         icon: Bot,
-        isActive: segments[segments.length - 2] === "models",
-        items: [
-          {
-            title: "List",
-            url: "/dashboard/models/list",
-          },
-        ],
+        isActive: pathname.startsWith("/dashboard/models"),
       },
       {
         title: "Settings",
         url: "/dashboard/settings/general",
         icon: Settings2,
-        isActive: segments[segments.length - 2] === "settings",
-        items: [
-          {
-            title: "General",
-            url: "/dashboard/settings/general",
-          },
-        ],
+        isActive: pathname.startsWith("/dashboard/settings"),
       },
     ],
     other: [],
