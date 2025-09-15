@@ -26,13 +26,20 @@ export default function Breadcrumbs() {
             <Fragment key={"breadcrumb-item-" + index}>
               <BreadcrumbItem className="hidden capitalize md:block">
                 {index < segments.length - 1 ? (
-                  <BreadcrumbLink href={href}>{segment}</BreadcrumbLink>
+                  <BreadcrumbLink
+                    href={href}
+                    className="text-white hover:text-gray-300"
+                  >
+                    {segment}
+                  </BreadcrumbLink>
                 ) : (
-                  <BreadcrumbPage>{segment}</BreadcrumbPage>
+                  <BreadcrumbPage className="text-white">
+                    {segment}
+                  </BreadcrumbPage>
                 )}
               </BreadcrumbItem>
               {index < segments.length - 1 && (
-                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbSeparator className="hidden text-white md:block" />
               )}
             </Fragment>
           );

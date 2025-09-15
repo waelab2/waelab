@@ -22,16 +22,16 @@ export default function QuickLinkCard({
     <Link
       href={href}
       className={cn(
-        "group bg-card focus-visible:ring-ring relative flex flex-col items-start rounded-lg border p-6 shadow-sm transition-colors duration-300 hover:bg-gradient-to-r hover:from-[#E9476E] hover:to-[#3B5DA8] hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+        "group relative flex flex-col items-start rounded-lg bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-[#E9476E] hover:to-[#3B5DA8] hover:text-white hover:shadow-none focus-visible:outline-none",
         className,
       )}
     >
-      <Icon className="mb-4 size-8 transition-colors" />
-      <h3 className="mb-1 text-lg leading-none font-semibold tracking-tight group-hover:text-white">
+      <Icon className="mb-4 size-8 text-white transition-colors group-hover:text-white" />
+      <h3 className="mb-1 text-lg leading-none font-semibold tracking-tight text-white group-hover:text-white">
         {title}
       </h3>
       {description && (
-        <p className="text-muted-foreground text-sm group-hover:text-white">
+        <p className="text-sm text-white/80 group-hover:text-white">
           {description}
         </p>
       )}

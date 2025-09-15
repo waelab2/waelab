@@ -8,7 +8,7 @@ export default function DashboardPage() {
   const [parent] = useAutoAnimate();
 
   return (
-    <main className="flex flex-col gap-6 py-6">
+    <main className="flex flex-col gap-6 py-6 text-white">
       <h1 className="animate-fade-in text-2xl font-semibold tracking-tight">
         Welcome back!
       </h1>
