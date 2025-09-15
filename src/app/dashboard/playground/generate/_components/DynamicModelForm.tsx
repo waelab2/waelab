@@ -94,8 +94,8 @@ export default function DynamicModelForm() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
-          <p className="text-muted-foreground text-lg">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-white"></div>
+          <p className="text-lg text-white/80">
             Loading model configuration...
           </p>
         </div>
@@ -109,7 +109,7 @@ export default function DynamicModelForm() {
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
           <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-          <Label className="text-base font-medium text-gray-700">
+          <Label className="text-base font-medium text-white">
             Model Selection
           </Label>
         </div>
@@ -136,13 +136,10 @@ export default function DynamicModelForm() {
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
           <div className="h-2 w-2 rounded-full bg-green-500"></div>
-          <Label
-            htmlFor="prompt"
-            className="text-base font-medium text-gray-700"
-          >
+          <Label htmlFor="prompt" className="text-base font-medium text-white">
             Video Description
             {modelSchema?.input.prompt.maxLength && (
-              <span className="text-muted-foreground ml-2 text-sm font-normal">
+              <span className="ml-2 text-sm font-normal text-white/60">
                 Max {modelSchema.input.prompt.maxLength} characters
               </span>
             )}
@@ -157,7 +154,7 @@ export default function DynamicModelForm() {
           maxLength={modelSchema?.input.prompt.maxLength}
         />
         {modelSchema?.input.prompt.maxLength && (
-          <div className="text-muted-foreground flex justify-between text-sm">
+          <div className="flex justify-between text-sm text-white/60">
             <span>Be specific and descriptive for better results</span>
             <span className="font-medium">
               {prompt.length}/{modelSchema.input.prompt.maxLength}
@@ -171,7 +168,7 @@ export default function DynamicModelForm() {
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
             <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-            <Label className="text-base font-medium text-gray-700">
+            <Label className="text-base font-medium text-white">
               Video Settings
             </Label>
           </div>
@@ -182,7 +179,7 @@ export default function DynamicModelForm() {
               <div className="space-y-2">
                 <Label
                   htmlFor="duration"
-                  className="text-sm font-medium text-gray-600"
+                  className="text-sm font-medium text-white/80"
                 >
                   Duration
                 </Label>
@@ -209,7 +206,7 @@ export default function DynamicModelForm() {
             {/* Aspect Ratio Input */}
             {modelSchema?.input.aspect_ratio && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-600">
+                <Label className="text-sm font-medium text-white/80">
                   Aspect Ratio
                 </Label>
                 <Select
@@ -244,7 +241,7 @@ export default function DynamicModelForm() {
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
             <div className="h-2 w-2 rounded-full bg-orange-500"></div>
-            <Label className="text-base font-medium text-gray-700">
+            <Label className="text-base font-medium text-white">
               Advanced Settings
             </Label>
           </div>
@@ -255,11 +252,11 @@ export default function DynamicModelForm() {
               <div className="space-y-2">
                 <Label
                   htmlFor="negative_prompt"
-                  className="text-sm font-medium text-gray-600"
+                  className="text-sm font-medium text-white/80"
                 >
                   Negative Prompt
                   {modelSchema.input.negative_prompt.maxLength && (
-                    <span className="text-muted-foreground ml-2 text-sm font-normal">
+                    <span className="ml-2 text-sm font-normal text-white/60">
                       Max {modelSchema.input.negative_prompt.maxLength}{" "}
                       characters
                     </span>
@@ -274,7 +271,7 @@ export default function DynamicModelForm() {
                   maxLength={modelSchema.input.negative_prompt.maxLength}
                 />
                 {modelSchema.input.negative_prompt.maxLength && (
-                  <div className="text-muted-foreground text-right text-sm">
+                  <div className="text-right text-sm text-white/60">
                     {negative_prompt?.length ?? 0}/
                     {modelSchema.input.negative_prompt.maxLength}
                   </div>
@@ -287,12 +284,12 @@ export default function DynamicModelForm() {
               <div className="space-y-2">
                 <Label
                   htmlFor="cfg_scale"
-                  className="text-sm font-medium text-gray-600"
+                  className="text-sm font-medium text-white/80"
                 >
                   CFG Scale
                   {modelSchema.input.cfg_scale.minimum !== undefined &&
                     modelSchema.input.cfg_scale.maximum !== undefined && (
-                      <span className="text-muted-foreground ml-2 text-sm font-normal">
+                      <span className="ml-2 text-sm font-normal text-white/60">
                         Range: {modelSchema.input.cfg_scale.minimum} -{" "}
                         {modelSchema.input.cfg_scale.maximum}
                       </span>
@@ -309,7 +306,7 @@ export default function DynamicModelForm() {
                   placeholder={`Default: ${modelSchema.input.cfg_scale.default}`}
                   className="h-10"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-white/60">
                   Controls how closely the model follows your prompt. Higher
                   values = more faithful to prompt.
                 </p>
@@ -318,15 +315,15 @@ export default function DynamicModelForm() {
 
             {/* Prompt Optimizer Toggle */}
             {modelSchema?.input.prompt_optimizer && (
-              <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center justify-between rounded-lg border border-white/20 bg-white/5 p-4 backdrop-blur-sm">
                 <div className="space-y-1">
                   <Label
                     htmlFor="prompt_optimizer"
-                    className="text-sm font-medium text-gray-600"
+                    className="text-sm font-medium text-white/80"
                   >
                     Prompt Optimizer
                   </Label>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-white/60">
                     Use the model&apos;s built-in prompt optimization for better
                     results
                   </p>

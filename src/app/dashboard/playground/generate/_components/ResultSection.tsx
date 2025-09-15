@@ -60,20 +60,20 @@ export default function ResultSection({
       </AspectRatio>
 
       {videoData && !isLoading && (
-        <div className="space-y-1 text-sm text-gray-600">
+        <div className="space-y-1 text-sm text-white/80">
           <div className="flex items-center justify-between">
             <span className="font-medium">File:</span>
-            <span className="text-gray-500">{videoData.file_name}</span>
+            <span className="text-white/60">{videoData.file_name}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="font-medium">Size:</span>
-            <span className="text-gray-500">
+            <span className="text-white/60">
               {(videoData.file_size / 1024 / 1024).toFixed(2)} MB
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="font-medium">Type:</span>
-            <span className="text-gray-500">{videoData.content_type}</span>
+            <span className="text-white/60">{videoData.content_type}</span>
           </div>
         </div>
       )}
@@ -84,10 +84,10 @@ export default function ResultSection({
 function VideoSkeleton() {
   return (
     <div className="relative h-full w-full">
-      <Skeleton className="h-full w-full rounded-lg shadow-lg" />
+      <Skeleton className="h-full w-full rounded-lg bg-white/20 shadow-lg" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="flex items-center space-x-2 text-gray-400">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+        <div className="flex items-center space-x-2 text-white/80">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
           <span className="text-sm">Generating video...</span>
         </div>
       </div>

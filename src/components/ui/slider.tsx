@@ -69,14 +69,14 @@ export function Slider({
               step={step}
               disabled={disabled}
               className={cn(
-                "w-20 rounded-md border border-gray-300 px-2 py-1 text-sm",
+                "w-20 rounded-md border border-white/30 px-2 py-1 text-sm",
                 "focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none",
                 {
                   "cursor-not-allowed opacity-50": disabled,
                 },
               )}
             />
-            <span className="text-sm text-gray-500">{formatValue(value)}</span>
+            <span className="text-sm text-gray-400">{formatValue(value)}</span>
           </div>
         )}
         <div className="text-xs text-gray-400">

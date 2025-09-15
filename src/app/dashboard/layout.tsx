@@ -40,7 +40,7 @@ export default function DashboardLayout({
             />
           </div>
           {/* Main Content Container */}
-          <div className="relative z-10 m-4 h-full overflow-y-auto rounded-[1rem] border-1 border-[#EEEFF6] bg-[#EEEFF614] p-8">
+          <div className="hide-scrollbar relative z-10 m-4 h-full overflow-y-auto rounded-[1rem] border-1 border-[#EEEFF6] bg-[#EEEFF614] p-8">
             <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
               <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1 text-white hover:bg-white/10 hover:text-white" />

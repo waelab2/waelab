@@ -133,7 +133,7 @@ export function FileUpload({
     if (file.type.startsWith("audio/")) {
       return <Music className="h-8 w-8 text-green-500" />;
     }
-    return <File className="h-8 w-8 text-gray-500" />;
+    return <File className="h-8 w-8 text-gray-400" />;
   };
 
   const getPreviewContent = () => {
@@ -169,7 +169,7 @@ export function FileUpload({
           {getFileIcon(value)}
           <div>
             <p className="text-sm font-medium">{value.name}</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               {(value.size / 1024 / 1024).toFixed(2)} MB
             </p>
           </div>
@@ -194,10 +194,10 @@ export function FileUpload({
     <div className={cn("space-y-2", className)}>
       <div
         className={cn(
-          "relative rounded-lg border-2 border-dashed border-gray-300 p-6 text-center transition-colors",
+          "relative rounded-lg border-2 border-dashed border-white/30 p-6 text-center transition-colors",
           {
             "border-blue-400 bg-blue-50": isDragOver,
-            "cursor-pointer hover:border-gray-400": !disabled,
+            "cursor-pointer hover:border-white/50": !disabled,
             "cursor-not-allowed opacity-50": disabled,
           },
         )}
@@ -216,8 +216,8 @@ export function FileUpload({
         <div className="space-y-2">
           <Upload className="mx-auto h-8 w-8 text-gray-400" />
           <div>
-            <p className="text-sm font-medium text-gray-700">{placeholder}</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-sm font-medium text-gray-200">{placeholder}</p>
+            <p className="text-xs text-gray-400">
               {accept !== "*/*" && `Accepted types: ${accept}`}
               {maxSize &&
                 ` • Max size: ${(maxSize / 1024 / 1024).toFixed(0)}MB`}

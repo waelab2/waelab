@@ -196,7 +196,7 @@ export function DynamicFieldRenderer({
         // For now, implement as a simple multi-select using multiple Select components
         return (
           <div className="space-y-2">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-300">
               Multi-select (Not implemented yet)
             </p>
             <Select disabled={true}>
@@ -210,7 +210,7 @@ export function DynamicFieldRenderer({
       case "nestedForm":
         return (
           <div className="space-y-4 rounded-lg border p-4">
-            <p className="text-sm font-medium text-gray-700">Nested Form</p>
+            <p className="text-sm font-medium text-gray-200">Nested Form</p>
             {field.properties &&
               Object.entries(field.properties).map(([key, nestedField]) => (
                 <DynamicFieldRenderer
@@ -272,26 +272,26 @@ export function DynamicFieldRenderer({
         <div className="space-y-1">
           <Label
             htmlFor={field.name}
-            className="flex items-center text-sm font-medium text-gray-600"
+            className="flex items-center text-sm font-medium text-gray-200"
           >
             {field.label ?? field.name}
             {field.required && <span className="ml-1 text-red-500">*</span>}
             {field.type === "number" &&
               field.min !== undefined &&
               field.max !== undefined && (
-                <span className="ml-2 text-xs font-normal text-gray-500">
+                <span className="ml-2 text-xs font-normal text-gray-400">
                   ({field.min} - {field.max})
                 </span>
               )}
             {field.maxLength && (
-              <span className="ml-2 text-xs font-normal text-gray-500">
+              <span className="ml-2 text-xs font-normal text-gray-400">
                 Max {field.maxLength} chars
               </span>
             )}
           </Label>
 
           {showDescription && field.description && (
-            <p className="text-xs text-gray-500">{field.description}</p>
+            <p className="text-xs text-gray-400">{field.description}</p>
           )}
         </div>
       )}
@@ -302,7 +302,7 @@ export function DynamicFieldRenderer({
       {/* Character count for text fields */}
       {field.maxLength && typeof value === "string" && (
         <div className="flex justify-end">
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-400">
             {String(value ?? "").length}/{field.maxLength}
           </span>
         </div>

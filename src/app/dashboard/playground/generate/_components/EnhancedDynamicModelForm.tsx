@@ -258,11 +258,11 @@ export default function EnhancedDynamicModelForm() {
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
           <div className="h-2 w-2 rounded-full bg-green-500"></div>
-          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-5 w-32 bg-white/20" />
         </div>
         <div className="space-y-2">
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="h-24 w-full rounded-md" />
+          <Skeleton className="h-4 w-16 bg-white/20" />
+          <Skeleton className="h-24 w-full rounded-md bg-white/20" />
         </div>
       </div>
 
@@ -270,16 +270,16 @@ export default function EnhancedDynamicModelForm() {
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
           <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-          <Skeleton className="h-5 w-28" />
+          <Skeleton className="h-5 w-28 bg-white/20" />
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-4 w-16 bg-white/20" />
+            <Skeleton className="h-10 w-full rounded-md bg-white/20" />
           </div>
           <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-4 w-20 bg-white/20" />
+            <Skeleton className="h-10 w-full rounded-md bg-white/20" />
           </div>
         </div>
       </div>
@@ -288,21 +288,21 @@ export default function EnhancedDynamicModelForm() {
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
           <div className="h-2 w-2 rounded-full bg-orange-500"></div>
-          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-5 w-36 bg-white/20" />
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-4 w-20 bg-white/20" />
+            <Skeleton className="h-10 w-full rounded-md bg-white/20" />
           </div>
           <div className="space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-4 w-24 bg-white/20" />
+            <Skeleton className="h-10 w-full rounded-md bg-white/20" />
           </div>
         </div>
         <div className="space-y-2">
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-10 w-full rounded-md" />
+          <Skeleton className="h-4 w-28 bg-white/20" />
+          <Skeleton className="h-10 w-full rounded-md bg-white/20" />
         </div>
       </div>
     </div>
@@ -333,7 +333,7 @@ export default function EnhancedDynamicModelForm() {
               <div
                 className={`h-2 w-2 rounded-full ${getColorClasses(section.color)}`}
               ></div>
-              <Label className="text-base font-medium text-gray-700">
+              <Label className="text-base font-medium text-white">
                 {section.title}
               </Label>
             </div>
@@ -354,7 +354,7 @@ export default function EnhancedDynamicModelForm() {
                       disabled={isLoadingModel}
                     />
                     {hasError && (
-                      <p className="text-sm text-red-600">{hasError}</p>
+                      <p className="text-sm text-red-400">{hasError}</p>
                     )}
                   </div>
                 );
@@ -366,14 +366,14 @@ export default function EnhancedDynamicModelForm() {
 
       {/* Validation Summary */}
       {hasValidationErrors && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+        <div className="rounded-lg border border-red-400/50 bg-red-500/10 p-4 backdrop-blur-sm">
           <div className="flex items-center space-x-2">
             <div className="h-2 w-2 rounded-full bg-red-500"></div>
-            <span className="text-sm font-medium text-red-800">
+            <span className="text-sm font-medium text-red-300">
               Please fix the following errors:
             </span>
           </div>
-          <ul className="mt-2 space-y-1 text-sm text-red-700">
+          <ul className="mt-2 space-y-1 text-sm text-red-200">
             {Object.entries(validationErrors)
               .filter(([, error]) => error !== null)
               .map(([fieldName, error]) => (
@@ -385,11 +385,11 @@ export default function EnhancedDynamicModelForm() {
 
       {/* Debug Information (only in development) */}
       {process.env.NODE_ENV === "development" && (
-        <details className="rounded-lg border border-gray-200 p-4">
-          <summary className="cursor-pointer text-sm font-medium text-gray-600">
+        <details className="rounded-lg border border-white/20 bg-white/5 p-4 backdrop-blur-sm">
+          <summary className="cursor-pointer text-sm font-medium text-white/80">
             Debug Information
           </summary>
-          <div className="mt-2 space-y-2 text-xs">
+          <div className="mt-2 space-y-2 text-xs text-white/80">
             <div>
               <strong>Model:</strong> {model}
             </div>
@@ -401,7 +401,7 @@ export default function EnhancedDynamicModelForm() {
             </div>
             <div>
               <strong>Values:</strong>
-              <pre className="mt-1 rounded bg-gray-100 p-2 whitespace-pre-wrap">
+              <pre className="mt-1 rounded bg-white/10 p-2 whitespace-pre-wrap text-white/80">
                 {JSON.stringify(formValues, null, 2)}
               </pre>
             </div>

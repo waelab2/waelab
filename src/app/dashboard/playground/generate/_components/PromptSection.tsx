@@ -22,12 +22,12 @@ export default function PromptSection({
   return (
     <div className="space-y-6">
       {/* Form Container */}
-      <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-gray-200">
+      <div className="rounded-xl bg-white/10 p-8 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-semibold text-white">
             Video Generation Settings
           </h2>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-white/80">
             Configure your video generation parameters below
           </p>
         </div>
@@ -35,12 +35,12 @@ export default function PromptSection({
         <EnhancedDynamicModelForm />
 
         {/* Generate Button Section */}
-        <div className="mt-8 flex items-center justify-end border-t pt-6">
+        <div className="mt-8 flex items-center justify-end border-t border-white/20 pt-6">
           <Button
             size="lg"
             disabled={!prompt.trim() || loading}
             onClick={handleGenerate}
-            className="px-8 py-3 text-base font-medium"
+            className="border-0 bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] px-8 py-3 text-base font-medium text-white hover:from-[#E9476E]/90 hover:to-[#3B5DA8]/90"
           >
             {loading ? (
               <>

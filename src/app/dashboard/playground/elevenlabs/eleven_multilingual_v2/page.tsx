@@ -141,23 +141,23 @@ function ElevenLabsPageContent() {
     <main className="min-h-screen">
       {/* Breadcrumb Navigation */}
       <div className="border-b bg-gray-50/50">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+        <div className="mx-auto px-4 py-3 sm:px-6">
           <nav className="flex items-center space-x-2 text-sm">
             <Link
               href="/dashboard/playground"
-              className="text-gray-500 transition-colors hover:text-gray-700"
+              className="text-gray-300 transition-colors hover:text-gray-100"
             >
               Playground
             </Link>
             <span className="text-gray-400">/</span>
             <Link
               href="/dashboard/playground"
-              className="text-gray-500 transition-colors hover:text-gray-700"
+              className="text-gray-300 transition-colors hover:text-gray-100"
             >
               ElevenLabs
             </Link>
             <span className="text-gray-400">/</span>
-            <span className="font-medium text-gray-900">
+            <span className="font-medium text-white">
               Eleven Multilingual v2
             </span>
           </nav>
@@ -166,13 +166,13 @@ function ElevenLabsPageContent() {
 
       {/* Header Section */}
       <div className="border-b backdrop-blur-sm">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+        <div className="mx-auto px-4 py-6 sm:px-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-3xl font-bold tracking-tight text-white">
                 Arabic Text-to-Speech
               </h1>
-              <p className="mt-2 text-sm text-gray-600">
+              <p className="mt-2 text-sm text-gray-300">
                 Convert Arabic text to natural speech with Saudi accent using
                 ElevenLabs
               </p>
@@ -183,7 +183,7 @@ function ElevenLabsPageContent() {
                 >
                   ← Back to Models
                 </Link>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-300">
                   <span className="font-medium">Model:</span> Eleven
                   Multilingual v2
                 </div>
@@ -203,43 +203,43 @@ function ElevenLabsPageContent() {
       </div>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <div className="mx-auto px-4 py-8 sm:px-6">
         {/* Top Row: Input and Voice Info */}
         <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Input Section */}
           <div className="space-y-6">
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              <h2 className="mb-4 text-lg font-semibold text-white">
                 Text Input
               </h2>
 
               {/* Arabic Text Input */}
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-200">
                   Arabic Text
                 </label>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="أدخل النص العربي هنا..."
-                  className="min-h-[120px] w-full rounded-md border border-gray-300 px-3 py-2 text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  className="min-h-[120px] w-full rounded-md border border-white/30 px-3 py-2 text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
                   dir="rtl"
                   maxLength={5000}
                 />
-                <div className="text-right text-sm text-gray-500">
+                <div className="text-right text-sm text-gray-400">
                   {text.length}/5000 characters
                 </div>
               </div>
 
               {/* Voice Selection */}
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-200">
                   Voice (Saudi Arabic)
                 </label>
                 <select
                   value={selectedVoice}
                   onChange={(e) => setSelectedVoice(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  className="w-full rounded-md border border-white/30 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
                 >
                   {saudiArabicVoices.map((voice) => (
                     <option key={voice.voice_id} value={voice.voice_id}>
@@ -252,12 +252,12 @@ function ElevenLabsPageContent() {
               {/* Cost Estimation */}
               <div className="rounded-lg bg-gray-50 p-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Estimated Cost:</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="text-gray-300">Estimated Cost:</span>
+                  <span className="font-medium text-white">
                     ${estimatedCost.toFixed(4)}
                   </span>
                 </div>
-                <div className="mt-1 text-xs text-gray-500">
+                <div className="mt-1 text-xs text-gray-400">
                   Based on character count and model pricing
                 </div>
               </div>
@@ -276,7 +276,7 @@ function ElevenLabsPageContent() {
           {/* Voice Info Section */}
           <div className="space-y-6">
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              <h2 className="mb-4 text-lg font-semibold text-white">
                 Voice Information
               </h2>
 
@@ -288,7 +288,7 @@ function ElevenLabsPageContent() {
                 if (!selectedVoiceInfo) {
                   return (
                     <div className="py-8 text-center">
-                      <p className="text-gray-500">No voice selected</p>
+                      <p className="text-gray-400">No voice selected</p>
                     </div>
                   );
                 }
@@ -297,7 +297,7 @@ function ElevenLabsPageContent() {
                   <div className="space-y-4">
                     {/* Voice Name and Basic Info */}
                     <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-gray-900">
+                      <h3 className="text-lg font-medium text-white">
                         {selectedVoiceInfo.name}
                       </h3>
                       <div className="flex flex-wrap gap-2">
@@ -315,17 +315,17 @@ function ElevenLabsPageContent() {
 
                     {/* Description */}
                     <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-gray-700">
+                      <h4 className="text-sm font-medium text-gray-200">
                         Description
                       </h4>
-                      <p className="text-sm leading-relaxed text-gray-600">
+                      <p className="text-sm leading-relaxed text-gray-300">
                         {selectedVoiceInfo.description}
                       </p>
                     </div>
 
                     {/* Use Case */}
                     <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-gray-700">
+                      <h4 className="text-sm font-medium text-gray-200">
                         Best For
                       </h4>
                       <span className="inline-flex items-center rounded-md bg-amber-100 px-2.5 py-1 text-sm font-medium text-amber-800">
@@ -338,7 +338,7 @@ function ElevenLabsPageContent() {
                     {/* Voice Preview */}
                     {selectedVoiceInfo.preview_url && (
                       <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-gray-700">
+                        <h4 className="text-sm font-medium text-gray-200">
                           Voice Preview
                         </h4>
                         <audio
@@ -354,10 +354,10 @@ function ElevenLabsPageContent() {
 
                     {/* Technical Details */}
                     <div className="rounded-lg bg-gray-50 p-3">
-                      <h4 className="mb-2 text-sm font-medium text-gray-700">
+                      <h4 className="mb-2 text-sm font-medium text-gray-200">
                         Technical Details
                       </h4>
-                      <div className="space-y-1 text-xs text-gray-600">
+                      <div className="space-y-1 text-xs text-gray-300">
                         <div className="flex justify-between">
                           <span>Language:</span>
                           <span className="font-mono">
@@ -381,9 +381,9 @@ function ElevenLabsPageContent() {
 
         {/* Generated Audio Section - Only show after first generation */}
         {(audioData ?? isLoading ?? status === "FAILED") && (
-          <div className="space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              <h2 className="mb-4 text-lg font-semibold text-white">
                 Generated Audio
               </h2>
 
@@ -391,7 +391,7 @@ function ElevenLabsPageContent() {
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
                     <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-500"></div>
-                    <p className="text-lg text-gray-600">
+                    <p className="text-lg text-gray-300">
                       {status === "PREPARING" &&
                         "Preparing audio generation..."}
                       {status === "GENERATING" &&
@@ -403,7 +403,7 @@ function ElevenLabsPageContent() {
 
               {!audioData && !isLoading && (
                 <div className="py-12 text-center">
-                  <p className="text-gray-500">
+                  <p className="text-gray-400">
                     Generated audio will appear here
                   </p>
                 </div>
@@ -424,7 +424,7 @@ function ElevenLabsPageContent() {
                     </audio>
 
                     {/* Audio Metadata */}
-                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-300">
                       <div>
                         <span className="font-medium">File Size:</span>{" "}
                         {(audioData.audio.file_size / 1024 / 1024).toFixed(2)}{" "}
@@ -546,7 +546,7 @@ export default function ElevenLabsPlaygroundPage() {
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
             <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-500"></div>
-            <p className="text-gray-600">Loading ElevenLabs Playground...</p>
+            <p className="text-gray-300">Loading ElevenLabs Playground...</p>
           </div>
         </div>
       }
