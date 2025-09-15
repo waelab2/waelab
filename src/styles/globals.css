@@ -92,7 +92,7 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: #282830;
+  --sidebar: transparent;
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -118,6 +118,17 @@
   .border-3 {
     border-width: 3px;
   }
+  
+  /* Force sidebar transparency */
+  [data-sidebar="sidebar"] {
+    background: transparent !important;
+  }
+  
+  /* Force sidebar inset transparency */
+  [data-slot="sidebar-inset"] {
+    background: transparent !important;
+  }
+  
 }
 
 /* Entry animations for dashboard components */
