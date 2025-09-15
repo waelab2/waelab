@@ -1,5 +1,6 @@
 "use client";
 
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -7,6 +8,8 @@ import { models } from "~/lib/constants";
 
 export default function PlaygroundPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoriesParent] = useAutoAnimate();
+  const [modelsParent] = useAutoAnimate();
 
   const filteredModels = useMemo(() => {
     if (!searchQuery.trim()) return models;
@@ -52,17 +55,17 @@ export default function PlaygroundPage() {
     <main className="flex flex-col gap-6 py-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="animate-fade-in text-3xl font-bold tracking-tight">
             AI Models Playground
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground animate-fade-in animate-delay-100">
             Choose from our collection of state-of-the-art AI models for video
             generation and text-to-speech
           </p>
         </div>
 
         {/* Search Bar and Model Count */}
-        <div className="flex items-center justify-between">
+        <div className="animate-fade-in animate-delay-200 flex items-center justify-between">
           <div className="relative max-w-md">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
@@ -88,10 +91,13 @@ export default function PlaygroundPage() {
           </div>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div ref={categoriesParent} className="space-y-8">
           {Object.entries(modelsByCategory).map(
-            ([category, categoryModels]) => (
-              <section key={category} className="space-y-4">
+            ([category, categoryModels], index) => (
+              <section
+                key={category}
+                className={`animate-fade-in-up space-y-4 animate-delay-${Math.min((index + 1) * 100, 400)}`}
+              >
                 <div className="border-b border-gray-200 pb-2">
                   <h2 className="text-xl font-semibold text-gray-900">
                     {
@@ -106,35 +112,45 @@ export default function PlaygroundPage() {
                   </p>
                 </div>
 
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {categoryModels.map((model) => (
-                    <Link
-                      key={model.id}
-                      href={getModelUrl(model)}
-                      className="group relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-                    >
-                      {/* Custom gradient overlay on hover */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] opacity-0 transition-all duration-300 group-hover:opacity-100" />
+                <div
+                  ref={modelsParent}
+                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                >
+                  {categoryModels.map((model, modelIndex) => {
+                    // Calculate delay: base delay for category + staggered delay for each model
+                    const baseDelay = (index + 1) * 100; // 100ms, 200ms, 300ms for categories
+                    const modelDelay = (modelIndex + 1) * 50; // 50ms increments for models
+                    const totalDelay = Math.min(baseDelay + modelDelay, 500);
 
-                      {/* Content */}
-                      <div className="relative z-10 space-y-3">
-                        {/* Model ID (small) */}
-                        <p className="text-xs text-gray-500 transition-colors group-hover:text-gray-300">
-                          {model.id}
-                        </p>
+                    return (
+                      <Link
+                        key={model.id}
+                        href={getModelUrl(model)}
+                        className={`group animate-fade-in-up relative overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg animate-delay-${totalDelay}`}
+                      >
+                        {/* Custom gradient overlay on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] opacity-0 transition-all duration-300 group-hover:opacity-100" />
 
-                        {/* Model name */}
-                        <h3 className="font-semibold text-gray-900 transition-colors group-hover:text-white">
-                          {model.name}
-                        </h3>
+                        {/* Content */}
+                        <div className="relative z-10 space-y-3">
+                          {/* Model ID (small) */}
+                          <p className="text-xs text-gray-500 transition-colors group-hover:text-gray-300">
+                            {model.id}
+                          </p>
 
-                        {/* Price per second */}
-                        <div className="text-xs text-gray-600 transition-colors group-hover:text-gray-300">
-                          ${model.price_per_second}/sec
+                          {/* Model name */}
+                          <h3 className="font-semibold text-gray-900 transition-colors group-hover:text-white">
+                            {model.name}
+                          </h3>
+
+                          {/* Price per second */}
+                          <div className="text-xs text-gray-600 transition-colors group-hover:text-gray-300">
+                            ${model.price_per_second}/sec
+                          </div>
                         </div>
-                      </div>
-                    </Link>
-                  ))}
+                      </Link>
+                    );
+                  })}
                 </div>
               </section>
             ),
@@ -143,7 +159,7 @@ export default function PlaygroundPage() {
       )}
 
       {/* Info section */}
-      <section className="mt-8 rounded-xl border bg-gray-50/50 p-6">
+      <section className="animate-fade-in animate-delay-400 mt-8 rounded-xl border bg-gray-50/50 p-6">
         <div className="flex items-start gap-4">
           <div className="rounded-full bg-blue-100 p-2">
             <Sparkles className="h-5 w-5 text-blue-600" />
