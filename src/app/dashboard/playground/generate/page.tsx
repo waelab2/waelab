@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import GlowingCard from "~/components/mvpblocks/glow-card";
 import { Separator } from "~/components/ui/separator";
 import { models, type Model } from "~/lib/constants";
 import { falClient } from "~/lib/falClient";
@@ -28,6 +29,14 @@ function GeneratePageContent() {
   const [result, setResult] = useState<null | Result>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [estimatedCost, setEstimatedCost] = useState(0);
+  const [videoData, setVideoData] = useState<{
+    file_name: string;
+    file_size: number;
+    content_type: string;
+  } | null>(null);
+
+  // Ref for the results section to enable auto-scrolling
+  const resultsSectionRef = useRef<HTMLDivElement>(null);
 
   // Handle model selection from URL parameter
   useEffect(() => {
@@ -54,6 +63,34 @@ function GeneratePageContent() {
   useEffect(() => {
     setIsLoading(status === "IN_QUEUE" || status === "IN_PROGRESS");
   }, [status]);
+
+  // Load video data when result is completed
+  useEffect(() => {
+    if (status === "COMPLETED" && result) {
+      const loadVideoData = async () => {
+        try {
+          const resolvedResult = await result;
+          setVideoData(resolvedResult.data.video);
+        } catch (error) {
+          console.error("Error loading video data:", error);
+        }
+      };
+      void loadVideoData();
+    }
+  }, [status, result]);
+
+  // Auto-scroll to results section when it appears
+  useEffect(() => {
+    if (status && (videoData || isLoading) && resultsSectionRef.current) {
+      // Small delay to ensure the DOM has updated
+      setTimeout(() => {
+        resultsSectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, [status, videoData, isLoading]);
 
   // Configure fal client once on component mount
   useEffect(() => {
@@ -181,9 +218,6 @@ function GeneratePageContent() {
             <h3 className="text-lg font-semibold text-white">Quick Actions</h3>
             <div className="mt-4 space-y-3">
               <button className="w-full rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20">
-                Save as Template
-              </button>
-              <button className="w-full rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20">
                 View History
               </button>
             </div>
@@ -192,7 +226,7 @@ function GeneratePageContent() {
 
         {/* Results Section */}
         {status && result && (
-          <div className="mt-12 lg:col-span-3">
+          <div ref={resultsSectionRef} className="mt-12 lg:col-span-3">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold tracking-tight text-white">
                 Generated Video
@@ -203,9 +237,39 @@ function GeneratePageContent() {
                 </span>
               </div>
             </div>
-            <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
-              <ResultSection status={status} result={result} />
-            </div>
+            <GlowingCard aspectRatio="16:9" className="p-6">
+              <div className="space-y-6">
+                <ResultSection
+                  status={status}
+                  result={result}
+                  showMetadata={false}
+                />
+
+                {/* Video Metadata */}
+                {videoData && (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="rounded-lg bg-white/10 p-4">
+                      <div className="text-sm text-white/60">File Name</div>
+                      <div className="text-lg font-semibold text-white">
+                        {videoData.file_name}
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-white/10 p-4">
+                      <div className="text-sm text-white/60">File Size</div>
+                      <div className="text-lg font-semibold text-white">
+                        {(videoData.file_size / 1024 / 1024).toFixed(2)} MB
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-white/10 p-4">
+                      <div className="text-sm text-white/60">Content Type</div>
+                      <div className="text-lg font-semibold text-white">
+                        {videoData.content_type}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </GlowingCard>
           </div>
         )}
       </div>

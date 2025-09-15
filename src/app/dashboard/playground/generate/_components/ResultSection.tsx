@@ -8,9 +8,11 @@ import type { Result, Status, VideoGenerationOutput } from "~/lib/types";
 export default function ResultSection({
   status,
   result,
+  showMetadata = true,
 }: {
   status: Status;
   result: Result;
+  showMetadata?: boolean;
 }) {
   const [isLoading, setIsLoading] = useState(true);
   const [videoData, setVideoData] = useState<
@@ -22,7 +24,6 @@ export default function ResultSection({
       // result is a Promise that resolves to { data: VideoGenerationOutput }
       const loadResult = async () => {
         try {
-          // eslint-disable-next-line @typescript-eslint/await-thenable
           const resolvedResult = await result;
           setVideoData(resolvedResult.data.video);
           console.log("🎬 Video result loaded:", resolvedResult.data.video);
@@ -39,27 +40,25 @@ export default function ResultSection({
 
   return (
     <div className="space-y-4">
-      <AspectRatio ratio={16 / 9}>
-        {isLoading ? (
-          <VideoSkeleton />
-        ) : (
-          <Suspense fallback={<VideoSkeleton />}>
-            <video
-              src={videoData?.url}
-              controls
-              autoPlay
-              loop
-              muted
-              className="h-full w-full rounded-lg object-cover shadow-lg"
-              preload="metadata"
-            >
-              Your browser does not support the video tag.
-            </video>
-          </Suspense>
-        )}
-      </AspectRatio>
+      {isLoading ? (
+        <VideoSkeleton />
+      ) : (
+        <Suspense fallback={<VideoSkeleton />}>
+          <video
+            src={videoData?.url}
+            controls
+            autoPlay
+            loop
+            muted
+            className="h-full w-full rounded-lg object-cover shadow-lg"
+            preload="metadata"
+          >
+            Your browser does not support the video tag.
+          </video>
+        </Suspense>
+      )}
 
-      {videoData && !isLoading && (
+      {videoData && !isLoading && showMetadata && (
         <div className="space-y-1 text-sm text-white/80">
           <div className="flex items-center justify-between">
             <span className="font-medium">File:</span>
@@ -83,13 +82,10 @@ export default function ResultSection({
 
 function VideoSkeleton() {
   return (
-    <div className="relative h-full w-full">
-      <Skeleton className="h-full w-full rounded-lg bg-white/20 shadow-lg" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="flex items-center space-x-2 text-white/80">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
-          <span className="text-sm">Generating video...</span>
-        </div>
+    <div className="flex items-center justify-center p-8">
+      <div className="flex items-center space-x-3 text-white/80">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+        <span className="text-lg font-medium">Generating video...</span>
       </div>
     </div>
   );

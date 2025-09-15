@@ -373,6 +373,16 @@ function RunwayPageContent() {
               </div>
             </div>
           </div>
+
+          {/* Quick Actions */}
+          <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
+            <h3 className="text-lg font-semibold text-white">Quick Actions</h3>
+            <div className="mt-4 space-y-3">
+              <button className="w-full rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20">
+                View History
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Results Section */}

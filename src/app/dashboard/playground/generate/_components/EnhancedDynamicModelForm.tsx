@@ -382,32 +382,6 @@ export default function EnhancedDynamicModelForm() {
           </ul>
         </div>
       )}
-
-      {/* Debug Information (only in development) */}
-      {process.env.NODE_ENV === "development" && (
-        <details className="rounded-lg border border-white/20 bg-white/5 p-4 backdrop-blur-sm">
-          <summary className="cursor-pointer text-sm font-medium text-white/80">
-            Debug Information
-          </summary>
-          <div className="mt-2 space-y-2 text-xs text-white/80">
-            <div>
-              <strong>Model:</strong> {model}
-            </div>
-            <div>
-              <strong>Category:</strong> {modelSchema?.category ?? "Unknown"}
-            </div>
-            <div>
-              <strong>Fields:</strong> {Object.keys(formFields).join(", ")}
-            </div>
-            <div>
-              <strong>Values:</strong>
-              <pre className="mt-1 rounded bg-white/10 p-2 whitespace-pre-wrap text-white/80">
-                {JSON.stringify(formValues, null, 2)}
-              </pre>
-            </div>
-          </div>
-        </details>
-      )}
     </div>
   );
 }

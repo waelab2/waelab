@@ -51,6 +51,16 @@ export const models = [
 
   // === IMAGE-TO-VIDEO MODELS ===
 
+  // === RUNWAY MODELS ===
+  {
+    id: "runway/gen4_turbo",
+    name: "Runway gen4_turbo (I2V)",
+    price_per_second: 0.05, // 5 credits per second × $0.01 per credit = $0.05 per second
+    category: "image-to-video",
+    description:
+      "Advanced image-to-video generation with high-quality motion and realistic transformations",
+  },
+
   // Kling Models (100% Compatible - Phase 1)
   {
     id: "fal-ai/kling-video/v2.1/master/image-to-video",
@@ -148,16 +158,6 @@ export const models = [
     category: "text-to-audio",
     description:
       "Advanced multilingual TTS supporting Arabic with Saudi accent",
-  },
-
-  // === RUNWAY MODELS ===
-  {
-    id: "runway/gen4_turbo",
-    name: "Runway gen4_turbo (I2V)",
-    price_per_second: 0.05, // 5 credits per second × $0.01 per credit = $0.05 per second
-    category: "image-to-video",
-    description:
-      "Advanced image-to-video generation with high-quality motion and realistic transformations",
   },
 ] as const;
 
