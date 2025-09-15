@@ -3,6 +3,7 @@
 import { Separator } from "@radix-ui/react-separator";
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
+import GlowingCard from "~/components/mvpblocks/glow-card";
 import { Button } from "~/components/ui/button";
 import { FileUpload } from "~/components/ui/file-upload";
 import { Label } from "~/components/ui/label";
@@ -387,7 +388,7 @@ function RunwayPageContent() {
                 </span>
               </div>
             </div>
-            <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
+            <GlowingCard aspectRatio={ratio} className="p-6">
               <div className="space-y-6">
                 {/* Video Player */}
                 <div className="space-y-3">
@@ -401,17 +402,14 @@ function RunwayPageContent() {
                       Your browser does not support the video tag.
                     </video>
                   ) : (
-                    <div className="relative w-full rounded-lg border border-white/20 bg-white/10 p-8">
-                      <div className="flex items-center justify-center">
-                        <div className="flex items-center space-x-3 text-white/80">
-                          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
-                          <span className="text-lg font-medium">
-                            {status === "PREPARING" &&
-                              "Preparing generation..."}
-                            {status === "GENERATING" && "Generating video..."}
-                            {status === "PROCESSING" && "Processing video..."}
-                          </span>
-                        </div>
+                    <div className="flex items-center justify-center p-8">
+                      <div className="flex items-center space-x-3 text-white/80">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                        <span className="text-lg font-medium">
+                          {status === "PREPARING" && "Preparing generation..."}
+                          {status === "GENERATING" && "Generating video..."}
+                          {status === "PROCESSING" && "Processing video..."}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -456,7 +454,7 @@ function RunwayPageContent() {
                   </>
                 )}
               </div>
-            </div>
+            </GlowingCard>
           </div>
         )}
 
