@@ -62,6 +62,8 @@ function ContentBox({ children }: { children: React.ReactNode }) {
           alt="hero-bg"
           width={500}
           height={500}
+          priority
+          style={{ width: "auto", height: "auto" }}
         />
       </div>
       <div className="absolute right-0 bottom-0 z-2">
@@ -70,6 +72,7 @@ function ContentBox({ children }: { children: React.ReactNode }) {
           alt="hero-bg"
           width={500}
           height={500}
+          style={{ width: "auto", height: "auto" }}
         />
       </div>
     </section>

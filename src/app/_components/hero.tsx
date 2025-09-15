@@ -48,6 +48,7 @@ function ContentBox({ children }: { children: React.ReactNode }) {
           alt="hero-bg"
           width={500}
           height={500}
+          style={{ width: "auto", height: "auto" }}
         />
       </div>
     </section>
