@@ -61,7 +61,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar collapsible="icon" className="relative z-2 border-0" {...props}>
+    <Sidebar collapsible="icon" className="relative z-50 border-0" {...props}>
       <div className="absolute inset-0 bg-[#EEEFF614] backdrop-blur-sm" />
       <SidebarContent className="relative z-10">
         <NavMain items={data.navMain} />

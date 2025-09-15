@@ -116,7 +116,7 @@ export default function PlaygroundPage() {
 
                 <div
                   ref={modelsParent}
-                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
                 >
                   {categoryModels.map((model, modelIndex) => {
                     // Calculate delay: base delay for category + staggered delay for each model
