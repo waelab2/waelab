@@ -69,3 +69,51 @@ export type ElevenLabsStatus =
   | "GENERATING"
   | "COMPLETED"
   | "FAILED";
+
+// === RUNWAY TYPES - MINIMAL FOR IMAGE-TO-VIDEO ===
+
+/**
+ * Runway gen4_turbo Input (our internal type)
+ * Minimal fields for image-to-video generation
+ */
+export interface RunwayGen4TurboInput {
+  promptImage: string; // URL or base64-encoded image
+  promptText?: string; // Optional text description
+  ratio: "16:9" | "9:16" | "1:1"; // Aspect ratio
+  duration: 5 | 10; // Video duration in seconds
+}
+
+/**
+ * Runway gen4_turbo Output (our internal type)
+ * What our UI will receive after generation
+ */
+export interface RunwayGen4TurboOutput {
+  video: {
+    url: string;
+    file_size: number;
+    file_name: string;
+    content_type: string;
+    duration_ms: number;
+  };
+  metadata?: {
+    model_id: string;
+    generation_id: string;
+    generation_time_ms: number;
+    credits_used: number;
+  };
+}
+
+/**
+ * Result type for Runway generation (matching fal.ai pattern)
+ */
+export type RunwayGen4TurboResult = Promise<{ data: RunwayGen4TurboOutput }>;
+
+/**
+ * Status for Runway generation process
+ */
+export type RunwayGen4TurboStatus =
+  | "PREPARING"
+  | "GENERATING"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED";

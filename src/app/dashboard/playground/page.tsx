@@ -46,6 +46,10 @@ export default function PlaygroundPage() {
       // ElevenLabs models go to their specific page
       const modelPath = model.id.replace("elevenlabs/", "");
       return `/dashboard/playground/elevenlabs/${modelPath}`;
+    } else if (model.id.startsWith("runway/")) {
+      // Runway models go to their specific page
+      const modelPath = model.id.replace("runway/", "");
+      return `/dashboard/playground/runway/${modelPath}`;
     } else {
       // fal.ai models go to the generate page
       return `/dashboard/playground/generate?model=${encodeURIComponent(model.id)}`;

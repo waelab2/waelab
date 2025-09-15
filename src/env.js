@@ -10,6 +10,7 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     FAL_KEY: z.string(),
     ELEVENLABS_API_KEY: z.string(),
+    RUNWAY_API_KEY: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -33,6 +34,7 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     FAL_KEY: process.env.FAL_KEY,
     ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
+    RUNWAY_API_KEY: process.env.RUNWAY_API_KEY,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
     NEXT_PUBLIC_CLERK_FRONTEND_API_URL:

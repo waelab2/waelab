@@ -149,6 +149,16 @@ export const models = [
     description:
       "Advanced multilingual TTS supporting Arabic with Saudi accent",
   },
+
+  // === RUNWAY MODELS ===
+  {
+    id: "runway/gen4_turbo",
+    name: "Runway gen4_turbo (I2V)",
+    price_per_second: 0.05, // 5 credits per second × $0.01 per credit = $0.05 per second
+    category: "image-to-video",
+    description:
+      "Advanced image-to-video generation with high-quality motion and realistic transformations",
+  },
 ] as const;
 
 export type Model = (typeof models)[number];
@@ -355,5 +365,14 @@ export function getElevenLabsUrls() {
   return {
     voices_url: `/api/elevenlabs/voices`,
     tts_url: `/api/elevenlabs/text-to-speech`,
+  };
+}
+
+/**
+ * Get Runway URLs for API endpoints
+ */
+export function getRunwayUrls() {
+  return {
+    gen4_turbo_url: `/api/runway/gen4_turbo`,
   };
 }
