@@ -10,16 +10,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { DynamicFieldRenderer } from "~/components/dynamic-field-renderer";
 import { Label } from "~/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import type { Model } from "~/lib/constants";
-import { models } from "~/lib/constants";
+import { Skeleton } from "~/components/ui/skeleton";
 import type { FormField, ParameterValue } from "~/lib/parameter-registry";
 import useGenerateStore from "~/lib/stores/useGenerateStore";
 import { ModelSchemaFetcher } from "~/lib/utils/schema-fetcher";
@@ -52,12 +43,21 @@ export default function EnhancedDynamicModelForm() {
   );
   const [formFields, setFormFields] = useState<Record<string, FormField>>({});
 
+  // Clear form state immediately when model changes (before schema fetch)
+  useEffect(() => {
+    if (model) {
+      setFormFields({});
+      setFormValues({});
+      setValidationErrors({});
+      setLoadingModel(true);
+    }
+  }, [model, setLoadingModel]);
+
   // Fetch model schema when model changes
   useEffect(() => {
     async function fetchModelSchema() {
       if (!model) return;
 
-      setLoadingModel(true);
       try {
         const modelInfo = await ModelSchemaFetcher.getModelInfo(model);
         if (modelInfo) {
@@ -251,17 +251,65 @@ export default function EnhancedDynamicModelForm() {
     return colorMap[color as keyof typeof colorMap] || "bg-blue-500";
   };
 
-  if (isLoadingModel) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
-          <p className="text-muted-foreground text-lg">
-            Loading model configuration...
-          </p>
+  // Skeleton form component that mimics the actual form structure
+  const SkeletonForm = () => (
+    <div className="space-y-8">
+      {/* Video Description Section */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <div className="h-2 w-2 rounded-full bg-green-500"></div>
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-24 w-full rounded-md" />
         </div>
       </div>
-    );
+
+      {/* Video Settings Section */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+          <Skeleton className="h-5 w-28" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Settings Section */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+          <Skeleton className="h-5 w-36" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-10 w-full rounded-md" />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (isLoadingModel || Object.keys(formFields).length === 0) {
+    return <SkeletonForm />;
   }
 
   const sections = getFormSections();
@@ -271,47 +319,6 @@ export default function EnhancedDynamicModelForm() {
 
   return (
     <div className="space-y-8">
-      {/* Model Selection Section */}
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-          <Label className="text-base font-medium text-gray-700">
-            Model Selection
-          </Label>
-        </div>
-        <Select
-          value={model}
-          onValueChange={(value) => setModel(value as Model["id"])}
-        >
-          <SelectTrigger className="h-12 text-base">
-            <SelectValue placeholder="Select a model" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {models.map((modelOption) => (
-                <SelectItem key={modelOption.id} value={modelOption.id}>
-                  {modelOption.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-
-        {/* Model Category Badge */}
-        {modelSchema?.category && (
-          <div className="flex items-center space-x-2">
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-              {modelSchema.category
-                .replace(/-/g, " ")
-                .replace(/\b\w/g, (l) => l.toUpperCase())}
-            </span>
-            <span className="text-xs text-gray-500">
-              {Object.keys(formFields).length} parameters
-            </span>
-          </div>
-        )}
-      </div>
-
       {/* Dynamic Form Sections */}
       {sections.map((section, sectionIndex) => {
         const sectionFields = section.fields.filter(
