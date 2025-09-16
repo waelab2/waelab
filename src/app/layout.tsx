@@ -6,8 +6,8 @@ import { Geist } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TRPCReactProvider } from "~/trpc/react";
 import ConvexClientProvider from "./ConvexClientProvider";
-import Footer from "./_components/footer";
-import Hero from "./_components/hero";
+// import Footer from "./_components/footer";
+// import Hero from "./_components/hero";
 
 export const metadata: Metadata = {
   title: "Waelab",

@@ -16,7 +16,6 @@ import {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
-  const segments = pathname.split("/");
 
   const data = {
     navMain: [

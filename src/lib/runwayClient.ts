@@ -2,7 +2,6 @@ import RunwayML, { TaskFailedError } from "@runwayml/sdk";
 import { env } from "~/env";
 import type {
   RunwayGen4TurboInput,
-  RunwayGen4TurboOutput,
   RunwayGen4TurboResult,
   RunwayGen4TurboStatus,
 } from "~/lib/types";
@@ -193,7 +192,7 @@ export function createRunwayClient(): RunwayClientInterface {
   } else {
     debugLog("Using production client");
     // Only access environment variables on the server side
-    const apiKey = env.RUNWAY_API_KEY as string;
+    const apiKey = env.RUNWAY_API_KEY;
     return new RunwayProductionClient(apiKey);
   }
 }

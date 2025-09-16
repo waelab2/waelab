@@ -1,7 +1,6 @@
 import { ArrowRightIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import AccentedText from "~/components/accented-text";
 import NavigationAuthPart from "~/components/navigation-auth-part";
 import PrimaryAccentedButton from "~/components/primary-accented-button";
@@ -12,7 +11,6 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "~/components/ui/navigation-menu";
-import { hero_contents } from "~/lib/constants/index";
 import { cn } from "~/lib/utils";
 
 export default function Hero() {

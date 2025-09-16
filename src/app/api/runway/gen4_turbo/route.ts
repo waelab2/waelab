@@ -1,6 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { runwayClient } from "~/lib/runwayClient";
 import type { RunwayGen4TurboInput } from "~/lib/types";
+
+// Request body type for Runway Gen4 Turbo API
+interface RunwayGen4TurboRequestBody {
+  promptImage?: string;
+  promptText?: string;
+  ratio?: string;
+  duration?: number;
+}
 
 // === DEBUG CONFIGURATION ===
 const DEBUG_RUNWAY_API = true;
@@ -29,7 +38,7 @@ export async function POST(request: NextRequest) {
 
   try {
     // Parse request body
-    const body = await request.json();
+    const body = (await request.json()) as RunwayGen4TurboRequestBody;
     debugLog("Request body parsed", {
       requestId: requestId,
       bodyKeys: Object.keys(body),
@@ -70,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate image format
-    const promptImage = body.promptImage as string;
+    const promptImage = body.promptImage;
     if (
       !promptImage.startsWith("data:image/") &&
       !promptImage.startsWith("http")
@@ -87,8 +96,8 @@ export async function POST(request: NextRequest) {
     const input: RunwayGen4TurboInput = {
       promptImage: promptImage,
       promptText: body.promptText,
-      ratio: body.ratio,
-      duration: body.duration,
+      ratio: body.ratio as "16:9" | "9:16" | "1:1",
+      duration: body.duration as 5 | 10,
     };
 
     debugLog("Starting generation", {

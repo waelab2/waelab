@@ -28,7 +28,7 @@ interface FormSection {
 export default function EnhancedDynamicModelForm() {
   const {
     model,
-    setModel,
+    // setModel,
     modelSchema,
     setModelSchema,
     isLoadingModel,
@@ -96,7 +96,7 @@ export default function EnhancedDynamicModelForm() {
     }
 
     void fetchModelSchema();
-  }, [model, setModelSchema, setLoadingModel]);
+  }, [model, setModelSchema, setLoadingModel, prompt]);
 
   const handleFieldChange = useCallback(
     (fieldName: string, value: ParameterValue) => {

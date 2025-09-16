@@ -1,8 +1,6 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { AspectRatio } from "~/components/ui/aspect-ratio";
-import { Skeleton } from "~/components/ui/skeleton";
 import type { Result, Status, VideoGenerationOutput } from "~/lib/types";
 
 export default function ResultSection({

@@ -7,6 +7,7 @@
 "use client";
 
 import { File, Image, Music, Upload, Video, X } from "lucide-react";
+import NextImage from "next/image";
 import { useCallback, useState } from "react";
 import { cn } from "~/lib/utils";
 import { Button } from "./button";
@@ -125,6 +126,7 @@ export function FileUpload({
 
   const getFileIcon = (file: File) => {
     if (file.type.startsWith("image/")) {
+      // eslint-disable-next-line jsx-a11y/alt-text
       return <Image className="h-8 w-8 text-blue-500" />;
     }
     if (file.type.startsWith("video/")) {
@@ -143,7 +145,7 @@ export function FileUpload({
       const imageUrl = URL.createObjectURL(value);
       return (
         <div className="relative">
-          <img
+          <NextImage
             src={imageUrl}
             alt={`Preview of ${value.name}`}
             className="max-h-48 max-w-full rounded-lg object-contain"

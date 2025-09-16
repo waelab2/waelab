@@ -1,7 +1,7 @@
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { createRunwayClient } from "~/lib/runwayClient";
-import type { RunwayGen4TurboStatus } from "~/lib/types";
+import type { RunwayGen4TurboInput, RunwayGen4TurboStatus } from "~/lib/types";
 
 // === DEBUG CONFIGURATION ===
 const DEBUG_API = true; // Set to false to disable API debug logs
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate image format
-    const promptImage = body.promptImage as string;
+    const promptImage = body.promptImage;
     if (
       !promptImage.startsWith("data:image/") &&
       !promptImage.startsWith("http")
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         const encoder = new TextEncoder();
 
         // Helper function to send SSE data
-        const sendSSE = (data: any) => {
+        const sendSSE = (data: unknown) => {
           const sseData = `data: ${JSON.stringify(data)}\n\n`;
           controller.enqueue(encoder.encode(sseData));
         };
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
           });
 
           const result = await runwayClient.generate({
-            input: body,
+            input: body as RunwayGen4TurboInput,
             onProgress: (progress: { status: RunwayGen4TurboStatus }) => {
               debugLog("Generation progress", {
                 requestId: requestId,
