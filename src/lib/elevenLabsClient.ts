@@ -19,7 +19,7 @@ interface ElevenLabsVoicesResponse {
 
 // === DEBUG CONFIGURATION ===
 const DEBUG_ELEVENLABS = true; // Set to false to disable debug logs
-const USE_MOCK_IN_DEV = false; // Set to false to test real API in development
+const USE_MOCK_IN_DEV = true; // Set to false to test real API in development
 
 function debugLog(message: string, data?: unknown) {
   if (DEBUG_ELEVENLABS) {
@@ -294,7 +294,7 @@ export function createElevenLabsClient(): ElevenLabsClientInterface {
   } else {
     debugLog("Using production client");
     // Only access environment variables on the server side
-    const apiKey = env.ELEVENLABS_API_KEY as string;
+    const apiKey = env.ELEVENLABS_API_KEY;
     return new ElevenLabsProductionClient(apiKey);
   }
 }

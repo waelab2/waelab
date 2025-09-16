@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { env } from "~/env";
+import { createElevenLabsClient } from "~/lib/elevenLabsClient";
 
 // === DEBUG CONFIGURATION ===
 const DEBUG_API = true; // Set to false to disable debug logs
@@ -145,35 +146,11 @@ export async function POST(request: NextRequest) {
       textPreview: text.substring(0, 100) + (text.length > 100 ? "..." : ""),
     });
 
-    // Check for API key
-    const apiKey = env.ELEVENLABS_API_KEY as string;
-    if (!apiKey) {
-      apiError("ElevenLabs API key not configured", { requestId });
-      return NextResponse.json(
-        {
-          error: "Server configuration error",
-          requestId,
-        },
-        { status: 500 },
-      );
-    }
+    // Create ElevenLabs client using factory function (respects mock settings)
+    apiLog("Creating ElevenLabs client using factory", { requestId });
+    const client = createElevenLabsClient();
 
-    apiLog("API key found", {
-      requestId,
-      apiKeyLength: apiKey.length,
-      apiKeyPrefix: apiKey.substring(0, 8) + "...",
-    });
-
-    // Import and create ElevenLabs client directly
-    apiLog("Importing ElevenLabs SDK", { requestId });
-    const { ElevenLabsClient } = await import("@elevenlabs/elevenlabs-js");
-
-    apiLog("Creating ElevenLabs client", { requestId });
-    const client = new ElevenLabsClient({
-      apiKey: apiKey,
-    });
-
-    // Make the TTS request
+    // Make the TTS request using the client interface
     apiLog("Calling ElevenLabs TTS API", {
       requestId,
       voiceId: voice_id,
@@ -182,65 +159,62 @@ export async function POST(request: NextRequest) {
       textLength: text.length,
     });
 
-    const audioStream = await client.textToSpeech.convert(voice_id, {
-      text: text,
-      modelId: "eleven_multilingual_v2",
-      outputFormat: "mp3_44100_128",
+    const result = await client.generate({
+      input: {
+        text: text,
+        voice_id: voice_id,
+      },
+      onProgress: (progress) => {
+        apiLog("Generation progress", { requestId, status: progress.status });
+      },
     });
 
-    apiLog("Audio stream received, converting to buffer", { requestId });
+    apiLog("Generation completed, processing result", { requestId });
 
-    // Convert stream to buffer
-    const chunks: Uint8Array[] = [];
-    const reader = audioStream.getReader();
-
-    let totalSize = 0;
-    let chunkCount = 0;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      totalSize += value.length;
-      chunkCount++;
-
-      if (chunkCount % 10 === 0) {
-        // Log every 10th chunk to avoid spam
-        apiLog(
-          `Stream progress: chunk ${chunkCount}, total size: ${totalSize} bytes`,
-          { requestId },
-        );
-      }
-    }
-
-    apiLog("Stream conversion completed", {
-      requestId,
-      totalChunks: chunkCount,
-      totalSizeBytes: totalSize,
-      averageChunkSize: Math.round(totalSize / chunkCount),
-    });
-
-    const audioBuffer = Buffer.concat(chunks);
+    // The client interface returns a structured result with audio URL
+    const { audio, metadata } = result.data;
 
     const processingTime = Date.now() - startTime;
 
     apiLog("TTS request completed successfully", {
       requestId,
       processingTimeMs: processingTime,
-      audioSizeBytes: audioBuffer.length,
+      audioSizeBytes: audio.file_size,
+      contentType: audio.content_type,
+      audioUrl: audio.url.substring(0, 50) + "...",
       textLength: text.length,
       charactersPerSecond: Math.round((text.length / processingTime) * 1000),
+      metadata: metadata,
     });
 
-    return new NextResponse(audioBuffer, {
-      headers: {
-        "Content-Type": "audio/mpeg",
-        "Content-Length": audioBuffer.length.toString(),
-        "X-Request-ID": requestId,
-        "X-Processing-Time-Ms": processingTime.toString(),
-        "X-Audio-Size-Bytes": audioBuffer.length.toString(),
-        "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+    // Return the structured result instead of raw audio buffer
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          audio: {
+            url: audio.url,
+            file_size: audio.file_size,
+            file_name: audio.file_name,
+            content_type: audio.content_type,
+            duration_ms: audio.duration_ms,
+          },
+          metadata: metadata,
+        },
+        requestId,
+        processingTimeMs: processingTime,
       },
-    });
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "X-Request-ID": requestId,
+          "X-Processing-Time-Ms": processingTime.toString(),
+          "X-Audio-Size-Bytes": audio.file_size.toString(),
+          "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+        },
+      },
+    );
   } catch (error) {
     const processingTime = Date.now() - startTime;
 

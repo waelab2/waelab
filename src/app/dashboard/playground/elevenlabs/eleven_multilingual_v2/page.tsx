@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import GlowingCard from "~/components/mvpblocks/glow-card";
+import { Separator } from "~/components/ui/separator";
 import { saudiArabicVoices } from "~/lib/constants";
 import type { ElevenLabsStatus } from "~/lib/types";
 
@@ -30,6 +32,7 @@ function ElevenLabsPageContent() {
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const [estimatedCost, setEstimatedCost] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const resultsSectionRef = useRef<HTMLDivElement>(null);
 
   // Calculate estimated cost based on text length
   useEffect(() => {
@@ -40,6 +43,20 @@ function ElevenLabsPageContent() {
   useEffect(() => {
     setIsLoading(status === "PREPARING" || status === "GENERATING");
   }, [status]);
+
+  // Auto-scroll to results when the results section becomes visible
+  useEffect(() => {
+    if (
+      status &&
+      (audioData || isLoading || status === "FAILED") &&
+      resultsSectionRef.current
+    ) {
+      resultsSectionRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [status, audioData, isLoading]);
 
   // Format milliseconds to human readable time
   function formatTime(ms: number): string {
@@ -75,8 +92,6 @@ function ElevenLabsPageContent() {
     setError(null);
     setAudioDuration(null);
 
-    const startTime = Date.now();
-
     try {
       setStatus("GENERATING");
 
@@ -100,28 +115,32 @@ function ElevenLabsPageContent() {
         );
       }
 
-      // Get the audio blob
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      // Calculate actual generation time
-      const generationTime = Date.now() - startTime;
-
-      // Create audio data structure
-      const audioData = {
-        audio: {
-          url: audioUrl,
-          file_size: audioBlob.size,
-          content_type: audioBlob.type,
-          file_name: `arabic-speech-${Date.now()}.mp3`,
-        },
-        metadata: {
-          character_count: text.trim().length,
-          generation_time_ms: generationTime,
-          model_id: "elevenlabs/eleven_multilingual_v2",
-          voice_id: selectedVoice,
-        },
+      // Get the JSON response with audio data
+      const responseData = (await response.json()) as {
+        success: boolean;
+        data?: {
+          audio: {
+            url: string;
+            file_size: number;
+            file_name: string;
+            content_type: string;
+            duration_ms: number;
+          };
+          metadata: {
+            character_count: number;
+            generation_time_ms: number;
+            model_id: string;
+            voice_id: string;
+          };
+        };
       };
+
+      if (!responseData.success || !responseData.data) {
+        throw new Error("Invalid response format from API");
+      }
+
+      // Use the audio data directly from the API response
+      const audioData = responseData.data;
 
       setAudioData(audioData);
       setStatus("COMPLETED");
@@ -139,147 +158,96 @@ function ElevenLabsPageContent() {
 
   return (
     <main className="min-h-screen">
-      {/* Breadcrumb Navigation */}
-      <div className="border-b bg-gray-50/50">
-        <div className="mx-auto px-4 py-3 sm:px-6">
-          <nav className="flex items-center space-x-2 text-sm">
-            <Link
-              href="/dashboard/playground"
-              className="text-gray-300 transition-colors hover:text-gray-100"
-            >
-              Playground
-            </Link>
-            <span className="text-gray-400">/</span>
-            <Link
-              href="/dashboard/playground"
-              className="text-gray-300 transition-colors hover:text-gray-100"
-            >
-              ElevenLabs
-            </Link>
-            <span className="text-gray-400">/</span>
-            <span className="font-medium text-white">
-              Eleven Multilingual v2
-            </span>
-          </nav>
-        </div>
-      </div>
-
       {/* Header Section */}
-      <div className="border-b backdrop-blur-sm">
-        <div className="mx-auto px-4 py-6 sm:px-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">
-                Arabic Text-to-Speech
-              </h1>
-              <p className="mt-2 text-sm text-gray-300">
-                Convert Arabic text to natural speech with Saudi accent using
-                ElevenLabs
-              </p>
-              <div className="mt-3 space-y-2">
-                <Link
-                  href="/dashboard/playground"
-                  className="inline-flex items-center gap-2 text-sm text-blue-600 transition-colors hover:text-blue-700"
-                >
-                  ← Back to Models
-                </Link>
-                <div className="text-sm text-gray-300">
-                  <span className="font-medium">Model:</span> Eleven
-                  Multilingual v2
-                </div>
-              </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            Arabic Text-to-Speech
+          </h1>
+          <p className="mt-2 text-sm text-white/80">
+            Convert Arabic text to natural speech with Saudi accent using
+            ElevenLabs
+          </p>
+          <div className="mt-4 space-y-2">
+            <Link
+              href="/dashboard/playground"
+              className="inline-flex items-center gap-2 text-sm text-gray-300 transition-colors hover:text-white"
+            >
+              ← Back to Models
+            </Link>
+            <div className="text-sm text-gray-300">
+              <span className="font-semibold text-white">Selected Model:</span>{" "}
+              <span className="text-white">Eleven Multilingual v2</span>
             </div>
-            {isLoading && (
-              <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-                <span className="text-sm font-medium text-blue-700">
-                  {status === "PREPARING" && "Preparing..."}
-                  {status === "GENERATING" && "Generating audio..."}
-                </span>
-              </div>
-            )}
           </div>
         </div>
+        {isLoading && (
+          <div className="flex items-center space-x-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            <span className="text-sm font-medium text-white">
+              {status === "PREPARING" && "Preparing..."}
+              {status === "GENERATING" && "Generating audio..."}
+            </span>
+          </div>
+        )}
       </div>
+
+      <Separator className="my-8" />
 
       {/* Main Content */}
-      <div className="mx-auto px-4 py-8 sm:px-6">
-        {/* Top Row: Input and Voice Info */}
-        <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* Input Section */}
-          <div className="space-y-6">
-            <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-white">
-                Text Input
-              </h2>
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Left Column: Form */}
+        <div className="lg:col-span-2">
+          <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
+            <h2 className="mb-4 text-lg font-semibold text-white">
+              Arabic Text-to-Speech Generator
+            </h2>
 
-              {/* Arabic Text Input */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-200">
-                  Arabic Text
-                </label>
-                <textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="أدخل النص العربي هنا..."
-                  className="min-h-[120px] w-full rounded-md border border-white/30 px-3 py-2 text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  dir="rtl"
-                  maxLength={5000}
-                />
-                <div className="text-right text-sm text-gray-400">
-                  {text.length}/5000 characters
-                </div>
+            {/* Arabic Text Input */}
+            <div className="mb-6 space-y-3">
+              <label className="block text-sm font-medium text-white/80">
+                Arabic Text
+              </label>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="أدخل النص العربي هنا..."
+                className="min-h-[120px] w-full rounded-md border border-white/30 bg-white/10 px-3 py-2 text-right text-white placeholder-white/60 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                dir="rtl"
+                maxLength={5000}
+              />
+              <div className="text-right text-sm text-white/60">
+                {text.length}/5000 characters
               </div>
-
-              {/* Voice Selection */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-200">
-                  Voice (Saudi Arabic)
-                </label>
-                <select
-                  value={selectedVoice}
-                  onChange={(e) => setSelectedVoice(e.target.value)}
-                  className="w-full rounded-md border border-white/30 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                >
-                  {saudiArabicVoices.map((voice) => (
-                    <option key={voice.voice_id} value={voice.voice_id}>
-                      {voice.name} ({voice.gender})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Cost Estimation */}
-              <div className="rounded-lg bg-gray-50 p-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-300">Estimated Cost:</span>
-                  <span className="font-medium text-white">
-                    ${estimatedCost.toFixed(4)}
-                  </span>
-                </div>
-                <div className="mt-1 text-xs text-gray-400">
-                  Based on character count and model pricing
-                </div>
-              </div>
-
-              {/* Generate Button */}
-              <button
-                onClick={handleSubmit}
-                disabled={isLoading || !text.trim() || !selectedVoice}
-                className="w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-              >
-                {isLoading ? "Generating..." : "Generate Arabic Speech"}
-              </button>
             </div>
-          </div>
 
-          {/* Voice Info Section */}
-          <div className="space-y-6">
-            <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-white">
+            {/* Voice Selection */}
+            <div className="mb-6 space-y-3">
+              <label className="block text-sm font-medium text-white/80">
+                Voice (Saudi Arabic)
+              </label>
+              <select
+                value={selectedVoice}
+                onChange={(e) => setSelectedVoice(e.target.value)}
+                className="w-full rounded-md border border-white/30 bg-white/10 px-3 py-2 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              >
+                {saudiArabicVoices.map((voice) => (
+                  <option
+                    key={voice.voice_id}
+                    value={voice.voice_id}
+                    className="bg-gray-800 text-white"
+                  >
+                    {voice.name} ({voice.gender})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Voice Information */}
+            <div className="mb-6 space-y-4">
+              <h3 className="text-md font-medium text-white/80">
                 Voice Information
-              </h2>
-
+              </h3>
               {(() => {
                 const selectedVoiceInfo = saudiArabicVoices.find(
                   (voice) => voice.voice_id === selectedVoice,
@@ -287,48 +255,48 @@ function ElevenLabsPageContent() {
 
                 if (!selectedVoiceInfo) {
                   return (
-                    <div className="py-8 text-center">
-                      <p className="text-gray-400">No voice selected</p>
+                    <div className="py-4 text-center">
+                      <p className="text-white/60">No voice selected</p>
                     </div>
                   );
                 }
 
                 return (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {/* Voice Name and Basic Info */}
                     <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-white">
+                      <h4 className="text-sm font-medium text-white">
                         {selectedVoiceInfo.name}
-                      </h3>
+                      </h4>
                       <div className="flex flex-wrap gap-2">
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                        <span className="inline-flex items-center rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-medium text-white">
                           {selectedVoiceInfo.gender}
                         </span>
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                        <span className="inline-flex items-center rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-medium text-white">
                           {selectedVoiceInfo.age}
                         </span>
-                        <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                        <span className="inline-flex items-center rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-medium text-white">
                           {selectedVoiceInfo.accent}
                         </span>
                       </div>
                     </div>
 
                     {/* Description */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-gray-200">
+                    <div className="space-y-1">
+                      <h5 className="text-sm font-medium text-white/80">
                         Description
-                      </h4>
-                      <p className="text-sm leading-relaxed text-gray-300">
+                      </h5>
+                      <p className="text-xs leading-relaxed text-white/70">
                         {selectedVoiceInfo.description}
                       </p>
                     </div>
 
                     {/* Use Case */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-gray-200">
+                    <div className="space-y-1">
+                      <h5 className="text-sm font-medium text-white/80">
                         Best For
-                      </h4>
-                      <span className="inline-flex items-center rounded-md bg-amber-100 px-2.5 py-1 text-sm font-medium text-amber-800">
+                      </h5>
+                      <span className="inline-flex items-center rounded-md bg-white/20 px-2 py-1 text-xs font-medium text-white">
                         {selectedVoiceInfo.use_case
                           .replace(/_/g, " ")
                           .replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -337,13 +305,13 @@ function ElevenLabsPageContent() {
 
                     {/* Voice Preview */}
                     {selectedVoiceInfo.preview_url && (
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-gray-200">
+                      <div className="mt-4 space-y-2">
+                        <h5 className="text-sm font-medium text-white/80">
                           Voice Preview
-                        </h4>
+                        </h5>
                         <audio
                           controls
-                          className="w-full"
+                          className="h-8 w-full"
                           src={selectedVoiceInfo.preview_url}
                           preload="metadata"
                         >
@@ -351,59 +319,92 @@ function ElevenLabsPageContent() {
                         </audio>
                       </div>
                     )}
-
-                    {/* Technical Details */}
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <h4 className="mb-2 text-sm font-medium text-gray-200">
-                        Technical Details
-                      </h4>
-                      <div className="space-y-1 text-xs text-gray-300">
-                        <div className="flex justify-between">
-                          <span>Language:</span>
-                          <span className="font-mono">
-                            {selectedVoiceInfo.language}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Voice ID:</span>
-                          <span className="font-mono text-xs break-all">
-                            {selectedVoiceInfo.voice_id}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 );
               })()}
             </div>
+
+            {/* Generate Button */}
+            <div className="mt-6">
+              <button
+                onClick={handleSubmit}
+                disabled={isLoading || !text.trim() || !selectedVoice}
+                className="w-full rounded-lg bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] px-4 py-2 text-white transition-colors hover:from-[#D63E5F] hover:to-[#2A4A8F] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isLoading ? "Generating..." : "Generate Arabic Speech"}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Generated Audio Section - Only show after first generation */}
-        {(audioData ?? isLoading ?? status === "FAILED") && (
-          <div className="space-y-6 lg:col-span-2">
-            <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-white">
+        {/* Right Column: Cost & Actions */}
+        <div className="space-y-6">
+          {/* Cost Card */}
+          <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
+            <h3 className="text-lg font-semibold text-white">Cost Estimate</h3>
+            <div className="mt-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-white/80">Model Cost</span>
+                <span className="text-sm font-medium text-white">
+                  ${estimatedCost.toFixed(4)}
+                </span>
+              </div>
+              <div className="mt-2 flex items-center justify-between border-t border-white/20 pt-2">
+                <span className="text-base font-semibold text-white">
+                  Total
+                </span>
+                <span className="text-xl font-bold text-white">
+                  ${estimatedCost.toFixed(4)}
+                </span>
+              </div>
+              <div className="mt-2 text-xs text-white/60">
+                Based on character count and model pricing
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
+            <h3 className="text-lg font-semibold text-white">Quick Actions</h3>
+            <div className="mt-4 space-y-3">
+              <button className="w-full rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20">
+                View History
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Results Section */}
+        {status && (audioData ?? isLoading ?? status === "FAILED") && (
+          <div ref={resultsSectionRef} className="mt-12 lg:col-span-3">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold tracking-tight text-white">
                 Generated Audio
               </h2>
-
+              <div className="flex items-center space-x-2">
+                <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-white backdrop-blur-sm">
+                  {status === "COMPLETED" ? "✓ Complete" : status}
+                </span>
+              </div>
+            </div>
+            <GlowingCard className="p-6" aspectRatio="16:9">
               {isLoading && (
-                <div className="flex items-center justify-center py-12">
-                  <div className="text-center">
-                    <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-500"></div>
-                    <p className="text-lg text-gray-300">
+                <div className="flex items-center justify-center p-8">
+                  <div className="flex items-center space-x-3 text-white/80">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                    <span className="text-lg font-medium">
                       {status === "PREPARING" &&
                         "Preparing audio generation..."}
                       {status === "GENERATING" &&
                         "Converting text to speech..."}
-                    </p>
+                    </span>
                   </div>
                 </div>
               )}
 
               {!audioData && !isLoading && (
                 <div className="py-12 text-center">
-                  <p className="text-gray-400">
+                  <p className="text-white/60">
                     Generated audio will appear here
                   </p>
                 </div>
@@ -412,7 +413,7 @@ function ElevenLabsPageContent() {
               {audioData && (
                 <div className="space-y-4">
                   {/* Audio Player */}
-                  <div className="space-y-3">
+                  <div className="space-y-6">
                     <audio
                       controls
                       className="w-full"
@@ -424,114 +425,103 @@ function ElevenLabsPageContent() {
                     </audio>
 
                     {/* Audio Metadata */}
-                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-300">
-                      <div>
-                        <span className="font-medium">File Size:</span>{" "}
-                        {(audioData.audio.file_size / 1024 / 1024).toFixed(2)}{" "}
-                        MB
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="rounded-lg bg-white/10 p-4">
+                        <div className="text-sm text-white/60">File Size</div>
+                        <div className="text-lg font-semibold text-white">
+                          {(audioData.audio.file_size / 1024 / 1024).toFixed(2)}{" "}
+                          MB
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-medium">Duration:</span>{" "}
-                        {audioDuration
-                          ? `${audioDuration.toFixed(1)}s`
-                          : "Loading..."}
+                      <div className="rounded-lg bg-white/10 p-4">
+                        <div className="text-sm text-white/60">Duration</div>
+                        <div className="text-lg font-semibold text-white">
+                          {audioDuration
+                            ? `${audioDuration.toFixed(1)}s`
+                            : "Loading..."}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-medium">Format:</span>{" "}
-                        {audioData.audio.content_type}
+                      <div className="rounded-lg bg-white/10 p-4">
+                        <div className="text-sm text-white/60">Format</div>
+                        <div className="text-lg font-semibold text-white">
+                          {audioData.audio.content_type}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-medium">Voice:</span>{" "}
-                        {
-                          saudiArabicVoices.find(
-                            (v) => v.voice_id === selectedVoice,
-                          )?.name
-                        }
+                      <div className="rounded-lg bg-white/10 p-4">
+                        <div className="text-sm text-white/60">Voice</div>
+                        <div className="text-lg font-semibold text-white">
+                          {
+                            saudiArabicVoices.find(
+                              (v) => v.voice_id === selectedVoice,
+                            )?.name
+                          }
+                        </div>
                       </div>
+                      {audioData.metadata && (
+                        <>
+                          <div className="rounded-lg bg-white/10 p-4">
+                            <div className="text-sm text-white/60">
+                              Characters
+                            </div>
+                            <div className="text-lg font-semibold text-white">
+                              {audioData.metadata.character_count}
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-white/10 p-4">
+                            <div className="text-sm text-white/60">
+                              Generation Time
+                            </div>
+                            <div className="text-lg font-semibold text-white">
+                              {formatTime(
+                                audioData.metadata.generation_time_ms,
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
-                  </div>
-
-                  {/* Generation Metadata */}
-                  {audioData.metadata && (
-                    <div className="rounded-lg bg-green-50 p-4">
-                      <h3 className="mb-3 font-medium text-green-900">
-                        Generation Details
-                      </h3>
-                      <div className="space-y-2 text-sm text-green-800">
-                        <div className="flex justify-between">
-                          <span className="font-medium">Characters:</span>
-                          <span>{audioData.metadata.character_count}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Generation Time:</span>
-                          <span>
-                            {formatTime(audioData.metadata.generation_time_ms)}
-                          </span>
-                        </div>
-                        <div className="border-t border-green-200 pt-2">
-                          <div className="mb-1">
-                            <span className="font-medium">Model:</span>
-                          </div>
-                          <div className="pl-2 font-mono text-xs">
-                            {audioData.metadata.model_id}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="mb-1">
-                            <span className="font-medium">Voice ID:</span>
-                          </div>
-                          <div className="pl-2 font-mono text-xs">
-                            {audioData.metadata.voice_id}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Download Button */}
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => {
-                        const link = document.createElement("a");
-                        link.href = audioData.audio.url;
-                        link.download = audioData.audio.file_name;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                      className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-                    >
-                      Download Audio
-                    </button>
                   </div>
                 </div>
               )}
 
               {status === "FAILED" && (
-                <div className="rounded-lg bg-red-50 p-4">
-                  <div className="text-center">
-                    <p className="font-medium text-red-800">
-                      Generation Failed
-                    </p>
-                    <p className="mt-1 text-sm text-red-600">
-                      {error ??
-                        "Please check the console for details and try again."}
-                    </p>
-                    <button
-                      onClick={() => {
-                        setStatus(null);
-                        setError(null);
-                        setAudioData(null);
-                        setAudioDuration(null);
-                      }}
-                      className="mt-3 rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+                <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 backdrop-blur-sm">
+                  <div className="flex items-center gap-2">
+                    <svg
+                      className="h-5 w-5 text-red-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      Try Again
-                    </button>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <h3 className="font-medium text-red-300">
+                      Generation Failed
+                    </h3>
                   </div>
+                  <p className="mt-1 text-sm text-red-200">
+                    {error ??
+                      "Please check the console for details and try again."}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setStatus(null);
+                      setError(null);
+                      setAudioData(null);
+                      setAudioDuration(null);
+                    }}
+                    className="mt-3 rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+                  >
+                    Try Again
+                  </button>
                 </div>
               )}
-            </div>
+            </GlowingCard>
           </div>
         )}
       </div>
