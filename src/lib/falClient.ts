@@ -18,8 +18,8 @@ export interface FalClient {
 }
 
 // Environment-based client selection
-export const falClient: FalClient =
-  process.env.NODE_ENV === "development" ? falMock : fal;
+// TEMPORARY: Force mock usage even in production
+export const falClient: FalClient = falMock;
 
 // Export the type for use in components
 export type { MockFalClient };

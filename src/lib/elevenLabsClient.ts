@@ -20,6 +20,8 @@ interface ElevenLabsVoicesResponse {
 // === DEBUG CONFIGURATION ===
 const DEBUG_ELEVENLABS = true; // Set to false to disable debug logs
 const USE_MOCK_IN_DEV = true; // Set to false to test real API in development
+// TEMPORARY: Force mock usage even in production
+const FORCE_MOCK_IN_PRODUCTION = true;
 
 function debugLog(message: string, data?: unknown) {
   if (DEBUG_ELEVENLABS) {
@@ -279,17 +281,19 @@ import { elevenLabsMock } from "./mocks/elevenLabsMock";
  */
 export function createElevenLabsClient(): ElevenLabsClientInterface {
   const shouldUseMock =
-    USE_MOCK_IN_DEV && process.env.NODE_ENV === "development";
+    FORCE_MOCK_IN_PRODUCTION ||
+    (USE_MOCK_IN_DEV && process.env.NODE_ENV === "development");
 
   debugLog("Client selection", {
     nodeEnv: process.env.NODE_ENV,
     useMockInDev: USE_MOCK_IN_DEV,
+    forceMockInProduction: FORCE_MOCK_IN_PRODUCTION,
     shouldUseMock: shouldUseMock,
     clientType: shouldUseMock ? "mock" : "production",
   });
 
   if (shouldUseMock) {
-    debugLog("Using mock client for development");
+    debugLog("Using mock client");
     return elevenLabsMock;
   } else {
     debugLog("Using production client");
@@ -330,7 +334,8 @@ export async function testElevenLabsIntegration(
   debugLog("Starting ElevenLabs integration test", {
     testText: testText,
     clientType:
-      USE_MOCK_IN_DEV && process.env.NODE_ENV === "development"
+      FORCE_MOCK_IN_PRODUCTION ||
+      (USE_MOCK_IN_DEV && process.env.NODE_ENV === "development")
         ? "mock"
         : "production",
   });
