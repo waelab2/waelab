@@ -24,7 +24,7 @@ export default function HomeHero() {
       <div className="flex h-full flex-col items-center justify-center gap-8">
         <h1 className="w-2/3 text-center text-6xl leading-tight font-bold">
           Unleash <AccentedText>Your</AccentedText> Creativity With AI-Powered
-          Magic {process.env.NODE_ENV}
+          Magic
         </h1>
         <p className="text-center text-lg">
           Transform your photos and ideas into stunning visual content

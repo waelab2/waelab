@@ -154,7 +154,7 @@ export const models = [
   {
     id: "elevenlabs/eleven_multilingual_v2",
     name: "Eleven Multilingual v2 (Arabic)",
-    price_per_second: 0.3, // Estimate based on ElevenLabs pricing
+    price_per_second: 0.00278, // $5 = 30,000 credits = 30 minutes = 1800 seconds; $5/1800 = $0.00278 per second
     category: "text-to-audio",
     description:
       "Advanced multilingual TTS supporting Arabic with Saudi accent",
