@@ -148,6 +148,8 @@ export function FileUpload({
           <NextImage
             src={imageUrl}
             alt={`Preview of ${value.name}`}
+            width={400}
+            height={300}
             className="max-h-48 max-w-full rounded-lg object-contain"
             onLoad={() => URL.revokeObjectURL(imageUrl)}
           />
