@@ -1,0 +1,169 @@
+---
+description: Working with analytics
+alwaysApply: false
+---
+
+# Waelab Analytics System Rules
+
+## Overview
+
+This project has a comprehensive AI generation tracking and analytics system built with Convex. All AI generation requests (fal.ai, ElevenLabs, Runway) are automatically tracked with user association, model usage, and performance metrics.
+
+## Architecture
+
+### Database Schema
+
+- **Main Table**: `generation_requests` - tracks all generation requests across services
+- **Service Tables**: `fal_requests`, `elevenlabs_requests`, `runway_requests` - store service-specific input/output data
+- **Key Fields**: `user_id`, `model_id`, `service`, `status`, `generation_time_ms`, `credits_used`, `file_size`
+
+### Tracked Clients
+
+- **Location**: `src/lib/trackedClients.ts`
+- **Hooks**: `useTrackedFalClient()`, `useTrackedElevenLabsClient()`, `useTrackedRunwayClient()`
+- **Analytics Hooks**: `useUserAnalytics()`, `useModelAnalytics()`, `useUserRequests()`, `useRequestsByModel()`
+
+## Usage Guidelines
+
+### ✅ DO:
+
+1. **Use tracked clients** instead of direct service clients for all AI generation
+2. **Pass userId** from `useAuth()` to enable user-specific tracking
+3. **Use analytics hooks** to display user statistics and model usage
+4. **Handle loading states** when using analytics queries
+5. **Use proper error handling** for failed generations
+
+### ❌ DON'T:
+
+1. **Bypass tracking** by using original service clients directly
+2. **Forget userId** - tracking won't work without user association
+3. **Use analytics hooks** without proper loading/error states
+4. **Access Convex directly** - use the provided hooks and functions
+
+## Implementation Examples
+
+### Basic Generation with Tracking
+
+```typescript
+function MyComponent() {
+  const { userId } = useAuth();
+  const { subscribe } = useTrackedFalClient();
+
+  const handleGenerate = async () => {
+    const result = await subscribe("model-id", {
+      input: { prompt: "test" },
+      pollInterval: 2000,
+      logs: true,
+      userId: userId ?? undefined, // ← Essential for tracking
+      onQueueUpdate: (update) => console.log(update.status),
+    });
+  };
+}
+```
+
+### Analytics Display
+
+```typescript
+function AnalyticsDashboard() {
+  const { userId } = useAuth();
+  const userAnalytics = useUserAnalytics(userId);
+  const modelAnalytics = useModelAnalytics();
+
+  if (!userAnalytics) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <p>Total Requests: {userAnalytics.total_requests}</p>
+      <p>Completed: {userAnalytics.completed_requests}</p>
+      <p>Failed: {userAnalytics.failed_requests}</p>
+    </div>
+  );
+}
+```
+
+## Available Analytics
+
+### User Analytics (`useUserAnalytics(userId)`)
+
+- `total_requests`, `completed_requests`, `failed_requests`, `pending_requests`
+- `total_credits_used`, `total_file_size`, `average_generation_time_ms`
+- `service_breakdown` (fal, elevenlabs, runway counts)
+
+### Model Analytics (`useModelAnalytics(service?)`)
+
+- `model_breakdown` - per-model statistics including:
+  - `total_requests`, `completed_requests`, `failed_requests`
+  - `total_credits_used`, `total_file_size`, `average_generation_time_ms`
+
+### Request History
+
+- `useUserRequests(userId, limit)` - user's recent requests
+- `useRequestsByModel(modelId, limit)` - requests for specific model
+- `useGenerationRequests(filters)` - all requests with optional filtering
+
+## Service-Specific Notes
+
+### fal.ai
+
+- Uses `falClient.subscribe()` internally with proxy configuration
+- Tracks video generation with file size and duration
+- Handles polling and status updates
+
+### ElevenLabs
+
+- Uses `/api/elevenlabs/text-to-speech` API route (client-side safe)
+- Tracks audio generation with character count and duration
+- No progress callbacks (synchronous generation)
+
+### Runway
+
+- Uses `/api/runway/gen4_turbo/stream` API route with SSE
+- Tracks video generation with credits usage (5 credits/second)
+- Handles real-time progress updates via Server-Sent Events
+
+## Error Handling
+
+- All tracked clients handle errors gracefully
+- Failed generations are marked with `status: "failed"` and error messages
+- Tracking continues to work even if generation fails
+- Use try/catch blocks when calling tracked client methods
+
+## Performance Considerations
+
+- Analytics queries are reactive and update automatically
+- Use `"skip"` parameter for conditional queries to avoid unnecessary calls
+- Large result sets are paginated (default limit: 50)
+- Consider caching for frequently accessed analytics data
+
+## Future Enhancements
+
+When adding new AI services:
+
+1. Add service to the union type in schema
+2. Create service-specific table
+3. Add tracked client hook
+4. Update analytics queries to include new service
+5. Add model constants and configuration
+
+## Common Patterns
+
+### Conditional Analytics
+
+```typescript
+const userAnalytics = useUserAnalytics(userId ? userId : "skip");
+```
+
+### Service-Specific Analytics
+
+```typescript
+const falAnalytics = useModelAnalytics("fal");
+const elevenLabsAnalytics = useModelAnalytics("elevenlabs");
+```
+
+### Recent Activity
+
+```typescript
+const recentRequests = useUserRequests(userId, 10);
+```
+
+Remember: The tracking system is designed to be transparent - existing UI and user experience remain unchanged while providing comprehensive analytics data.
