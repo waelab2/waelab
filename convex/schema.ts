@@ -9,7 +9,8 @@ export default defineSchema({
       v.literal("elevenlabs"),
       v.literal("runway"),
     ),
-    request_id: v.string(), // References the service-specific table
+    model_id: v.string(), // Specific model used (e.g., "fal-ai/kling-video/v2.1/master/text-to-video")
+    request_id: v.string(), // Auto-generated unique ID to prevent conflicts
     user_id: v.optional(v.string()),
     status: v.union(
       v.literal("pending"),
@@ -24,10 +25,12 @@ export default defineSchema({
     error_message: v.optional(v.string()),
   })
     .index("by_service", ["service"])
+    .index("by_model", ["model_id"])
     .index("by_user", ["user_id"])
     .index("by_created_at", ["created_at"])
     .index("by_status", ["status"])
-    .index("by_service_and_user", ["service", "user_id"]),
+    .index("by_service_and_user", ["service", "user_id"])
+    .index("by_service_and_model", ["service", "model_id"]),
 
   // Service-specific tables for detailed data
   fal_requests: defineTable({

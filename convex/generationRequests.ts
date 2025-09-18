@@ -1,6 +1,169 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+// === UTILITY FUNCTIONS ===
+
+/**
+ * Generate a unique request ID to prevent conflicts
+ * Format: timestamp_randomString
+ */
+function generateUniqueRequestId(): string {
+  const timestamp = Date.now();
+  const randomString = Math.random().toString(36).substr(2, 9);
+  return `${timestamp}_${randomString}`;
+}
+
+/**
+ * Helper function to create a complete fal.ai request with tracking
+ * This will be useful for service client integration
+ */
+export const createFalRequestWithTracking = mutation({
+  args: {
+    model_id: v.string(),
+    user_id: v.optional(v.string()),
+    input: v.object({
+      prompt: v.string(),
+      duration: v.optional(v.string()),
+      aspect_ratio: v.optional(v.string()),
+      negative_prompt: v.optional(v.string()),
+      cfg_scale: v.optional(v.number()),
+      prompt_optimizer: v.optional(v.boolean()),
+    }),
+  },
+  returns: v.object({
+    generation_request_id: v.id("generation_requests"),
+    fal_request_id: v.id("fal_requests"),
+    request_id: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    // Create main generation request
+    const generationRequestId = await ctx.db.insert("generation_requests", {
+      service: "fal",
+      model_id: args.model_id,
+      request_id: generateUniqueRequestId(),
+      user_id: args.user_id,
+      status: "pending",
+      created_at: Date.now(),
+    });
+
+    // Create fal-specific request
+    const falRequestId = await ctx.db.insert("fal_requests", {
+      input: args.input,
+      generation_request_id: generationRequestId,
+    });
+
+    // Get the request_id for return
+    const generationRequest = await ctx.db.get(generationRequestId);
+    if (!generationRequest) {
+      throw new Error("Failed to create generation request");
+    }
+
+    return {
+      generation_request_id: generationRequestId,
+      fal_request_id: falRequestId,
+      request_id: generationRequest.request_id,
+    };
+  },
+});
+
+/**
+ * Helper function to create a complete ElevenLabs request with tracking
+ */
+export const createElevenLabsRequestWithTracking = mutation({
+  args: {
+    model_id: v.string(),
+    user_id: v.optional(v.string()),
+    input: v.object({
+      text: v.string(),
+      voice_id: v.string(),
+    }),
+  },
+  returns: v.object({
+    generation_request_id: v.id("generation_requests"),
+    elevenlabs_request_id: v.id("elevenlabs_requests"),
+    request_id: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    // Create main generation request
+    const generationRequestId = await ctx.db.insert("generation_requests", {
+      service: "elevenlabs",
+      model_id: args.model_id,
+      request_id: generateUniqueRequestId(),
+      user_id: args.user_id,
+      status: "pending",
+      created_at: Date.now(),
+    });
+
+    // Create elevenlabs-specific request
+    const elevenLabsRequestId = await ctx.db.insert("elevenlabs_requests", {
+      input: args.input,
+      generation_request_id: generationRequestId,
+    });
+
+    // Get the request_id for return
+    const generationRequest = await ctx.db.get(generationRequestId);
+    if (!generationRequest) {
+      throw new Error("Failed to create generation request");
+    }
+
+    return {
+      generation_request_id: generationRequestId,
+      elevenlabs_request_id: elevenLabsRequestId,
+      request_id: generationRequest.request_id,
+    };
+  },
+});
+
+/**
+ * Helper function to create a complete Runway request with tracking
+ */
+export const createRunwayRequestWithTracking = mutation({
+  args: {
+    model_id: v.string(),
+    user_id: v.optional(v.string()),
+    input: v.object({
+      promptImage: v.string(),
+      promptText: v.optional(v.string()),
+      ratio: v.union(v.literal("16:9"), v.literal("9:16"), v.literal("1:1")),
+      duration: v.union(v.literal(5), v.literal(10)),
+    }),
+  },
+  returns: v.object({
+    generation_request_id: v.id("generation_requests"),
+    runway_request_id: v.id("runway_requests"),
+    request_id: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    // Create main generation request
+    const generationRequestId = await ctx.db.insert("generation_requests", {
+      service: "runway",
+      model_id: args.model_id,
+      request_id: generateUniqueRequestId(),
+      user_id: args.user_id,
+      status: "pending",
+      created_at: Date.now(),
+    });
+
+    // Create runway-specific request
+    const runwayRequestId = await ctx.db.insert("runway_requests", {
+      input: args.input,
+      generation_request_id: generationRequestId,
+    });
+
+    // Get the request_id for return
+    const generationRequest = await ctx.db.get(generationRequestId);
+    if (!generationRequest) {
+      throw new Error("Failed to create generation request");
+    }
+
+    return {
+      generation_request_id: generationRequestId,
+      runway_request_id: runwayRequestId,
+      request_id: generationRequest.request_id,
+    };
+  },
+});
+
 // === MUTATIONS ===
 
 /**
@@ -13,14 +176,19 @@ export const createGenerationRequest = mutation({
       v.literal("elevenlabs"),
       v.literal("runway"),
     ),
+    model_id: v.string(),
     user_id: v.optional(v.string()),
-    request_id: v.string(),
+    request_id: v.optional(v.string()),
   },
   returns: v.id("generation_requests"),
   handler: async (ctx, args) => {
+    // Generate unique request ID if not provided
+    const requestId = args.request_id ?? generateUniqueRequestId();
+
     const generationRequestId = await ctx.db.insert("generation_requests", {
       service: args.service,
-      request_id: args.request_id,
+      model_id: args.model_id,
+      request_id: requestId,
       user_id: args.user_id,
       status: "pending",
       created_at: Date.now(),
@@ -334,6 +502,7 @@ export const getGenerationRequests = query({
         v.literal("elevenlabs"),
         v.literal("runway"),
       ),
+      model_id: v.string(),
       request_id: v.string(),
       user_id: v.optional(v.string()),
       status: v.union(
@@ -402,6 +571,7 @@ export const getGenerationRequest = query({
         v.literal("elevenlabs"),
         v.literal("runway"),
       ),
+      model_id: v.string(),
       request_id: v.string(),
       user_id: v.optional(v.string()),
       status: v.union(
@@ -568,6 +738,148 @@ export const getRunwayRequest = query({
       .unique();
 
     return runwayRequest;
+  },
+});
+
+/**
+ * Get requests by specific model
+ */
+export const getRequestsByModel = query({
+  args: {
+    model_id: v.string(),
+    limit: v.optional(v.number()),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("generation_requests"),
+      _creationTime: v.number(),
+      service: v.union(
+        v.literal("fal"),
+        v.literal("elevenlabs"),
+        v.literal("runway"),
+      ),
+      model_id: v.string(),
+      request_id: v.string(),
+      user_id: v.optional(v.string()),
+      status: v.union(
+        v.literal("pending"),
+        v.literal("completed"),
+        v.literal("failed"),
+      ),
+      created_at: v.number(),
+      completed_at: v.optional(v.number()),
+      generation_time_ms: v.optional(v.number()),
+      credits_used: v.optional(v.number()),
+      file_size: v.optional(v.number()),
+      error_message: v.optional(v.string()),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const requests = await ctx.db
+      .query("generation_requests")
+      .withIndex("by_model", (q) => q.eq("model_id", args.model_id))
+      .order("desc")
+      .take(args.limit ?? 50);
+    return requests;
+  },
+});
+
+/**
+ * Get model usage statistics
+ */
+export const getModelUsageStats = query({
+  args: {
+    user_id: v.optional(v.string()),
+    service: v.optional(
+      v.union(v.literal("fal"), v.literal("elevenlabs"), v.literal("runway")),
+    ),
+  },
+  returns: v.object({
+    model_breakdown: v.record(
+      v.string(),
+      v.object({
+        total_requests: v.number(),
+        completed_requests: v.number(),
+        failed_requests: v.number(),
+        total_credits_used: v.number(),
+        total_file_size: v.number(),
+        average_generation_time_ms: v.number(),
+      }),
+    ),
+  }),
+  handler: async (ctx, args) => {
+    // Apply filters
+    let requests;
+    if (args.user_id) {
+      const userId = args.user_id;
+      requests = await ctx.db
+        .query("generation_requests")
+        .withIndex("by_user", (q) => q.eq("user_id", userId))
+        .collect();
+    } else if (args.service) {
+      const service = args.service;
+      requests = await ctx.db
+        .query("generation_requests")
+        .withIndex("by_service", (q) => q.eq("service", service))
+        .collect();
+    } else {
+      requests = await ctx.db.query("generation_requests").collect();
+    }
+
+    // Group by model_id
+    const modelStats: Record<
+      string,
+      {
+        total_requests: number;
+        completed_requests: number;
+        failed_requests: number;
+        total_credits_used: number;
+        total_file_size: number;
+        average_generation_time_ms: number;
+      }
+    > = {};
+
+    requests.forEach((request) => {
+      modelStats[request.model_id] ??= {
+        total_requests: 0,
+        completed_requests: 0,
+        failed_requests: 0,
+        total_credits_used: 0,
+        total_file_size: 0,
+        average_generation_time_ms: 0,
+      };
+
+      const stats = modelStats[request.model_id];
+      stats.total_requests++;
+
+      if (request.status === "completed") {
+        stats.completed_requests++;
+      } else if (request.status === "failed") {
+        stats.failed_requests++;
+      }
+
+      stats.total_credits_used += request.credits_used ?? 0;
+      stats.total_file_size += request.file_size ?? 0;
+    });
+
+    // Calculate average generation times
+    Object.keys(modelStats).forEach((modelId) => {
+      const stats = modelStats[modelId];
+      const completedRequests = requests.filter(
+        (r) => r.model_id === modelId && r.generation_time_ms !== undefined,
+      );
+
+      if (completedRequests.length > 0) {
+        stats.average_generation_time_ms = Math.round(
+          completedRequests.reduce(
+            (sum, r) => sum + (r.generation_time_ms ?? 0),
+            0,
+          ) / completedRequests.length,
+        );
+      }
+    });
+
+    return { model_breakdown: modelStats };
   },
 });
 
