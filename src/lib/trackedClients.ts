@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "convex/react";
+import React from "react";
 import type {
   ElevenLabsTextToSpeechInput,
   RunwayGen4TurboInput,
@@ -6,9 +7,7 @@ import type {
 } from "~/lib/types";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { elevenLabsClient } from "./elevenLabsClient";
 import { falClient } from "./falClient";
-import { runwayClient } from "./runwayClient";
 
 // Type definitions for tracking results
 interface TrackingResult {
@@ -29,6 +28,13 @@ export function useTrackedFalClient() {
     api.generationRequests.updateGenerationRequest,
   );
   const updateFalRequest = useMutation(api.generationRequests.updateFalRequest);
+
+  // Configure falClient with proxy URL
+  React.useEffect(() => {
+    falClient.config({
+      proxyUrl: "/api/fal/proxy",
+    });
+  }, []);
 
   const subscribe = async (
     model: string,
@@ -70,23 +76,8 @@ export function useTrackedFalClient() {
           // Forward status updates to the original callback
           onQueueUpdate(update);
 
-          // Update tracking status
-          if (update.status === "COMPLETED" && trackingResult) {
-            const generationTime = Date.now() - startTime;
-            void updateGenerationRequest({
-              generation_request_id: trackingResult.generation_request_id,
-              status: "completed",
-              generation_time_ms: generationTime,
-              file_size: result.data?.video?.file_size,
-            });
-
-            if (trackingResult.fal_request_id) {
-              void updateFalRequest({
-                fal_request_id: trackingResult.fal_request_id,
-                output: result.data,
-              });
-            }
-          } else if (update.status === "FAILED" && trackingResult) {
+          // Update tracking status for failures only (completion handled after result)
+          if (update.status === "FAILED" && trackingResult) {
             void updateGenerationRequest({
               generation_request_id: trackingResult.generation_request_id,
               status: "failed",
@@ -95,6 +86,24 @@ export function useTrackedFalClient() {
           }
         },
       });
+
+      // Update tracking with final result after completion
+      if (trackingResult && result?.data) {
+        const generationTime = Date.now() - startTime;
+        void updateGenerationRequest({
+          generation_request_id: trackingResult.generation_request_id,
+          status: "completed",
+          generation_time_ms: generationTime,
+          file_size: result.data.video?.file_size,
+        });
+
+        if (trackingResult.fal_request_id) {
+          void updateFalRequest({
+            fal_request_id: trackingResult.fal_request_id,
+            output: result.data,
+          });
+        }
+      }
 
       return result;
     } catch (error) {
@@ -142,7 +151,7 @@ export function useTrackedElevenLabsClient() {
     onProgress?: (progress: { status: string }) => void;
     userId?: string;
   }) => {
-    const { input, onProgress, userId } = options;
+    const { input, userId } = options;
     const startTime = Date.now();
     let trackingResult: TrackingResult | undefined;
 
@@ -162,49 +171,79 @@ export function useTrackedElevenLabsClient() {
         trackingResult,
       );
 
-      // 2. Call the original ElevenLabs client
-      const result = await elevenLabsClient.generate({
-        input,
-        onProgress: (progress) => {
-          // Forward progress updates to the original callback
-          onProgress?.(progress);
-
-          // Update tracking status
-          if (progress.status === "COMPLETED" && trackingResult) {
-            const generationTime = Date.now() - startTime;
-            void updateGenerationRequest({
-              generation_request_id: trackingResult.generation_request_id,
-              status: "completed",
-              generation_time_ms: generationTime,
-              file_size: result.data?.audio?.file_size,
-            });
-
-            if (trackingResult.elevenlabs_request_id) {
-              void updateElevenLabsRequest({
-                elevenlabs_request_id: trackingResult.elevenlabs_request_id,
-                output: result.data
-                  ? {
-                      audio: {
-                        url: result.data.audio.url,
-                        file_size: result.data.audio.file_size,
-                        file_name: result.data.audio.file_name,
-                        content_type: result.data.audio.content_type,
-                        duration_ms: result.data.audio.duration_ms ?? 0,
-                      },
-                      metadata: result.data.metadata,
-                    }
-                  : undefined,
-              });
-            }
-          } else if (progress.status === "FAILED" && trackingResult) {
-            void updateGenerationRequest({
-              generation_request_id: trackingResult.generation_request_id,
-              status: "failed",
-              error_message: "Generation failed",
-            });
-          }
+      // 2. Call the ElevenLabs API route
+      const response = await fetch("/api/elevenlabs/text-to-speech", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          text: input.text,
+          voice_id: input.voice_id,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = (await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }))) as { error: string };
+        throw new Error(
+          errorData.error ?? `HTTP ${response.status}: ${response.statusText}`,
+        );
+      }
+
+      // Get the JSON response with audio data
+      const responseData = (await response.json()) as {
+        success: boolean;
+        data?: {
+          audio: {
+            url: string;
+            file_size: number;
+            file_name: string;
+            content_type: string;
+            duration_ms: number;
+          };
+          metadata: {
+            character_count: number;
+            generation_time_ms: number;
+            model_id: string;
+            voice_id: string;
+          };
+        };
+      };
+
+      if (!responseData.success || !responseData.data) {
+        throw new Error("Invalid response format from API");
+      }
+
+      const result = { data: responseData.data };
+
+      // Update tracking with final result after completion
+      if (trackingResult && result?.data) {
+        const generationTime = Date.now() - startTime;
+        void updateGenerationRequest({
+          generation_request_id: trackingResult.generation_request_id,
+          status: "completed",
+          generation_time_ms: generationTime,
+          file_size: result.data.audio?.file_size,
+        });
+
+        if (trackingResult.elevenlabs_request_id) {
+          void updateElevenLabsRequest({
+            elevenlabs_request_id: trackingResult.elevenlabs_request_id,
+            output: {
+              audio: {
+                url: result.data.audio.url,
+                file_size: result.data.audio.file_size,
+                file_name: result.data.audio.file_name,
+                content_type: result.data.audio.content_type,
+                duration_ms: result.data.audio.duration_ms,
+              },
+              metadata: result.data.metadata,
+            },
+          });
+        }
+      }
 
       return result;
     } catch (error) {
@@ -274,41 +313,133 @@ export function useTrackedRunwayClient() {
         trackingResult,
       );
 
-      // 2. Call the original Runway client
-      const result = await runwayClient.generate({
-        input,
-        onProgress: (progress) => {
-          // Forward progress updates to the original callback
-          onProgress?.(progress);
-
-          // Update tracking status
-          if (progress.status === "COMPLETED" && trackingResult) {
-            const generationTime = Date.now() - startTime;
-            const creditsUsed = input.duration * 5; // 5 credits per second
-
-            void updateGenerationRequest({
-              generation_request_id: trackingResult.generation_request_id,
-              status: "completed",
-              generation_time_ms: generationTime,
-              credits_used: creditsUsed,
-              file_size: result.data?.video?.file_size,
-            });
-
-            if (trackingResult.runway_request_id) {
-              void updateRunwayRequest({
-                runway_request_id: trackingResult.runway_request_id,
-                output: result.data,
-              });
-            }
-          } else if (progress.status === "FAILED" && trackingResult) {
-            void updateGenerationRequest({
-              generation_request_id: trackingResult.generation_request_id,
-              status: "failed",
-              error_message: "Generation failed",
-            });
-          }
+      // 2. Call the Runway API route
+      const response = await fetch("/api/runway/gen4_turbo/stream", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          promptImage: input.promptImage,
+          promptText: input.promptText,
+          ratio: input.ratio,
+          duration: input.duration,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = (await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }))) as { error: string };
+        throw new Error(
+          errorData.error ?? `HTTP ${response.status}: ${response.statusText}`,
+        );
+      }
+
+      // Handle Server-Sent Events
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("No response body reader available");
+      }
+
+      let result: {
+        data: {
+          video: {
+            url: string;
+            file_size: number;
+            duration_ms: number;
+            content_type: string;
+            file_name: string;
+          };
+          metadata?: {
+            model_id: string;
+            generation_id: string;
+            generation_time_ms: number;
+            credits_used: number;
+          };
+        };
+      } | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6)) as {
+                type: string;
+                status?: string;
+                data?: {
+                  video: {
+                    url: string;
+                    file_size: number;
+                    duration_ms: number;
+                    content_type: string;
+                    file_name: string;
+                  };
+                  metadata?: {
+                    model_id: string;
+                    generation_id: string;
+                    generation_time_ms: number;
+                    credits_used: number;
+                  };
+                };
+                error?: string;
+              };
+
+              if (data.type === "status" && data.status) {
+                // Forward progress updates to the original callback
+                onProgress?.({
+                  status: data.status as
+                    | "PREPARING"
+                    | "GENERATING"
+                    | "PROCESSING"
+                    | "COMPLETED"
+                    | "FAILED",
+                });
+              } else if (data.type === "result" && data.data) {
+                result = { data: data.data };
+              } else if (data.type === "error" && data.error) {
+                throw new Error(data.error);
+              }
+            } catch (parseError) {
+              console.error("Error parsing SSE data:", parseError);
+            }
+          }
+        }
+      }
+
+      if (!result) {
+        throw new Error("No result received from Runway API");
+      }
+
+      // Update tracking with final result after completion
+      if (trackingResult && result?.data) {
+        const generationTime = Date.now() - startTime;
+        const creditsUsed = input.duration * 5; // 5 credits per second
+
+        void updateGenerationRequest({
+          generation_request_id: trackingResult.generation_request_id,
+          status: "completed",
+          generation_time_ms: generationTime,
+          credits_used: creditsUsed,
+          file_size: result.data.video?.file_size,
+        });
+
+        if (trackingResult.runway_request_id) {
+          void updateRunwayRequest({
+            runway_request_id: trackingResult.runway_request_id,
+            output: result.data,
+          });
+        }
+      }
 
       return result;
     } catch (error) {

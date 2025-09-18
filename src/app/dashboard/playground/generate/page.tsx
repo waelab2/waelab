@@ -1,19 +1,22 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import GlowingCard from "~/components/mvpblocks/glow-card";
 import { Separator } from "~/components/ui/separator";
 import { models, type Model } from "~/lib/constants";
-import { falClient } from "~/lib/falClient";
 import useGenerateStore from "~/lib/stores/useGenerateStore";
+import { useTrackedFalClient } from "~/lib/trackedClients";
 import type { Result, Status, VideoGenerationInput } from "~/lib/types";
 import PromptSection from "./_components/PromptSection";
 import ResultSection from "./_components/ResultSection";
 
 function GeneratePageContent() {
   const searchParams = useSearchParams();
+  const { userId } = useAuth();
+  const { subscribe } = useTrackedFalClient();
   const {
     status,
     setStatus,
@@ -94,9 +97,8 @@ function GeneratePageContent() {
 
   // Configure fal client once on component mount
   useEffect(() => {
-    falClient.config({
-      proxyUrl: "/api/fal/proxy",
-    });
+    // Note: falClient configuration is now handled by the tracked client
+    // The tracked client uses the same falClient internally
   }, []);
 
   async function handleSubmit(prompt: string) {
@@ -134,10 +136,11 @@ function GeneratePageContent() {
     console.log(`🎬 Input parameters:`, input);
 
     setResult(
-      falClient.subscribe(model, {
+      subscribe(model, {
         input,
         pollInterval: 5000,
         logs: true,
+        userId: userId ?? undefined,
         onQueueUpdate(update) {
           setStatus(update.status as Status);
         },

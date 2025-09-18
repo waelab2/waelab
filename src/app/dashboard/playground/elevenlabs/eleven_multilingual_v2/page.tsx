@@ -1,13 +1,17 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import GlowingCard from "~/components/mvpblocks/glow-card";
 import { Separator } from "~/components/ui/separator";
 import { saudiArabicVoices } from "~/lib/constants";
+import { useTrackedElevenLabsClient } from "~/lib/trackedClients";
 import type { ElevenLabsStatus } from "~/lib/types";
 
 function ElevenLabsPageContent() {
+  const { userId } = useAuth();
+  const { generate } = useTrackedElevenLabsClient();
   const [text, setText] = useState("");
   const [selectedVoice, setSelectedVoice] = useState(
     saudiArabicVoices[0]?.voice_id ?? "",
@@ -95,58 +99,21 @@ function ElevenLabsPageContent() {
     try {
       setStatus("GENERATING");
 
-      const response = await fetch("/api/elevenlabs/text-to-speech", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const result = await generate({
+        input: {
           text: text.trim(),
           voice_id: selectedVoice,
-        }),
+        },
+        userId: userId ?? undefined,
       });
 
-      if (!response.ok) {
-        const errorData = (await response
-          .json()
-          .catch(() => ({ error: "Unknown error" }))) as { error: string };
-        throw new Error(
-          errorData.error ?? `HTTP ${response.status}: ${response.statusText}`,
-        );
+      if (result.data) {
+        setAudioData(result.data);
+        setStatus("COMPLETED");
+        setAudioDuration(null);
+      } else {
+        throw new Error("No audio data received");
       }
-
-      // Get the JSON response with audio data
-      const responseData = (await response.json()) as {
-        success: boolean;
-        data?: {
-          audio: {
-            url: string;
-            file_size: number;
-            file_name: string;
-            content_type: string;
-            duration_ms: number;
-          };
-          metadata: {
-            character_count: number;
-            generation_time_ms: number;
-            model_id: string;
-            voice_id: string;
-          };
-        };
-      };
-
-      if (!responseData.success || !responseData.data) {
-        throw new Error("Invalid response format from API");
-      }
-
-      // Use the audio data directly from the API response
-      const audioData = responseData.data;
-
-      setAudioData(audioData);
-      setStatus("COMPLETED");
-
-      // Reset duration to be calculated when audio loads
-      setAudioDuration(null);
     } catch (error) {
       console.error("Generation failed:", error);
       setError(

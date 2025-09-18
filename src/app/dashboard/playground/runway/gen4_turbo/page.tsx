@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { Separator } from "@radix-ui/react-separator";
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -15,9 +16,12 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
+import { useTrackedRunwayClient } from "~/lib/trackedClients";
 import type { RunwayGen4TurboStatus } from "~/lib/types";
 
 function RunwayPageContent() {
+  const { userId } = useAuth();
+  const { generate } = useTrackedRunwayClient();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [promptText, setPromptText] = useState("");
   const [ratio, setRatio] = useState<"16:9" | "9:16" | "1:1">("16:9");
@@ -116,85 +120,32 @@ function RunwayPageContent() {
       // Convert image to base64
       const imageBase64 = await fileToBase64(imageFile);
 
-      const response = await fetch("/api/runway/gen4_turbo/stream", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const result = await generate({
+        input: {
           promptImage: imageBase64,
           promptText: promptText.trim() || undefined,
           ratio: ratio,
           duration: duration,
-        }),
+        },
+        userId: userId ?? undefined,
+        onProgress: (progress) => {
+          console.log("Runway Status:", progress.status);
+          setStatus(progress.status as RunwayGen4TurboStatus);
+
+          if (progress.status === "COMPLETED") {
+            setStatus("COMPLETED");
+          } else if (progress.status === "FAILED") {
+            setStatus("FAILED");
+          }
+        },
       });
 
-      if (!response.ok) {
-        const errorData = (await response
-          .json()
-          .catch(() => ({ error: "Unknown error" }))) as { error: string };
-        throw new Error(
-          errorData.error ?? `HTTP ${response.status}: ${response.statusText}`,
-        );
-      }
-
-      // Handle Server-Sent Events
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (!reader) {
-        throw new Error("No response body reader available");
-      }
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6)) as {
-                type: string;
-                status?: string;
-                data?: {
-                  video: {
-                    url: string;
-                    file_size: number;
-                    duration_ms: number;
-                    content_type: string;
-                    file_name: string;
-                  };
-                  metadata?: {
-                    model_id: string;
-                    generation_id: string;
-                    generation_time_ms: number;
-                    credits_used: number;
-                  };
-                };
-                error?: string;
-              };
-
-              if (data.type === "status" && data.status) {
-                setStatus(data.status as RunwayGen4TurboStatus);
-                console.log(`🎬 Status update: ${data.status}`);
-              } else if (data.type === "result" && data.data) {
-                setVideoData(data.data);
-                setStatus("COMPLETED");
-                console.log("🎬 Generation completed:", data.data);
-              } else if (data.type === "error" && data.error) {
-                setError(data.error);
-                setStatus("FAILED");
-                console.error("🎬 Generation error:", data.error);
-              }
-            } catch (parseError) {
-              console.error("Error parsing SSE data:", parseError);
-            }
-          }
-        }
+      if (result.data) {
+        setVideoData(result.data);
+        setStatus("COMPLETED");
+        console.log("🎬 Generation completed:", result.data);
+      } else {
+        throw new Error("No video data received");
       }
     } catch (error) {
       console.error("Generation failed:", error);
