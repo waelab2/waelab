@@ -128,10 +128,7 @@ export const RecentActivity = memo(
                       {serviceInfo.label} Generation
                     </div>
                     <div className="truncate text-xs text-gray-400">
-                      {request.model_id} •{" "}
-                      {request.user_id
-                        ? `User: ${request.user_id.slice(0, 8)}...`
-                        : "Anonymous"}
+                      {request.model_id}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

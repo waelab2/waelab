@@ -264,18 +264,18 @@ export default function DashboardPage() {
             modelAnalytics={currentAnalytics}
             timePeriod={selectedPeriod}
           />
-          <UsersTable onAddUser={handleAddUser} />
+          <RecentActivity
+            recentRequests={recentRequests}
+            startDate={currentStart}
+            endDate={currentEnd}
+          />
         </div>
 
         {/* Sidebar Section */}
         <div className="space-y-4 sm:space-y-6">
           <QuickActions onAddUser={handleAddUser} onExport={handleExport} />
           <SystemStatus />
-          <RecentActivity
-            recentRequests={recentRequests}
-            startDate={currentStart}
-            endDate={currentEnd}
-          />
+          <UsersTable onAddUser={handleAddUser} />
         </div>
       </div>
     </main>
