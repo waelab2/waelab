@@ -1,11 +1,10 @@
 "use client";
 
 import { DashboardCard } from "@/components/ui/dashboard-card";
-import { QuickActions } from "@/components/ui/quick-actions";
+import { GenerationServicesStatus } from "@/components/ui/generation-services-status";
 import { RecentActivity } from "@/components/ui/recent-activity";
 import { RevenueChart } from "@/components/ui/revenue-chart";
 import { Switch } from "@/components/ui/switch";
-import { SystemStatus } from "@/components/ui/system-status";
 import { TextReveal } from "@/components/ui/text-reveal";
 import type { TimePeriod } from "@/components/ui/time-period-selector";
 import { TimePeriodSelector } from "@/components/ui/time-period-selector";
@@ -212,14 +211,6 @@ export default function DashboardPage() {
     ];
   }, [currentAnalytics, previousAnalytics]);
 
-  const handleExport = () => {
-    console.log("Exporting data...");
-  };
-
-  const handleAddUser = () => {
-    console.log("Adding new user...");
-  };
-
   return (
     <main className="flex flex-col gap-6 py-6 text-white">
       <div className="px-2 sm:px-0">
@@ -279,17 +270,16 @@ export default function DashboardPage() {
             modelAnalytics={currentAnalytics}
             timePeriod={selectedPeriod}
           />
+          <GenerationServicesStatus />
+        </div>
+
+        {/* Sidebar Section */}
+        <div className="space-y-4 sm:space-y-6">
           <RecentActivity
             recentRequests={recentRequests}
             startDate={currentStart}
             endDate={currentEnd}
           />
-        </div>
-
-        {/* Sidebar Section */}
-        <div className="space-y-4 sm:space-y-6">
-          <QuickActions onAddUser={handleAddUser} onExport={handleExport} />
-          <SystemStatus />
           <UsersTable users={recentUsers} isLoading={usersLoading} />
         </div>
       </div>
