@@ -46,7 +46,7 @@ export default function DashboardLayout({
                 <SidebarTrigger className="-ml-1 text-white hover:bg-white/10 hover:text-white" />
                 <Separator
                   orientation="vertical"
-                  className="mr-2 bg-white/20 data-[orientation=vertical]:h-4"
+                  className="mr-2 bg-white data-[orientation=vertical]:h-4"
                 />
                 <Breadcrumbs />
               </div>

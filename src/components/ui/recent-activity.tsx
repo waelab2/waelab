@@ -5,11 +5,8 @@ import { motion } from "framer-motion";
 import {
   CheckCircle,
   Clock,
-  Download,
   Play,
   Settings,
-  User,
-  Users,
   Video,
   Volume2,
   XCircle,

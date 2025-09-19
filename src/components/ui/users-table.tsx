@@ -10,6 +10,7 @@ import {
   Plus,
   TrendingUp,
 } from "lucide-react";
+import Image from "next/image";
 import { memo } from "react";
 
 const users = [
@@ -85,7 +86,7 @@ export const UsersTable = memo(({ onAddUser }: UsersTableProps) => {
           >
             <div className="flex w-full items-center gap-4 sm:w-auto">
               <div className="relative">
-                <img
+                <Image
                   src={user.avatar}
                   alt={user.name}
                   width={40}

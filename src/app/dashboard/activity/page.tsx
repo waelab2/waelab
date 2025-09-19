@@ -92,9 +92,7 @@ export default function ActivityPage() {
 
     requests.forEach((request) => {
       const date = new Date(request.created_at).toDateString();
-      if (!groups[date]) {
-        groups[date] = [];
-      }
+      groups[date] ??= [];
       groups[date].push(request);
     });
 
@@ -103,7 +101,7 @@ export default function ActivityPage() {
     Object.keys(groups)
       .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
       .forEach((date) => {
-        sortedGroups[date] = groups[date];
+        sortedGroups[date] = groups[date] ?? [];
       });
 
     return sortedGroups;

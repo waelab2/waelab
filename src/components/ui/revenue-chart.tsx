@@ -78,9 +78,8 @@ export const RevenueChart = memo(
       // Group by service
       Object.entries(modelBreakdown).forEach(([modelId, stats]) => {
         const service = modelId.split("/")[0];
-        if (!serviceData[service]) {
-          serviceData[service] = { requests: 0, credits: 0 };
-        }
+        if (!service) return;
+        serviceData[service] ??= { requests: 0, credits: 0 };
         serviceData[service].requests += stats.total_requests;
         serviceData[service].credits += stats.total_credits_used;
       });
@@ -116,23 +115,22 @@ export const RevenueChart = memo(
       0,
     );
     const totalCredits = chartData.reduce((sum, item) => sum + item.value, 0);
-    const successRate =
-      modelAnalytics && modelAnalytics.model_breakdown
-        ? Math.round(
-            (Object.values(modelAnalytics.model_breakdown).reduce(
-              (sum, model) => sum + (model.completed_requests ?? 0),
-              0,
-            ) /
-              Math.max(
-                Object.values(modelAnalytics.model_breakdown).reduce(
-                  (sum, model) => sum + (model.total_requests ?? 0),
-                  0,
-                ),
-                1,
-              )) *
-              100,
-          )
-        : 0;
+    const successRate = modelAnalytics?.model_breakdown
+      ? Math.round(
+          (Object.values(modelAnalytics.model_breakdown).reduce(
+            (sum, model) => sum + (model.completed_requests ?? 0),
+            0,
+          ) /
+            Math.max(
+              Object.values(modelAnalytics.model_breakdown).reduce(
+                (sum, model) => sum + (model.total_requests ?? 0),
+                0,
+              ),
+              1,
+            )) *
+            100,
+        )
+      : 0;
     return (
       <div className="rounded-xl border border-gray-700 bg-gray-800/40 p-6">
         <div className="mb-6">
@@ -164,7 +162,7 @@ export const RevenueChart = memo(
                     {/* Tooltip */}
                     <div className="absolute -top-20 left-1/2 z-10 -translate-x-1/2 transform rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-sm whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
                       <div className="font-medium">
-                        {formatNumber(item.credits)} credits
+                        {formatNumber(item.value)} credits
                       </div>
                       <div className="text-xs text-gray-300">
                         {formatNumber(item.requests)} requests

@@ -64,7 +64,7 @@ export const QuickActions = memo(
       <div className="rounded-xl border border-gray-700 bg-gray-800/40 p-6">
         <h3 className="mb-4 text-xl font-semibold text-white">Quick Actions</h3>
         <div className="space-y-3">
-          {actions.map((action, index) => {
+          {actions.map((action) => {
             const Icon = action.icon;
             return (
               <motion.div

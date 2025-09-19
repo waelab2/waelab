@@ -1,4 +1,3 @@
-import { fal } from "@fal-ai/client";
 import { falMock, type MockFalClient } from "./mocks/falMock";
 
 // Type that unifies both real and mock clients
