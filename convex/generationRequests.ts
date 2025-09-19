@@ -961,3 +961,202 @@ export const getUsageStats = query({
     return stats;
   },
 });
+
+/**
+ * Get usage statistics for a specific date range
+ */
+export const getUsageStatsForDateRange = query({
+  args: {
+    start_date: v.number(),
+    end_date: v.number(),
+    user_id: v.optional(v.string()),
+    service: v.optional(
+      v.union(v.literal("fal"), v.literal("elevenlabs"), v.literal("runway")),
+    ),
+  },
+  returns: v.object({
+    total_requests: v.number(),
+    completed_requests: v.number(),
+    failed_requests: v.number(),
+    pending_requests: v.number(),
+    total_credits_used: v.number(),
+    total_file_size: v.number(),
+    average_generation_time_ms: v.number(),
+    service_breakdown: v.object({
+      fal: v.number(),
+      elevenlabs: v.number(),
+      runway: v.number(),
+    }),
+  }),
+  handler: async (ctx, args) => {
+    // Get all requests and filter by date range
+    let requests;
+    if (args.user_id) {
+      const userId = args.user_id;
+      requests = await ctx.db
+        .query("generation_requests")
+        .withIndex("by_user", (q) => q.eq("user_id", userId))
+        .collect();
+    } else if (args.service) {
+      const service = args.service;
+      requests = await ctx.db
+        .query("generation_requests")
+        .withIndex("by_service", (q) => q.eq("service", service))
+        .collect();
+    } else {
+      requests = await ctx.db.query("generation_requests").collect();
+    }
+
+    // Filter by date range
+    const filteredRequests = requests.filter(
+      (r) => r.created_at >= args.start_date && r.created_at <= args.end_date,
+    );
+
+    const stats = {
+      total_requests: filteredRequests.length,
+      completed_requests: filteredRequests.filter(
+        (r) => r.status === "completed",
+      ).length,
+      failed_requests: filteredRequests.filter((r) => r.status === "failed")
+        .length,
+      pending_requests: filteredRequests.filter((r) => r.status === "pending")
+        .length,
+      total_credits_used: filteredRequests.reduce(
+        (sum, r) => sum + (r.credits_used ?? 0),
+        0,
+      ),
+      total_file_size: filteredRequests.reduce(
+        (sum, r) => sum + (r.file_size ?? 0),
+        0,
+      ),
+      average_generation_time_ms: 0,
+      service_breakdown: {
+        fal: filteredRequests.filter((r) => r.service === "fal").length,
+        elevenlabs: filteredRequests.filter((r) => r.service === "elevenlabs")
+          .length,
+        runway: filteredRequests.filter((r) => r.service === "runway").length,
+      },
+    };
+
+    // Calculate average generation time
+    const completedRequests = filteredRequests.filter(
+      (r) => r.generation_time_ms !== undefined,
+    );
+    if (completedRequests.length > 0) {
+      stats.average_generation_time_ms = Math.round(
+        completedRequests.reduce(
+          (sum, r) => sum + (r.generation_time_ms ?? 0),
+          0,
+        ) / completedRequests.length,
+      );
+    }
+
+    return stats;
+  },
+});
+
+/**
+ * Get model usage statistics for a specific date range
+ */
+export const getModelUsageStatsForDateRange = query({
+  args: {
+    start_date: v.number(),
+    end_date: v.number(),
+    user_id: v.optional(v.string()),
+    service: v.optional(
+      v.union(v.literal("fal"), v.literal("elevenlabs"), v.literal("runway")),
+    ),
+  },
+  returns: v.object({
+    model_breakdown: v.record(
+      v.string(),
+      v.object({
+        total_requests: v.number(),
+        completed_requests: v.number(),
+        failed_requests: v.number(),
+        total_credits_used: v.number(),
+        total_file_size: v.number(),
+        average_generation_time_ms: v.number(),
+      }),
+    ),
+  }),
+  handler: async (ctx, args) => {
+    // Apply filters
+    let requests;
+    if (args.user_id) {
+      const userId = args.user_id;
+      requests = await ctx.db
+        .query("generation_requests")
+        .withIndex("by_user", (q) => q.eq("user_id", userId))
+        .collect();
+    } else if (args.service) {
+      const service = args.service;
+      requests = await ctx.db
+        .query("generation_requests")
+        .withIndex("by_service", (q) => q.eq("service", service))
+        .collect();
+    } else {
+      requests = await ctx.db.query("generation_requests").collect();
+    }
+
+    // Filter by date range
+    const filteredRequests = requests.filter(
+      (r) => r.created_at >= args.start_date && r.created_at <= args.end_date,
+    );
+
+    // Group by model_id
+    const modelStats: Record<
+      string,
+      {
+        total_requests: number;
+        completed_requests: number;
+        failed_requests: number;
+        total_credits_used: number;
+        total_file_size: number;
+        average_generation_time_ms: number;
+      }
+    > = {};
+
+    filteredRequests.forEach((request) => {
+      modelStats[request.model_id] ??= {
+        total_requests: 0,
+        completed_requests: 0,
+        failed_requests: 0,
+        total_credits_used: 0,
+        total_file_size: 0,
+        average_generation_time_ms: 0,
+      };
+
+      const stats = modelStats[request.model_id];
+      stats.total_requests++;
+
+      if (request.status === "completed") {
+        stats.completed_requests++;
+      } else if (request.status === "failed") {
+        stats.failed_requests++;
+      }
+
+      stats.total_credits_used += request.credits_used ?? 0;
+      stats.total_file_size += request.file_size ?? 0;
+    });
+
+    // Calculate average generation times
+    Object.keys(modelStats).forEach((modelId) => {
+      const stats = modelStats[modelId];
+      const completedRequests = filteredRequests.filter(
+        (r) => r.model_id === modelId && r.generation_time_ms !== undefined,
+      );
+
+      if (completedRequests.length > 0) {
+        stats.average_generation_time_ms = Math.round(
+          completedRequests.reduce(
+            (sum, r) => sum + (r.generation_time_ms ?? 0),
+            0,
+          ) / completedRequests.length,
+        );
+      }
+    });
+
+    return { model_breakdown: modelStats };
+  },
+});

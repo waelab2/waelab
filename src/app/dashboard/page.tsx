@@ -6,57 +6,184 @@ import { RecentActivity } from "@/components/ui/recent-activity";
 import { RevenueChart } from "@/components/ui/revenue-chart";
 import { SystemStatus } from "@/components/ui/system-status";
 import { UsersTable } from "@/components/ui/users-table";
-import { Activity, DollarSign, Eye, Users } from "lucide-react";
-import { useState } from "react";
-
-// Dashboard stats data
-const stats = [
-  {
-    title: "Total Users",
-    value: "12,345",
-    change: "+12%",
-    changeType: "positive" as const,
-    icon: Users,
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
-  },
-  {
-    title: "Revenue",
-    value: "$45,678",
-    change: "+8.2%",
-    changeType: "positive" as const,
-    icon: DollarSign,
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
-  },
-  {
-    title: "Active Sessions",
-    value: "2,456",
-    change: "+15%",
-    changeType: "positive" as const,
-    icon: Activity,
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
-  },
-  {
-    title: "Page Views",
-    value: "34,567",
-    change: "-2.4%",
-    changeType: "negative" as const,
-    icon: Eye,
-    color: "text-orange-500",
-    bgColor: "bg-orange-500/10",
-  },
-];
+import {
+  useGenerationRequests,
+  useModelUsageStatsForDateRange,
+} from "@/hooks/use-analytics";
+import {
+  calculatePercentageChange,
+  formatFileSize,
+  formatNumber,
+  getCurrentMonthRange,
+  getLastMonthRange,
+} from "@/lib/utils";
+import { Activity, CheckCircle, Eye, Zap } from "lucide-react";
+import { useMemo } from "react";
 
 export default function DashboardPage() {
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  // Calculate date ranges for current month and last month
+  const { start: currentMonthStart, end: currentMonthEnd } =
+    getCurrentMonthRange();
+  const { start: lastMonthStart, end: lastMonthEnd } = getLastMonthRange();
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
-  };
+  // Fetch analytics data
+  const currentMonthAnalytics = useModelUsageStatsForDateRange(
+    currentMonthStart,
+    currentMonthEnd,
+  );
+  const lastMonthAnalytics = useModelUsageStatsForDateRange(
+    lastMonthStart,
+    lastMonthEnd,
+  );
+  const recentRequests = useGenerationRequests({ limit: 10 });
+
+  // Calculate stats from analytics data with month-over-month comparison
+  const stats = useMemo(() => {
+    // Get current month data
+    const currentData = currentMonthAnalytics?.model_breakdown;
+    const lastData = lastMonthAnalytics?.model_breakdown;
+
+    if (!currentData) {
+      return [
+        {
+          title: "Total Requests",
+          value: "0",
+          change: "0%",
+          changeType: "positive" as const,
+          icon: Activity,
+          color: "text-blue-500",
+          bgColor: "bg-blue-500/10",
+        },
+        {
+          title: "Success Rate",
+          value: "0%",
+          change: "0%",
+          changeType: "positive" as const,
+          icon: CheckCircle,
+          color: "text-green-500",
+          bgColor: "bg-green-500/10",
+        },
+        {
+          title: "Credits Used",
+          value: "0",
+          change: "0%",
+          changeType: "positive" as const,
+          icon: Zap,
+          color: "text-purple-500",
+          bgColor: "bg-purple-500/10",
+        },
+        {
+          title: "Data Generated",
+          value: "0 B",
+          change: "0%",
+          changeType: "positive" as const,
+          icon: Eye,
+          color: "text-orange-500",
+          bgColor: "bg-orange-500/10",
+        },
+      ];
+    }
+
+    // Calculate current month totals
+    let currentRequests = 0;
+    let currentCompleted = 0;
+    let currentCredits = 0;
+    let currentFileSize = 0;
+
+    // Calculate last month totals
+    let lastRequests = 0;
+    let lastCompleted = 0;
+    let lastCredits = 0;
+    let lastFileSize = 0;
+
+    // Safely iterate through current month data
+    for (const modelId in currentData) {
+      const model = currentData[modelId];
+      if (model) {
+        currentRequests += model.total_requests ?? 0;
+        currentCompleted += model.completed_requests ?? 0;
+        currentCredits += model.total_credits_used ?? 0;
+        currentFileSize += model.total_file_size ?? 0;
+      }
+    }
+
+    // Safely iterate through last month data
+    if (lastData) {
+      for (const modelId in lastData) {
+        const model = lastData[modelId];
+        if (model) {
+          lastRequests += model.total_requests ?? 0;
+          lastCompleted += model.completed_requests ?? 0;
+          lastCredits += model.total_credits_used ?? 0;
+          lastFileSize += model.total_file_size ?? 0;
+        }
+      }
+    }
+
+    const currentSuccessRate =
+      currentRequests > 0
+        ? Math.round((currentCompleted / currentRequests) * 100)
+        : 0;
+    const lastSuccessRate =
+      lastRequests > 0 ? Math.round((lastCompleted / lastRequests) * 100) : 0;
+
+    // Calculate percentage changes
+    const requestsChange = calculatePercentageChange(
+      currentRequests,
+      lastRequests,
+    );
+    const successRateChange = calculatePercentageChange(
+      currentSuccessRate,
+      lastSuccessRate,
+    );
+    const creditsChange = calculatePercentageChange(
+      currentCredits,
+      lastCredits,
+    );
+    const fileSizeChange = calculatePercentageChange(
+      currentFileSize,
+      lastFileSize,
+    );
+
+    return [
+      {
+        title: "Total Requests",
+        value: formatNumber(currentRequests),
+        change: requestsChange.change,
+        changeType: requestsChange.changeType,
+        icon: Activity,
+        color: "text-blue-500",
+        bgColor: "bg-blue-500/10",
+      },
+      {
+        title: "Success Rate",
+        value: `${currentSuccessRate}%`,
+        change: successRateChange.change,
+        changeType: successRateChange.changeType,
+        icon: CheckCircle,
+        color: "text-green-500",
+        bgColor: "bg-green-500/10",
+      },
+      {
+        title: "Credits Used",
+        value: formatNumber(currentCredits),
+        change: creditsChange.change,
+        changeType: creditsChange.changeType,
+        icon: Zap,
+        color: "text-purple-500",
+        bgColor: "bg-purple-500/10",
+      },
+      {
+        title: "Data Generated",
+        value: formatFileSize(currentFileSize),
+        change: fileSizeChange.change,
+        changeType: fileSizeChange.changeType,
+        icon: Eye,
+        color: "text-orange-500",
+        bgColor: "bg-orange-500/10",
+      },
+    ];
+  }, [currentMonthAnalytics, lastMonthAnalytics]);
 
   const handleExport = () => {
     console.log("Exporting data...");
@@ -73,7 +200,7 @@ export default function DashboardPage() {
           Welcome back!
         </h1>
         <p className="text-sm text-gray-400 sm:text-base">
-          Here's what's happening with your platform today.
+          Here&apos;s what&apos;s happening with your platform today.
         </p>
       </div>
 
@@ -88,7 +215,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-3">
         {/* Charts Section */}
         <div className="space-y-4 sm:space-y-6 xl:col-span-2">
-          <RevenueChart />
+          <RevenueChart modelAnalytics={currentMonthAnalytics} />
           <UsersTable onAddUser={handleAddUser} />
         </div>
 
@@ -96,7 +223,7 @@ export default function DashboardPage() {
         <div className="space-y-4 sm:space-y-6">
           <QuickActions onAddUser={handleAddUser} onExport={handleExport} />
           <SystemStatus />
-          <RecentActivity />
+          <RecentActivity recentRequests={recentRequests} />
         </div>
       </div>
     </main>

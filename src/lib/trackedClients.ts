@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import React from "react";
 import type {
   ElevenLabsTextToSpeechInput,
@@ -467,57 +467,4 @@ export function useTrackedRunwayClient() {
   };
 
   return { generate };
-}
-
-// === ANALYTICS HOOKS ===
-
-/**
- * Hook to get generation analytics for a user
- */
-export function useUserAnalytics(userId?: string) {
-  return useQuery(
-    api.generationRequests.getUsageStats,
-    userId ? { user_id: userId } : "skip",
-  );
-}
-
-/**
- * Hook to get model-specific analytics
- */
-export function useModelAnalytics(service?: "fal" | "elevenlabs" | "runway") {
-  return useQuery(
-    api.generationRequests.getModelUsageStats,
-    service ? { service } : {},
-  );
-}
-
-/**
- * Hook to get recent requests for a user
- */
-export function useUserRequests(userId?: string, limit = 20) {
-  return useQuery(
-    api.generationRequests.getGenerationRequests,
-    userId ? { user_id: userId, limit } : "skip",
-  );
-}
-
-/**
- * Hook to get requests by specific model
- */
-export function useRequestsByModel(modelId?: string, limit = 20) {
-  return useQuery(
-    api.generationRequests.getRequestsByModel,
-    modelId ? { model_id: modelId, limit } : "skip",
-  );
-}
-
-/**
- * Hook to get all generation requests with optional filtering
- */
-export function useGenerationRequests(filters?: {
-  service?: "fal" | "elevenlabs" | "runway";
-  status?: "pending" | "completed" | "failed";
-  limit?: number;
-}) {
-  return useQuery(api.generationRequests.getGenerationRequests, filters ?? {});
 }
