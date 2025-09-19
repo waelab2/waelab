@@ -6,6 +6,7 @@ import { RecentActivity } from "@/components/ui/recent-activity";
 import { RevenueChart } from "@/components/ui/revenue-chart";
 import { Switch } from "@/components/ui/switch";
 import { SystemStatus } from "@/components/ui/system-status";
+import { TextReveal } from "@/components/ui/text-reveal";
 import type { TimePeriod } from "@/components/ui/time-period-selector";
 import { TimePeriodSelector } from "@/components/ui/time-period-selector";
 import { UsersTable } from "@/components/ui/users-table";
@@ -224,12 +225,19 @@ export default function DashboardPage() {
       <div className="px-2 sm:px-0">
         <div className="flex flex-col gap-6">
           <div>
-            <h1 className="animate-fade-in text-2xl font-bold tracking-tight sm:text-3xl">
+            <TextReveal
+              className="text-2xl font-bold tracking-tight sm:text-3xl"
+              split="letter"
+            >
               Welcome back!
-            </h1>
-            <p className="text-sm text-gray-400 sm:text-base">
+            </TextReveal>
+            <TextReveal
+              className="text-sm text-gray-400 sm:text-base"
+              delay={0.15}
+              duration={0.2}
+            >
               Here&apos;s what&apos;s happening with your platform today.
-            </p>
+            </TextReveal>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             {/* User Scope Toggle */}

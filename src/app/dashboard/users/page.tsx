@@ -1,5 +1,6 @@
 "use client";
 
+import { TextReveal } from "@/components/ui/text-reveal";
 import { api } from "@/trpc/react";
 import { UserAnalyticsAggregator } from "./_components/UserAnalyticsAggregator";
 import { UsersTableWithStats } from "./_components/UsersTableWithStats";
@@ -13,12 +14,19 @@ export default function UsersPage() {
       <div className="px-2 sm:px-0">
         <div className="flex flex-col gap-6">
           <div>
-            <h1 className="animate-fade-in text-2xl font-bold tracking-tight sm:text-3xl">
+            <TextReveal
+              className="text-2xl font-bold tracking-tight sm:text-3xl"
+              split="letter"
+            >
               Users
-            </h1>
-            <p className="text-sm text-gray-400 sm:text-base">
+            </TextReveal>
+            <TextReveal
+              className="text-sm text-gray-400 sm:text-base"
+              delay={0.15}
+              duration={0.2}
+            >
               Manage and monitor all platform users and their activity.
-            </p>
+            </TextReveal>
           </div>
         </div>
       </div>

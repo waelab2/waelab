@@ -1,5 +1,6 @@
 "use client";
 
+import { TextReveal } from "@/components/ui/text-reveal";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Search, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -59,13 +60,16 @@ export default function PlaygroundPage() {
     <main className="flex flex-col gap-6 py-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <h1 className="animate-fade-in text-3xl font-bold tracking-tight text-white">
+          <TextReveal
+            className="text-3xl font-bold tracking-tight text-white"
+            split="letter"
+          >
             AI Models Playground
-          </h1>
-          <p className="animate-fade-in animate-delay-100 text-white/80">
+          </TextReveal>
+          <TextReveal className="text-white/80" delay={0.15} duration={0.2}>
             Choose from our collection of state-of-the-art AI models for video
             generation and text-to-speech
-          </p>
+          </TextReveal>
         </div>
 
         {/* Search Bar and Model Count */}

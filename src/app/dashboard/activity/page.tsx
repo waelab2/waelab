@@ -139,8 +139,8 @@ export default function ActivityPage() {
             </TextReveal>
             <TextReveal
               className="text-sm text-gray-400 sm:text-base"
-              delay={0.3}
-              duration={0.4}
+              delay={0.15}
+              duration={0.2}
             >
               View all recent generation requests and their status
             </TextReveal>
