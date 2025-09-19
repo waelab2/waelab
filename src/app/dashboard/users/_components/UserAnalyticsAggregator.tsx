@@ -20,7 +20,9 @@ export function UserAnalyticsAggregator({
   isLoading = false,
 }: UserAnalyticsAggregatorProps) {
   // Get analytics for all users at once
-  const userAnalytics = useMultipleUsersAnalytics(userIds);
+  // Temporarily disabled until Convex deployment is fixed
+  // const userAnalytics = useMultipleUsersAnalytics(userIds);
+  const userAnalytics = null;
 
   const stats = useMemo(() => {
     if (isLoading) {
