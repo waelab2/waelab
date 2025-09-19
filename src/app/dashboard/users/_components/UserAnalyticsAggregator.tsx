@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardCard } from "@/components/ui/dashboard-card";
-import { useUserAnalytics } from "@/hooks/use-analytics";
+import { useMultipleUsersAnalytics } from "@/hooks/use-analytics";
 import { formatNumber } from "@/lib/utils";
 import { Activity, CheckCircle, Users, Zap } from "lucide-react";
 import { useMemo } from "react";
@@ -19,8 +19,8 @@ export function UserAnalyticsAggregator({
   activeUsers,
   isLoading = false,
 }: UserAnalyticsAggregatorProps) {
-  // Call hooks for each user ID - this is safe because userIds is stable
-  const userAnalytics = userIds.map((userId) => useUserAnalytics(userId));
+  // Get analytics for all users at once
+  const userAnalytics = useMultipleUsersAnalytics(userIds);
 
   const stats = useMemo(() => {
     if (isLoading) {
@@ -64,19 +64,8 @@ export function UserAnalyticsAggregator({
       ];
     }
 
-    // Calculate totals from all user analytics
-    let totalGenerations = 0;
-    let totalCredits = 0;
-    let totalCompleted = 0;
-
-    userAnalytics.forEach((analytics) => {
-      if (analytics) {
-        totalGenerations += analytics.total_requests;
-        totalCredits += analytics.total_credits_used;
-        totalCompleted += analytics.completed_requests;
-      }
-    });
-
+    // Get totals from the aggregated analytics
+    const totalGenerations = userAnalytics?.total_requests ?? 0;
     const avgGenerationsPerUser =
       totalUsers > 0 ? Math.round(totalGenerations / totalUsers) : 0;
 

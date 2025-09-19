@@ -965,6 +965,79 @@ export const getUsageStats = query({
 });
 
 /**
+ * Get usage statistics for multiple users
+ */
+export const getUsageStatsForMultipleUsers = query({
+  args: {
+    user_ids: v.array(v.string()),
+  },
+  returns: v.object({
+    total_requests: v.number(),
+    completed_requests: v.number(),
+    failed_requests: v.number(),
+    pending_requests: v.number(),
+    total_credits_used: v.number(),
+    total_file_size: v.number(),
+    average_generation_time_ms: v.number(),
+    service_breakdown: v.object({
+      fal: v.number(),
+      elevenlabs: v.number(),
+      runway: v.number(),
+    }),
+  }),
+  handler: async (ctx, args) => {
+    // Get all requests for the specified user IDs
+    const allRequests = [];
+    for (const userId of args.user_ids) {
+      const userRequests = await ctx.db
+        .query("generation_requests")
+        .withIndex("by_user", (q) => q.eq("user_id", userId))
+        .collect();
+      allRequests.push(...userRequests);
+    }
+
+    const stats = {
+      total_requests: allRequests.length,
+      completed_requests: allRequests.filter((r) => r.status === "completed")
+        .length,
+      failed_requests: allRequests.filter((r) => r.status === "failed").length,
+      pending_requests: allRequests.filter((r) => r.status === "pending")
+        .length,
+      total_credits_used: allRequests.reduce(
+        (sum, r) => sum + (r.credits_used ?? 0),
+        0,
+      ),
+      total_file_size: allRequests.reduce(
+        (sum, r) => sum + (r.file_size ?? 0),
+        0,
+      ),
+      average_generation_time_ms: 0,
+      service_breakdown: {
+        fal: allRequests.filter((r) => r.service === "fal").length,
+        elevenlabs: allRequests.filter((r) => r.service === "elevenlabs")
+          .length,
+        runway: allRequests.filter((r) => r.service === "runway").length,
+      },
+    };
+
+    // Calculate average generation time
+    const completedRequests = allRequests.filter(
+      (r) => r.generation_time_ms !== undefined,
+    );
+    if (completedRequests.length > 0) {
+      stats.average_generation_time_ms = Math.round(
+        completedRequests.reduce(
+          (sum, r) => sum + (r.generation_time_ms ?? 0),
+          0,
+        ) / completedRequests.length,
+      );
+    }
+
+    return stats;
+  },
+});
+
+/**
  * Get usage statistics for a specific date range
  */
 export const getUsageStatsForDateRange = query({

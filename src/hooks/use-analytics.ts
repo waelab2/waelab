@@ -181,3 +181,21 @@ export function useModelUsageStatsForDateRange(
   }
   return undefined;
 }
+
+/**
+ * Hook to get usage statistics for multiple users
+ */
+export function useMultipleUsersAnalytics(
+  userIds: string[],
+): UsageStats | undefined {
+  const result = useQuery(
+    api.generationRequests.getUsageStatsForMultipleUsers,
+    userIds.length > 0 ? { user_ids: userIds } : "skip",
+  ) as unknown;
+
+  // Type guard to ensure we have the expected data structure
+  if (result && typeof result === "object" && "total_requests" in result) {
+    return result as UsageStats;
+  }
+  return undefined;
+}
