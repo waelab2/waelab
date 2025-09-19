@@ -7,7 +7,6 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    DATABASE_URL: z.string().url(),
     FAL_KEY: z.string(),
     ELEVENLABS_API_KEY: z.string(),
     RUNWAY_API_KEY: z.string(),
@@ -32,7 +31,6 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
     FAL_KEY: process.env.FAL_KEY,
     ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
     RUNWAY_API_KEY: process.env.RUNWAY_API_KEY,

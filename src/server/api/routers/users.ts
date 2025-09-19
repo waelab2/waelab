@@ -54,7 +54,20 @@ export const usersRouter = createTRPCRouter({
       return transformedUsers;
     } catch (error) {
       console.error("Error fetching users from Clerk:", error);
-      throw new Error("Failed to fetch users");
+
+      // Provide more detailed error information
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
+      console.error("Detailed error info:", {
+        message: errorMessage,
+        stack: errorStack,
+        errorType: typeof error,
+        errorConstructor: error?.constructor?.name,
+      });
+
+      throw new Error(`Failed to fetch users: ${errorMessage}`);
     }
   }),
 

@@ -3,13 +3,11 @@ import ComingSoon from "./_components/coming-soon";
 import HomeHero from "./_components/home-hero";
 import Services from "./_components/services";
 
-// import { LatestPost } from "~/app/_components/post";
 // import { api, HydrateClient } from "~/trpc/server";
 
 export default async function Home() {
-  // const hello = await api.post.hello({ text: "from tRPC" });
-
-  // void api.post.getLatest.prefetch();
+  // Example of how to use tRPC in server components
+  // const users = await api.users.getAll();
 
   return (
     <>
