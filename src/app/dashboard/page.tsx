@@ -21,6 +21,7 @@ import {
   getDateRange,
   getPreviousDateRange,
 } from "@/lib/utils";
+import { api } from "@/trpc/react";
 import { useAuth } from "@clerk/nextjs";
 import { Activity, CheckCircle, Eye, User, Users, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -33,6 +34,12 @@ export default function DashboardPage() {
 
   // Get current user ID from Clerk
   const { userId } = useAuth();
+
+  // Fetch recent users using tRPC
+  const { data: recentUsers, isLoading: usersLoading } =
+    api.users.getRecent.useQuery({
+      limit: 10,
+    });
 
   // Calculate date ranges based on selected period
   const { start: currentStart, end: currentEnd } = getDateRange(selectedPeriod);
@@ -275,7 +282,7 @@ export default function DashboardPage() {
         <div className="space-y-4 sm:space-y-6">
           <QuickActions onAddUser={handleAddUser} onExport={handleExport} />
           <SystemStatus />
-          <UsersTable onAddUser={handleAddUser} />
+          <UsersTable users={recentUsers} isLoading={usersLoading} />
         </div>
       </div>
     </main>

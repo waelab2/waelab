@@ -850,6 +850,7 @@ export const getModelUsageStats = query({
       };
 
       const stats = modelStats[request.model_id];
+      if (stats === undefined) throw new Error("Stats are undefined");
       stats.total_requests++;
 
       if (request.status === "completed") {
@@ -870,6 +871,7 @@ export const getModelUsageStats = query({
       );
 
       if (completedRequests.length > 0) {
+        if (stats === undefined) throw new Error("Stats are undefined");
         stats.average_generation_time_ms = Math.round(
           completedRequests.reduce(
             (sum, r) => sum + (r.generation_time_ms ?? 0),
@@ -1128,6 +1130,7 @@ export const getModelUsageStatsForDateRange = query({
       };
 
       const stats = modelStats[request.model_id];
+      if (stats === undefined) throw new Error("Stats are undefined");
       stats.total_requests++;
 
       if (request.status === "completed") {
@@ -1148,6 +1151,7 @@ export const getModelUsageStatsForDateRange = query({
       );
 
       if (completedRequests.length > 0) {
+        if (stats === undefined) throw new Error("Stats are undefined");
         stats.average_generation_time_ms = Math.round(
           completedRequests.reduce(
             (sum, r) => sum + (r.generation_time_ms ?? 0),
