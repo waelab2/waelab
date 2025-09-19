@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { Bot, SquareTerminal } from "lucide-react";
+import { Activity, Bot, SquareTerminal } from "lucide-react";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 
@@ -24,6 +24,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/dashboard",
         icon: Bot,
         isActive: pathname === "/dashboard",
+      },
+      {
+        title: "Activity",
+        url: "/dashboard/activity",
+        icon: Activity,
+        isActive: pathname.startsWith("/dashboard/activity"),
       },
       {
         title: "Playground",
