@@ -4,6 +4,7 @@ import { DashboardCard } from "@/components/ui/dashboard-card";
 import { QuickActions } from "@/components/ui/quick-actions";
 import { RecentActivity } from "@/components/ui/recent-activity";
 import { RevenueChart } from "@/components/ui/revenue-chart";
+import { Switch } from "@/components/ui/switch";
 import { SystemStatus } from "@/components/ui/system-status";
 import type { TimePeriod } from "@/components/ui/time-period-selector";
 import { TimePeriodSelector } from "@/components/ui/time-period-selector";
@@ -11,6 +12,7 @@ import { UsersTable } from "@/components/ui/users-table";
 import {
   useGenerationRequests,
   useModelUsageStatsForDateRange,
+  useUserRequests,
 } from "@/hooks/use-analytics";
 import {
   calculatePercentageChange,
@@ -19,28 +21,40 @@ import {
   getDateRange,
   getPreviousDateRange,
 } from "@/lib/utils";
-import { Activity, CheckCircle, Eye, Zap } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
+import { Activity, CheckCircle, Eye, User, Users, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export default function DashboardPage() {
   // State for selected time period
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("month");
+  // State for user scope toggle (false = totals, true = user-specific)
+  const [isUserScope, setIsUserScope] = useState(false);
+
+  // Get current user ID from Clerk
+  const { userId } = useAuth();
 
   // Calculate date ranges based on selected period
   const { start: currentStart, end: currentEnd } = getDateRange(selectedPeriod);
   const { start: previousStart, end: previousEnd } =
     getPreviousDateRange(selectedPeriod);
 
-  // Fetch analytics data
+  // Fetch analytics data - use userId when user scope is enabled
   const currentAnalytics = useModelUsageStatsForDateRange(
     currentStart,
     currentEnd,
+    isUserScope ? (userId ?? undefined) : undefined,
   );
   const previousAnalytics = useModelUsageStatsForDateRange(
     previousStart,
     previousEnd,
+    isUserScope ? (userId ?? undefined) : undefined,
   );
-  const recentRequests = useGenerationRequests({ limit: 10 });
+
+  // Fetch recent requests - always call both hooks but use appropriate one
+  const allRecentRequests = useGenerationRequests({ limit: 10 });
+  const userRecentRequests = useUserRequests(userId ?? undefined, 10);
+  const recentRequests = isUserScope ? userRecentRequests : allRecentRequests;
 
   // Calculate stats from analytics data with period-over-period comparison
   const stats = useMemo(() => {
@@ -201,7 +215,7 @@ export default function DashboardPage() {
   return (
     <main className="flex flex-col gap-6 py-6 text-white">
       <div className="px-2 sm:px-0">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-6">
           <div>
             <h1 className="animate-fade-in text-2xl font-bold tracking-tight sm:text-3xl">
               Welcome back!
@@ -210,11 +224,28 @@ export default function DashboardPage() {
               Here&apos;s what&apos;s happening with your platform today.
             </p>
           </div>
-          <TimePeriodSelector
-            selectedPeriod={selectedPeriod}
-            onPeriodChange={setSelectedPeriod}
-            className="sm:ml-auto"
-          />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {/* User Scope Toggle */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-gray-400" />
+                <span className="text-sm text-gray-400">Totals</span>
+              </div>
+              <Switch
+                checked={isUserScope}
+                onCheckedChange={setIsUserScope}
+                aria-label="Toggle between totals and user-specific data"
+              />
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-gray-400" />
+                <span className="text-sm text-gray-400">My Data</span>
+              </div>
+            </div>
+            <TimePeriodSelector
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={setSelectedPeriod}
+            />
+          </div>
         </div>
       </div>
 

@@ -44,9 +44,16 @@ export function TimePeriodSelector({
                 "hover:bg-gray-700/50 hover:text-white",
                 "focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2 focus:ring-offset-gray-900",
                 selectedPeriod === period.value
-                  ? "bg-blue-600 text-white shadow-sm"
+                  ? "text-white shadow-sm"
                   : "text-gray-400 hover:text-gray-200",
               )}
+              style={
+                selectedPeriod === period.value
+                  ? {
+                      background: "linear-gradient(45deg, #E9476E, #3B5DA8)",
+                    }
+                  : undefined
+              }
             >
               {Icon && <Icon className="mr-1.5 h-3.5 w-3.5" />}
               {period.label}
