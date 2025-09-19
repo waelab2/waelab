@@ -60,10 +60,12 @@ const getStatusInfo = (status: string) => {
 
 interface RecentActivityProps {
   recentRequests?: GenerationRequest[];
+  startDate?: number;
+  endDate?: number;
 }
 
 export const RecentActivity = memo(
-  ({ recentRequests }: RecentActivityProps) => {
+  ({ recentRequests, startDate, endDate }: RecentActivityProps) => {
     // Show loading state or fallback if no data
     if (!recentRequests || recentRequests.length === 0) {
       return (
@@ -96,43 +98,51 @@ export const RecentActivity = memo(
           Recent Activity
         </h3>
         <div className="space-y-3">
-          {recentRequests.slice(0, 5).map((request, index) => {
-            const serviceInfo = getServiceInfo(request.service);
-            const statusInfo = getStatusInfo(request.status);
-            const ServiceIcon = serviceInfo.icon;
-            const StatusIcon = statusInfo.icon;
+          {recentRequests
+            .filter((request) => {
+              if (!startDate || !endDate) return true;
+              return (
+                request.created_at >= startDate && request.created_at <= endDate
+              );
+            })
+            .slice(0, 5)
+            .map((request, index) => {
+              const serviceInfo = getServiceInfo(request.service);
+              const statusInfo = getStatusInfo(request.status);
+              const ServiceIcon = serviceInfo.icon;
+              const StatusIcon = statusInfo.icon;
 
-            return (
-              <motion.div
-                key={request._id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-700/50"
-              >
-                <div className={`rounded-lg bg-gray-700/50 p-2`}>
-                  <ServiceIcon className={`h-4 w-4 ${serviceInfo.color}`} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium text-white">
-                    {serviceInfo.label} Generation
+              return (
+                <motion.div
+                  key={request._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-700/50"
+                >
+                  <div className={`rounded-lg bg-gray-700/50 p-2`}>
+                    <ServiceIcon className={`h-4 w-4 ${serviceInfo.color}`} />
                   </div>
-                  <div className="truncate text-xs text-gray-400">
-                    {request.model_id} •{" "}
-                    {request.user_id
-                      ? `User: ${request.user_id.slice(0, 8)}...`
-                      : "Anonymous"}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-white">
+                      {serviceInfo.label} Generation
+                    </div>
+                    <div className="truncate text-xs text-gray-400">
+                      {request.model_id} •{" "}
+                      {request.user_id
+                        ? `User: ${request.user_id.slice(0, 8)}...`
+                        : "Anonymous"}
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <StatusIcon className={`h-3 w-3 ${statusInfo.color}`} />
-                  <div className="text-xs text-gray-400">
-                    {formatTimeAgo(request.created_at)}
+                  <div className="flex items-center gap-2">
+                    <StatusIcon className={`h-3 w-3 ${statusInfo.color}`} />
+                    <div className="text-xs text-gray-400">
+                      {formatTimeAgo(request.created_at)}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
         </div>
       </div>
     );

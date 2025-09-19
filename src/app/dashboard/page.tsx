@@ -5,6 +5,8 @@ import { QuickActions } from "@/components/ui/quick-actions";
 import { RecentActivity } from "@/components/ui/recent-activity";
 import { RevenueChart } from "@/components/ui/revenue-chart";
 import { SystemStatus } from "@/components/ui/system-status";
+import type { TimePeriod } from "@/components/ui/time-period-selector";
+import { TimePeriodSelector } from "@/components/ui/time-period-selector";
 import { UsersTable } from "@/components/ui/users-table";
 import {
   useGenerationRequests,
@@ -14,34 +16,37 @@ import {
   calculatePercentageChange,
   formatFileSize,
   formatNumber,
-  getCurrentMonthRange,
-  getLastMonthRange,
+  getDateRange,
+  getPreviousDateRange,
 } from "@/lib/utils";
 import { Activity, CheckCircle, Eye, Zap } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export default function DashboardPage() {
-  // Calculate date ranges for current month and last month
-  const { start: currentMonthStart, end: currentMonthEnd } =
-    getCurrentMonthRange();
-  const { start: lastMonthStart, end: lastMonthEnd } = getLastMonthRange();
+  // State for selected time period
+  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("month");
+
+  // Calculate date ranges based on selected period
+  const { start: currentStart, end: currentEnd } = getDateRange(selectedPeriod);
+  const { start: previousStart, end: previousEnd } =
+    getPreviousDateRange(selectedPeriod);
 
   // Fetch analytics data
-  const currentMonthAnalytics = useModelUsageStatsForDateRange(
-    currentMonthStart,
-    currentMonthEnd,
+  const currentAnalytics = useModelUsageStatsForDateRange(
+    currentStart,
+    currentEnd,
   );
-  const lastMonthAnalytics = useModelUsageStatsForDateRange(
-    lastMonthStart,
-    lastMonthEnd,
+  const previousAnalytics = useModelUsageStatsForDateRange(
+    previousStart,
+    previousEnd,
   );
   const recentRequests = useGenerationRequests({ limit: 10 });
 
-  // Calculate stats from analytics data with month-over-month comparison
+  // Calculate stats from analytics data with period-over-period comparison
   const stats = useMemo(() => {
-    // Get current month data
-    const currentData = currentMonthAnalytics?.model_breakdown;
-    const lastData = lastMonthAnalytics?.model_breakdown;
+    // Get current period data
+    const currentData = currentAnalytics?.model_breakdown;
+    const previousData = previousAnalytics?.model_breakdown;
 
     if (!currentData) {
       return [
@@ -107,10 +112,10 @@ export default function DashboardPage() {
       }
     }
 
-    // Safely iterate through last month data
-    if (lastData) {
-      for (const modelId in lastData) {
-        const model = lastData[modelId];
+    // Safely iterate through previous period data
+    if (previousData) {
+      for (const modelId in previousData) {
+        const model = previousData[modelId];
         if (model) {
           lastRequests += model.total_requests ?? 0;
           lastCompleted += model.completed_requests ?? 0;
@@ -183,7 +188,7 @@ export default function DashboardPage() {
         bgColor: "bg-orange-500/10",
       },
     ];
-  }, [currentMonthAnalytics, lastMonthAnalytics]);
+  }, [currentAnalytics, previousAnalytics]);
 
   const handleExport = () => {
     console.log("Exporting data...");
@@ -196,12 +201,21 @@ export default function DashboardPage() {
   return (
     <main className="flex flex-col gap-6 py-6 text-white">
       <div className="px-2 sm:px-0">
-        <h1 className="animate-fade-in text-2xl font-bold tracking-tight sm:text-3xl">
-          Welcome back!
-        </h1>
-        <p className="text-sm text-gray-400 sm:text-base">
-          Here&apos;s what&apos;s happening with your platform today.
-        </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="animate-fade-in text-2xl font-bold tracking-tight sm:text-3xl">
+              Welcome back!
+            </h1>
+            <p className="text-sm text-gray-400 sm:text-base">
+              Here&apos;s what&apos;s happening with your platform today.
+            </p>
+          </div>
+          <TimePeriodSelector
+            selectedPeriod={selectedPeriod}
+            onPeriodChange={setSelectedPeriod}
+            className="sm:ml-auto"
+          />
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -215,7 +229,10 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-3">
         {/* Charts Section */}
         <div className="space-y-4 sm:space-y-6 xl:col-span-2">
-          <RevenueChart modelAnalytics={currentMonthAnalytics} />
+          <RevenueChart
+            modelAnalytics={currentAnalytics}
+            timePeriod={selectedPeriod}
+          />
           <UsersTable onAddUser={handleAddUser} />
         </div>
 
@@ -223,7 +240,11 @@ export default function DashboardPage() {
         <div className="space-y-4 sm:space-y-6">
           <QuickActions onAddUser={handleAddUser} onExport={handleExport} />
           <SystemStatus />
-          <RecentActivity recentRequests={recentRequests} />
+          <RecentActivity
+            recentRequests={recentRequests}
+            startDate={currentStart}
+            endDate={currentEnd}
+          />
         </div>
       </div>
     </main>
