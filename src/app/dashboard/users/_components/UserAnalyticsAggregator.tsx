@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardCard } from "@/components/ui/dashboard-card";
-import { useMultipleUsersAnalytics } from "@/hooks/use-analytics";
+// import { useMultipleUsersAnalytics } from "@/hooks/use-analytics";
 import { formatNumber } from "@/lib/utils";
 import { Activity, CheckCircle, Users, Zap } from "lucide-react";
 import { useMemo } from "react";
@@ -14,7 +14,7 @@ interface UserAnalyticsAggregatorProps {
 }
 
 export function UserAnalyticsAggregator({
-  userIds,
+  userIds: _userIds,
   totalUsers,
   activeUsers,
   isLoading = false,
@@ -22,7 +22,7 @@ export function UserAnalyticsAggregator({
   // Get analytics for all users at once
   // Temporarily disabled until Convex deployment is fixed
   // const userAnalytics = useMultipleUsersAnalytics(userIds);
-  const userAnalytics = null;
+  // const userAnalytics = null;
 
   const stats = useMemo(() => {
     if (isLoading) {
@@ -67,9 +67,9 @@ export function UserAnalyticsAggregator({
     }
 
     // Get totals from the aggregated analytics
-    const totalGenerations = userAnalytics?.total_requests ?? 0;
-    const avgGenerationsPerUser =
-      totalUsers > 0 ? Math.round(totalGenerations / totalUsers) : 0;
+    // Temporarily set to 0 until Convex deployment is fixed
+    const totalGenerations = 0;
+    const avgGenerationsPerUser = 0;
 
     return [
       {
@@ -109,7 +109,7 @@ export function UserAnalyticsAggregator({
         bgColor: "bg-orange-500/10",
       },
     ];
-  }, [userAnalytics, totalUsers, activeUsers, isLoading]);
+  }, [totalUsers, activeUsers, isLoading]);
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
