@@ -1,7 +1,8 @@
+import SectionTitle from "~/components/section-title";
 import About from "./_components/about";
 import ComingSoon from "./_components/coming-soon";
+import CommonServicesSection from "./_components/common-services-section";
 import HomeHero from "./_components/home-hero";
-import Services from "./_components/services";
 
 // import { api, HydrateClient } from "~/trpc/server";
 
@@ -13,7 +14,8 @@ export default async function Home() {
     <>
       <HomeHero />
       <About />
-      <Services />
+      <SectionTitle title="Services" leftArrow rightArrow />
+      <CommonServicesSection />
       <ComingSoon />
     </>
   );

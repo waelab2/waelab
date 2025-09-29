@@ -7,7 +7,7 @@ export const hero_contents: Record<
     ar: { small_title: string; main_title: string };
   }
 > = {
-  "/about": {
+  "/about-us": {
     en: {
       small_title: "About Us",
       main_title: "Know About Us",
@@ -17,14 +17,14 @@ export const hero_contents: Record<
       main_title: "اعرف عنا",
     },
   },
-  "/services": {
+  "/our-services": {
     en: {
       small_title: "Our Services",
-      main_title: "Our Services",
+      main_title: "What We Offer",
     },
     ar: {
       small_title: "خدماتنا",
-      main_title: "خدماتنا",
+      main_title: "ما نقدمه",
     },
   },
   "/plans": {

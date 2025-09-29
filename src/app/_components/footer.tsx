@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import FooterLogo from "~/assets/footer-logo.svg";
 import { Input } from "~/components/ui/input";
 
@@ -9,8 +9,7 @@ export default function Footer() {
         {/* Top */}
         <div className="flex items-center gap-16">
           <div className="flex-1">
-            {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
-            <Image src={FooterLogo} alt="logo" />
+            <Image src={FooterLogo as StaticImageData} alt="logo" />
           </div>
           <div className="flex-1">
             <div className="flex flex-col gap-4 rounded-[2rem] border-3 border-[#EEEFF6] bg-[#EEEFF615] p-16">
