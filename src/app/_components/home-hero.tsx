@@ -82,7 +82,7 @@ function ContentBox({ children }: { children: React.ReactNode }) {
 function NavigationLinks() {
   const links = [
     { href: "/", label: "Home" },
-    { href: "/about", label: "About Us" },
+    { href: "/about-us", label: "About Us" },
     { href: "/services", label: "Our Services" },
     { href: "/plans", label: "Plans" },
     { href: "/contact", label: "Contact Us" },

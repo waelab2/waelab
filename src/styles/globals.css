@@ -1,6 +1,18 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+.ui-dark {
+  background-color: #282830;
+}
+
+.text-ui-dark {
+  color: #282830;
+}
+
+.text-ui-grey {
+  color: #737485;
+}
+
 /* Line clamp utilities */
 .line-clamp-1 {
   overflow: hidden;
