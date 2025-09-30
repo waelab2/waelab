@@ -5,7 +5,7 @@ export const footer_sectioned_links = [
       { href: "/", label: "Home" },
       { href: "/about", label: "About Us" },
       { href: "/services", label: "Services" },
-      { href: "/plans", label: "Plans" },
+      { href: "/our-plans", label: "Plans" },
     ],
   },
   {

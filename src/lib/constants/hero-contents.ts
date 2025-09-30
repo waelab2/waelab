@@ -27,14 +27,14 @@ export const hero_contents: Record<
       main_title: "ما نقدمه",
     },
   },
-  "/plans": {
+  "/our-plans": {
     en: {
       small_title: "Plans",
-      main_title: "Choose Your Plan",
+      main_title: "Our Plans & Features",
     },
     ar: {
       small_title: "الخطط",
-      main_title: "اختر خطتك",
+      main_title: "خططنا ومزايانا",
     },
   },
   "/contact": {

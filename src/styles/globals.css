@@ -9,6 +9,10 @@
   color: #282830;
 }
 
+.ui-grey {
+  background-color: #737485;
+}
+
 .text-ui-grey {
   color: #737485;
 }
@@ -125,6 +129,14 @@
   .waelab-gradient-border {
   border-image: linear-gradient(45deg, #E9476E, #3B5DA8) 1;
   border-radius: 9999px;
+  }
+  
+  .waelab-gradient-bg {
+    background: linear-gradient(45deg, #E9476E, #3B5DA8);
+  }
+  
+  .waelab-gradient-bg:hover {
+    background: linear-gradient(45deg, #d63d5f, #2a4a8a);
   }
   
   .border-3 {

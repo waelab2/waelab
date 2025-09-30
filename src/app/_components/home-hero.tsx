@@ -84,7 +84,7 @@ function NavigationLinks() {
     { href: "/", label: "Home" },
     { href: "/about-us", label: "About Us" },
     { href: "/services", label: "Our Services" },
-    { href: "/plans", label: "Plans" },
+    { href: "/our-plans", label: "Plans" },
     { href: "/contact", label: "Contact Us" },
     { href: "#", label: "العربية" },
   ];
