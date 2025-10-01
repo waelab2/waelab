@@ -37,14 +37,14 @@ export const hero_contents: Record<
       main_title: "خططنا ومزايانا",
     },
   },
-  "/contact": {
+  "/contact-us": {
     en: {
       small_title: "Contact Us",
-      main_title: "Get in Touch",
+      main_title: "Stay Connected",
     },
     ar: {
       small_title: "تواصل معنا",
-      main_title: "ابقى على تواصل",
+      main_title: "ابقى على اتصال",
     },
   },
 } as const;

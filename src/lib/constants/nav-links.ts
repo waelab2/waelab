@@ -3,7 +3,7 @@ export const nav_links = [
   { href: "/about-us", label: "About Us" },
   { href: "/our-services", label: "Our Services" },
   { href: "/our-plans", label: "Plans" },
-  { href: "/contact", label: "Contact Us" },
+  { href: "/contact-us", label: "Contact Us" },
 ] as const;
 
 export type NavLink = (typeof nav_links)[number];

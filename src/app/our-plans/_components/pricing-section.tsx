@@ -12,12 +12,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@radix-ui/react-separator";
 import { motion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import { useEffect, useState } from "react";
+import GradientBordered from "~/components/gradient-bordered";
 
 interface Plan {
   id: string;
@@ -109,7 +110,7 @@ export default function PricingSection() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <div className="relative rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-0.75">
+          <GradientBordered className="rounded-full">
             <Tabs
               defaultValue={frequency}
               onValueChange={setFrequency}
@@ -148,7 +149,7 @@ export default function PricingSection() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
-          </div>
+          </GradientBordered>
         </motion.div>
 
         <div className="mt-8 grid w-full max-w-6xl grid-cols-1 gap-6 md:grid-cols-3">
@@ -202,7 +203,7 @@ export default function PricingSection() {
                     <p className="text-ui-grey text-sm">{plan.description}</p>
                   </CardDescription>
                 </CardHeader>
-                <Separator className="my-2 h-0.25 bg-[#DDDEEC]" />
+                <Separator className="my-2 h-0.25" />
                 <CardContent className="grid gap-3 pb-6">
                   {plan.features.map((feature, index) => (
                     <motion.div
