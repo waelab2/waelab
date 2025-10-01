@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import AccentedText from "~/components/accented-text";
 import NavigationAuthPart from "~/components/navigation-auth-part";
 import SectionTitle from "~/components/section-title";
 import {
@@ -22,7 +23,9 @@ export default function Hero() {
   return (
     <ContentBox>
       <div className="flex items-center justify-between">
-        <Image src="/logo.svg" alt="logo" width={48} height={48} />
+        <Link href="/">
+          <Image src="/logo.svg" alt="logo" width={48} height={48} />
+        </Link>
         <NavigationLinks />
         <NavigationAuthPart />
       </div>
@@ -56,6 +59,8 @@ function ContentBox({ children }: { children: React.ReactNode }) {
 }
 
 function NavigationLinks() {
+  const pathname = usePathname();
+
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList>
@@ -68,7 +73,16 @@ function NavigationLinks() {
                 "bg-transparent font-semibold hover:bg-gradient-to-r hover:from-[#E9476E] hover:to-[#3B5DA8] hover:bg-clip-text hover:text-transparent",
               )}
             >
-              <Link href={link.href}>{link.label}</Link>
+              <Link href={link.href}>
+                {pathname === link.href ? (
+                  <span className="flex items-center gap-2">
+                    <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                    <AccentedText>{link.label}</AccentedText>
+                  </span>
+                ) : (
+                  link.label
+                )}
+              </Link>
             </NavigationMenuLink>
           </NavigationMenuItem>
         ))}

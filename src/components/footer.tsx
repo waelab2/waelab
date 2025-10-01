@@ -5,6 +5,7 @@ import { Authenticated, Unauthenticated } from "convex/react";
 import { Mail, MapPin, Phone, Printer } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import FooterLogo from "~/assets/footer-logo.svg";
 import FacebookIcon from "~/assets/icons/facebook.svg";
 import InstagramIcon from "~/assets/icons/instagram.svg";
@@ -66,6 +67,8 @@ const socialLinks = [
 ];
 
 export default function Footer() {
+  const pathname = usePathname();
+
   return (
     <footer className="ui-dark relative w-full place-self-end p-12 pt-24 text-white">
       <Image
@@ -75,7 +78,9 @@ export default function Footer() {
       />
       <div className="relative z-20 flex items-center gap-32">
         <div className="flex-2">
-          <Image src={FooterLogo as StaticImageData} alt="logo" />
+          <Link href="/">
+            <Image src={FooterLogo as StaticImageData} alt="logo" />
+          </Link>
         </div>
         <div className="flex-3">
           <div className="flex flex-col gap-4 rounded-[2rem] border-3 border-[#EEEFF6] bg-[#EEEFF615] p-16">
@@ -103,9 +108,16 @@ export default function Footer() {
             <ul className="mt-8 space-y-4 text-sm">
               {toExploreLinks.map(({ text, href }) => (
                 <li key={text}>
-                  <a className="transition" href={href}>
-                    {text}
-                  </a>
+                  <Link href={href} className="transition">
+                    {pathname === href ? (
+                      <span className="flex items-center gap-2">
+                        <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                        <AccentedText>{text}</AccentedText>
+                      </span>
+                    ) : (
+                      text
+                    )}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -116,9 +128,16 @@ export default function Footer() {
             <ul className="mt-8 space-y-4 text-sm">
               {helpAndServicesLinks.map(({ text, href }) => (
                 <li key={text}>
-                  <a className="transition" href={href}>
-                    {text}
-                  </a>
+                  <Link href={href} className="transition">
+                    {pathname === href ? (
+                      <span className="flex items-center gap-2">
+                        <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                        <AccentedText>{text}</AccentedText>
+                      </span>
+                    ) : (
+                      text
+                    )}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -149,7 +168,14 @@ export default function Footer() {
               {moreLinks.map(({ text, href }) => (
                 <li key={text}>
                   <Link href={href}>
-                    <span className="transition">{text}</span>
+                    {pathname === href ? (
+                      <span className="flex items-center gap-2 transition">
+                        <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                        <AccentedText>{text}</AccentedText>
+                      </span>
+                    ) : (
+                      <span className="transition">{text}</span>
+                    )}
                   </Link>
                 </li>
               ))}
