@@ -21,7 +21,7 @@ export default function CommonServicesSection() {
   return (
     <>
       {!showServiceInfo && (
-        <section className="text-ui-dark m-12 my-24 flex flex-col items-center gap-4">
+        <section className="text-ui-dark mx-4 my-8 flex flex-col items-center gap-4 md:mx-12 md:my-12 lg:my-24">
           {pathname === "/" && (
             <SectionTitle
               title="Services"
@@ -30,13 +30,14 @@ export default function CommonServicesSection() {
               className="justify-center"
             />
           )}
-          <h2 className="mb-4 w-1/2 text-center text-4xl leading-tight font-bold">
+          <h2 className="mb-4 w-full text-center text-2xl leading-tight font-bold md:w-3/4 lg:w-1/2 lg:text-4xl">
             Comprehensive Solutions for{" "}
             <AccentedText>Creative Video</AccentedText> Production
           </h2>
-          <div className="flex w-full gap-8">
-            <div className="flex flex-1 gap-8 rounded-xl p-4 shadow-lg">
-              <figure className="relative h-full w-full flex-1">
+          <div className="flex w-full flex-col gap-4 lg:flex-row lg:gap-8">
+            {/* Main service card */}
+            <div className="flex w-full flex-col gap-4 rounded-xl p-4 shadow-lg lg:flex-1 lg:flex-row lg:gap-8">
+              <figure className="relative h-48 w-full lg:h-full lg:flex-1">
                 <Image
                   src={ServiceImage1}
                   alt="Service 1"
@@ -44,45 +45,49 @@ export default function CommonServicesSection() {
                   className="rounded-lg object-cover"
                 />
               </figure>
-              <div className="flex flex-2 flex-col justify-between gap-8">
-                <div className="flex gap-8">
+              <div className="flex flex-col justify-between gap-4 lg:flex-2 lg:gap-8">
+                <div className="flex flex-wrap gap-4 lg:gap-8">
                   <Image
                     src={ServiceIcon1}
                     alt="Service Icon 1"
-                    width={125}
-                    height={125}
+                    width={80}
+                    height={80}
+                    className="lg:w-[125px] lg:h-[125px]"
                   />
                   <Image
                     src={ServiceIcon2}
                     alt="Service Icon 2"
-                    width={125}
-                    height={125}
+                    width={80}
+                    height={80}
+                    className="lg:w-[125px] lg:h-[125px]"
                   />
                 </div>
                 <div>
-                  <h4 className="mb-2 text-2xl font-bold">
+                  <h4 className="mb-2 text-xl font-bold lg:text-2xl">
                     Smart Video Editing
                   </h4>
-                  <p className="mb-2 text-gray-500">
+                  <p className="mb-2 text-sm text-gray-500 lg:text-base">
                     Enhance and refine your videos effortlessly with AI-powered
                     editing tools.
                   </p>
                   <button
                     onClick={() => setShowServiceInfo(true)}
-                    className="mb-2 flex cursor-pointer items-center gap-4 transition-opacity hover:opacity-80"
+                    className="mb-2 flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 lg:gap-4"
                   >
-                    <h5 className="text-lg font-semibold">
+                    <h5 className="text-sm font-semibold lg:text-lg">
                       More about Smart Video Editing
                     </h5>
-                    <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-2">
-                      <ArrowRightIcon className="h-6 w-6 text-white" />
+                    <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-1.5 lg:p-2">
+                      <ArrowRightIcon className="h-4 w-4 text-white lg:h-6 lg:w-6" />
                     </div>
                   </button>
                 </div>
               </div>
             </div>
-            <div className="flex flex-1 gap-8">
-              <div className="relative flex flex-1 flex-col items-center justify-between overflow-hidden rounded-xl px-1 py-4 shadow-lg">
+            
+            {/* Service cards grid */}
+            <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:flex-1 lg:flex lg:gap-8 xl:grid-cols-3">
+              <div className="relative flex flex-col items-center justify-between overflow-hidden rounded-xl px-1 py-4 shadow-lg">
                 <Image
                   src={ServiceImage2}
                   alt="Service 2"
@@ -90,15 +95,14 @@ export default function CommonServicesSection() {
                   className="z-10 object-cover"
                 />
                 <div className="absolute inset-0 z-20 bg-linear-to-r from-[#E9476E00] to-[#3B5DA84D]" />
-                <div className="relative z-20 rounded-full border border-white px-6 py-1 text-white">
+                <div className="relative z-20 rounded-full border border-white px-4 py-1 text-sm text-white lg:px-6">
                   Library
                 </div>
-
-                <div className="relative z-20 text-center text-2xl font-semibold text-white">
+                <div className="relative z-20 text-center text-lg font-semibold text-white lg:text-2xl">
                   Creative Templates
                 </div>
               </div>
-              <div className="relative flex flex-1 flex-col items-center justify-between overflow-hidden rounded-xl px-1 py-4 shadow-lg">
+              <div className="relative flex flex-col items-center justify-between overflow-hidden rounded-xl px-1 py-4 shadow-lg">
                 <Image
                   src={ServiceImage3}
                   alt="Service 3"
@@ -106,15 +110,14 @@ export default function CommonServicesSection() {
                   className="z-10 object-cover"
                 />
                 <div className="absolute inset-0 z-20 bg-linear-to-r from-[#E9476E00] to-[#3B5DA84D]" />
-                <div className="relative z-20 rounded-full border border-white px-6 py-1 text-white">
+                <div className="relative z-20 rounded-full border border-white px-4 py-1 text-sm text-white lg:px-6">
                   Script
                 </div>
-
-                <div className="relative z-20 text-center text-2xl font-semibold text-white">
+                <div className="relative z-20 text-center text-lg font-semibold text-white lg:text-2xl">
                   AI Script Writing
                 </div>
               </div>
-              <div className="relative flex flex-1 flex-col items-center justify-between overflow-hidden rounded-xl px-1 py-4 shadow-lg">
+              <div className="relative flex flex-col items-center justify-between overflow-hidden rounded-xl px-1 py-4 shadow-lg sm:col-span-2 xl:col-span-1">
                 <Image
                   src={ServiceImage4}
                   alt="Service 4"
@@ -122,11 +125,10 @@ export default function CommonServicesSection() {
                   className="z-10 object-cover"
                 />
                 <div className="absolute inset-0 z-20 bg-linear-to-r from-[#E9476E00] to-[#3B5DA84D]" />
-                <div className="relative z-20 rounded-full border border-white px-6 py-1 text-white">
+                <div className="relative z-20 rounded-full border border-white px-4 py-1 text-sm text-white lg:px-6">
                   AI
                 </div>
-
-                <div className="relative z-20 text-center text-2xl font-semibold text-white">
+                <div className="relative z-20 text-center text-lg font-semibold text-white lg:text-2xl">
                   AI Video Creation
                 </div>
               </div>
@@ -143,20 +145,20 @@ export default function CommonServicesSection() {
 
 function ServiceInfo({ onBack }: { onBack: () => void }) {
   return (
-    <div className="relative mx-8 my-16 rounded-2xl bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-0.5">
+    <div className="relative mx-4 my-8 rounded-2xl bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-0.5 md:mx-8 md:my-16">
       <Image
         src={ServiceIcon1}
         alt="Service Icon 1"
-        width={96}
-        height={96}
-        className="absolute top-0 left-16 -translate-y-1/2"
+        width={64}
+        height={64}
+        className="absolute top-0 left-4 -translate-y-1/2 md:left-16 md:w-24 md:h-24"
       />
       <div className="flex flex-col items-stretch rounded-2xl bg-white md:flex-row">
-        <div className="flex flex-1 flex-col justify-center p-12">
-          <h2 className="text-ui-dark mb-4 text-3xl font-semibold">
+        <div className="flex flex-1 flex-col justify-center p-6 md:p-12">
+          <h2 className="text-ui-dark mb-4 text-2xl font-semibold md:text-3xl">
             Smart Video Editing
           </h2>
-          <p className="text-ui-grey mb-6">
+          <p className="text-ui-grey mb-6 text-sm md:text-base">
             Enhance and refine your videos effortlessly with AI-powered editing
             tools. Easily trim, merge, and adjust video speed while applying
             cinematic effects. Take your videos to the next level with advanced
@@ -165,19 +167,19 @@ function ServiceInfo({ onBack }: { onBack: () => void }) {
           </p>
           <button
             onClick={onBack}
-            className="flex w-fit cursor-pointer items-center gap-3 transition-opacity hover:opacity-80"
+            className="flex w-fit cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 md:gap-3"
           >
-            <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-2">
-              <ArrowLeftIcon className="h-4 w-4 text-white" />
+            <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-1.5 md:p-2">
+              <ArrowLeftIcon className="h-3 w-3 text-white md:h-4 md:w-4" />
             </div>
-            <span className="text-lg font-semibold text-gray-700">
+            <span className="text-sm font-semibold text-gray-700 md:text-lg">
               Back to Services
             </span>
           </button>
         </div>
-        <div className="relative flex flex-1 items-center justify-center p-12">
+        <div className="relative flex flex-1 items-center justify-center p-6 md:p-12">
           <figure className="relative aspect-video w-full">
-            <div className="absolute -top-6 left-6 z-10 h-full w-full rounded-xl bg-gradient-to-r from-[#E9476E] to-[#3B5DA8]" />
+            <div className="absolute -top-3 left-3 z-10 h-full w-full rounded-xl bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] md:-top-6 md:left-6" />
             <Image
               src={PhotoEditorImage}
               alt="Service Info"
@@ -187,9 +189,9 @@ function ServiceInfo({ onBack }: { onBack: () => void }) {
             <Image
               src={ServiceIcon2}
               alt="Service Icon 2"
-              width={128}
-              height={128}
-              className="absolute bottom-4 left-0 z-30 -translate-x-1/2"
+              width={80}
+              height={80}
+              className="absolute bottom-2 left-0 z-30 -translate-x-1/2 md:bottom-4 md:w-32 md:h-32"
             />
           </figure>
         </div>
