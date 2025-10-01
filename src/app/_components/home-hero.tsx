@@ -104,10 +104,13 @@ function NavigationLinks() {
               asChild
               className={cn(
                 navigationMenuTriggerStyle(),
-                "bg-transparent font-semibold hover:bg-gradient-to-r hover:from-[#E9476E] hover:to-[#3B5DA8] hover:bg-clip-text hover:text-transparent",
+                "bg-transparent font-semibold text-white hover:bg-gradient-to-r hover:from-[#E9476E] hover:to-[#3B5DA8] hover:bg-clip-text hover:text-transparent focus:bg-transparent focus:text-white focus:outline-none active:text-white",
               )}
             >
-              <Link href={link.href}>
+              <Link
+                href={link.href}
+                className="text-white hover:text-transparent focus:text-white active:text-white"
+              >
                 {pathname === link.href ? (
                   <span className="flex items-center gap-2">
                     <div className="waelab-gradient-bg h-2 w-2 rounded-full" />

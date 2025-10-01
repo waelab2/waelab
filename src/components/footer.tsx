@@ -108,7 +108,10 @@ export default function Footer() {
             <ul className="mt-8 space-y-4 text-sm">
               {toExploreLinks.map(({ text, href }) => (
                 <li key={text}>
-                  <Link href={href} className="transition">
+                  <Link
+                    href={href}
+                    className="text-white transition hover:text-white focus:text-white active:text-white"
+                  >
                     {pathname === href ? (
                       <span className="flex items-center gap-2">
                         <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
@@ -128,7 +131,10 @@ export default function Footer() {
             <ul className="mt-8 space-y-4 text-sm">
               {helpAndServicesLinks.map(({ text, href }) => (
                 <li key={text}>
-                  <Link href={href} className="transition">
+                  <Link
+                    href={href}
+                    className="text-white transition hover:text-white focus:text-white active:text-white"
+                  >
                     {pathname === href ? (
                       <span className="flex items-center gap-2">
                         <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
@@ -167,7 +173,10 @@ export default function Footer() {
               </Authenticated>
               {moreLinks.map(({ text, href }) => (
                 <li key={text}>
-                  <Link href={href}>
+                  <Link
+                    href={href}
+                    className="text-white hover:text-white focus:text-white active:text-white"
+                  >
                     {pathname === href ? (
                       <span className="flex items-center gap-2 transition">
                         <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
