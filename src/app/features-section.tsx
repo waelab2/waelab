@@ -29,30 +29,31 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="mx-12 my-24 flex flex-col items-center gap-8">
-      <div className="flex min-h-[300px] w-full gap-8">
+    <section className="mx-4 my-12 flex flex-col items-center gap-8 md:mx-8 lg:mx-12 lg:my-24">
+      <div className="flex w-full flex-col gap-8 lg:min-h-[300px] lg:flex-row">
         {features.map((feature, index) => (
           <GradientBordered
             key={feature.title}
             className={cn(
               "w-full rounded-2xl",
-              index === 0
-                ? "self-start"
-                : index === 1
-                  ? "self-center"
-                  : "self-end",
+              // Responsive positioning - only apply on large screens and up
+              "lg:self-start xl:self-center 2xl:self-end",
+              index === 0 && "lg:self-start xl:self-start 2xl:self-start",
+              index === 1 && "lg:self-center xl:self-center 2xl:self-center", 
+              index === 2 && "lg:self-end xl:self-end 2xl:self-end",
             )}
           >
             <Card className="h-full rounded-2xl border-0 bg-white shadow-none">
               <CardContent className="px-4 py-6">
-                <div className="flex items-center gap-x-4 gap-y-8">
+                <div className="flex flex-col items-center gap-4 text-center lg:flex-row lg:items-start lg:text-left">
                   <Image
                     src={feature.icon}
                     alt={feature.title}
                     width={64}
                     height={64}
+                    className="flex-shrink-0"
                   />
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-ui-dark mb-2 text-lg font-semibold">
                       {feature.title}
                     </h3>
