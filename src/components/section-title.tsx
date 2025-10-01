@@ -6,7 +6,7 @@ type SectionTitleProps = {
   title: string;
   leftArrow?: boolean;
   rightArrow?: boolean;
-  className: string;
+  className?: string;
 };
 export default function SectionTitle({
   title,

@@ -3,6 +3,8 @@ import About from "./_components/about";
 import ComingSoon from "./_components/coming-soon";
 import CommonServicesSection from "./_components/common-services-section";
 import HomeHero from "./_components/home-hero";
+import FaqSection from "./contact-us/faq-section";
+import FeaturesSection from "./features-section";
 
 // import { api, HydrateClient } from "~/trpc/server";
 
@@ -17,6 +19,12 @@ export default async function Home() {
       <SectionTitle title="Services" leftArrow rightArrow />
       <CommonServicesSection />
       <ComingSoon />
+      <div className="mx-12 my-24">
+        <FeaturesSection />
+      </div>
+      <div className="mx-12 my-24">
+        <FaqSection />
+      </div>
     </>
   );
 

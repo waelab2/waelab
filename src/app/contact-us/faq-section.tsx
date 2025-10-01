@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import AccentedText from "~/components/accented-text";
 import SectionTitle from "~/components/section-title";
@@ -153,7 +153,7 @@ export default function FaqSection() {
   ];
 
   return (
-    <section className="text-ui-dark relative">
+    <section className="text-ui-dark">
       <div className="flex items-center gap-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
