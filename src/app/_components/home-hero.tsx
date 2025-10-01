@@ -1,12 +1,15 @@
 "use client";
 
-import { ArrowRightIcon } from "lucide-react";
+import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Authenticated, Unauthenticated } from "convex/react";
+import { ArrowRightIcon, MenuIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AccentedText from "~/components/accented-text";
 import NavigationAuthPart from "~/components/navigation-auth-part";
 import PrimaryAccentedButton from "~/components/primary-accented-button";
+import { Button } from "~/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -14,6 +17,13 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "~/components/ui/navigation-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "~/components/ui/sheet";
 import { cn } from "~/lib/utils";
 
 export default function HomeHero() {
@@ -21,23 +31,32 @@ export default function HomeHero() {
     <ContentBox>
       <div className="flex items-center justify-between">
         <Link href="/">
-          <Image src="/logo.svg" alt="logo" width={48} height={48} />
+          <Image
+            src="/logo.svg"
+            alt="logo"
+            width={48}
+            height={48}
+            className="h-10 w-10 sm:h-10 sm:w-10 md:h-12 md:w-12"
+          />
         </Link>
         <NavigationLinks />
-        <NavigationAuthPart />
+        <MobileNavigation />
+        <div className="hidden lg:block">
+          <NavigationAuthPart />
+        </div>
       </div>
-      <div className="flex h-full flex-col items-center justify-center gap-8">
-        <h1 className="w-2/3 text-center text-6xl leading-tight font-bold">
+      <div className="flex h-full flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
+        <h1 className="w-full max-w-4xl px-4 text-center text-3xl leading-tight font-bold sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight lg:text-6xl lg:leading-tight">
           Unleash <AccentedText>Your</AccentedText> Creativity With AI-Powered
           Magic
         </h1>
-        <p className="text-center text-lg">
+        <p className="w-full max-w-2xl px-4 text-center text-base sm:text-lg md:text-xl">
           Transform your photos and ideas into stunning visual content
           effortlessly. The future starts here!
         </p>
         <Link href="/dashboard">
-          <PrimaryAccentedButton className="text-lg">
-            Start Now <ArrowRightIcon className="ml-2" />
+          <PrimaryAccentedButton className="text-base sm:text-lg">
+            Start Now <ArrowRightIcon className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
           </PrimaryAccentedButton>
         </Link>
       </div>
@@ -47,11 +66,11 @@ export default function HomeHero() {
 
 function ContentBox({ children }: { children: React.ReactNode }) {
   return (
-    <section className="ui-dark relative flex h-screen w-full rounded-b-[3rem] p-8 text-white">
-      <div className="relative z-3 h-full w-full rounded-[2rem] border-3 border-[#EEEFF6] bg-[#EEEFF614] p-8">
+    <section className="ui-dark relative flex h-screen w-full rounded-b-[1rem] p-4 text-white sm:rounded-b-[2rem] sm:p-6 md:rounded-b-[3rem] md:p-8">
+      <div className="relative z-3 h-full w-full rounded-[1rem] border-3 border-[#EEEFF6] bg-[#EEEFF614] p-4 sm:rounded-[1.5rem] sm:p-6 md:rounded-[2rem] md:p-8">
         {children}
       </div>
-      <div className="absolute top-1/2 left-1/2 z-1 h-full w-full -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-b-[3rem] opacity-50">
+      <div className="absolute top-1/2 left-1/2 z-1 h-full w-full -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-b-[1rem] opacity-50 sm:rounded-b-[2rem] md:rounded-b-[3rem]">
         <div className="absolute inset-0 bg-gradient-to-b from-[#3838401A] to-[#383840]" />
         <video
           src="/hero-video.mp4"
@@ -61,7 +80,7 @@ function ContentBox({ children }: { children: React.ReactNode }) {
           className="h-full w-full object-cover"
         />
       </div>
-      <div className="absolute top-0 left-0 z-2">
+      <div className="absolute top-0 left-0 z-2 hidden sm:block">
         <Image
           src="/top-left-decoration.png"
           alt="hero-bg"
@@ -69,15 +88,17 @@ function ContentBox({ children }: { children: React.ReactNode }) {
           height={500}
           priority
           style={{ width: "auto", height: "auto" }}
+          className="h-32 w-auto sm:h-40 md:h-48 lg:h-64"
         />
       </div>
-      <div className="absolute right-0 bottom-0 z-2">
+      <div className="absolute right-0 bottom-0 z-2 hidden sm:block">
         <Image
           src="/bottom-right-decoration.png"
           alt="hero-bg"
           width={500}
           height={500}
           style={{ width: "auto", height: "auto" }}
+          className="h-32 w-auto sm:h-40 md:h-48 lg:h-64"
         />
       </div>
     </section>
@@ -97,19 +118,19 @@ function NavigationLinks() {
 
   return (
     <NavigationMenu viewport={false}>
-      <NavigationMenuList>
+      <NavigationMenuList className="hidden lg:flex">
         {links.map((link) => (
           <NavigationMenuItem key={link.href}>
             <NavigationMenuLink
               asChild
               className={cn(
                 navigationMenuTriggerStyle(),
-                "bg-transparent font-semibold text-white hover:bg-gradient-to-r hover:from-[#E9476E] hover:to-[#3B5DA8] hover:bg-clip-text hover:text-transparent focus:bg-transparent focus:text-white focus:outline-none active:text-white",
+                "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
               )}
             >
               <Link
                 href={link.href}
-                className="text-white hover:text-transparent focus:text-white active:text-white"
+                className="text-white hover:text-white focus:text-white active:text-white"
               >
                 {pathname === link.href ? (
                   <span className="flex items-center gap-2">
@@ -125,5 +146,89 @@ function NavigationLinks() {
         ))}
       </NavigationMenuList>
     </NavigationMenu>
+  );
+}
+
+function MobileNavigation() {
+  const pathname = usePathname();
+  const links = [
+    { href: "/", label: "Home" },
+    { href: "/about-us", label: "About Us" },
+    { href: "/our-services", label: "Our Services" },
+    { href: "/our-plans", label: "Plans" },
+    { href: "/contact-us", label: "Contact Us" },
+    { href: "#", label: "العربية" },
+  ];
+
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <button className="lg:hidden text-white hover:text-gray-300 transition-colors">
+          <MenuIcon className="h-8 w-8" />
+          <span className="sr-only">Open navigation menu</span>
+        </button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-[#1a1a1a] border-[#333]">
+        <SheetHeader>
+          <SheetTitle className="text-white text-left">Navigation</SheetTitle>
+        </SheetHeader>
+        <nav className="flex flex-col space-y-4">
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg text-white transition-colors hover:bg-[#333] hover:text-white",
+                pathname === link.href && "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white"
+              )}
+            >
+              <span className="font-medium text-white">
+                {pathname === link.href ? (
+                  <span className="text-white">{link.label}</span>
+                ) : (
+                  link.label
+                )}
+              </span>
+            </Link>
+          ))}
+        </nav>
+        
+        {/* Authentication Section */}
+        <div className="px-4 py-8 border-t border-[#333]">
+          <div className="flex flex-col space-y-3">
+            <Unauthenticated>
+              <div className="flex gap-3">
+                <SignUpButton>
+                  <Button
+                    variant="ghost"
+                    className="justify-center bg-transparent bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] bg-clip-text text-lg font-semibold text-transparent hover:bg-[#333]"
+                    style={{
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </SignUpButton>
+                <SignInButton>
+                  <Button
+                    className="grow-1 rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white hover:opacity-90"
+                    size="lg"
+                  >
+                    Login <ArrowRightIcon className="ml-2 h-4 w-4" />
+                  </Button>
+                </SignInButton>
+              </div>
+            </Unauthenticated>
+            <Authenticated>
+              <div className="flex items-center justify-center py-2">
+                <UserButton />
+              </div>
+            </Authenticated>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }

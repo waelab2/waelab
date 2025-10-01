@@ -8,7 +8,7 @@ import FeaturesSection from "./features-section";
 
 export default async function Home() {
   return (
-    <>
+    <div className="overflow-x-hidden">
       <HomeHero />
       <AboutSection />
       <CommonServicesSection />
@@ -16,6 +16,6 @@ export default async function Home() {
       <FeaturesSection />
       <FaqSection />
       <Footer />
-    </>
+    </div>
   );
 }
