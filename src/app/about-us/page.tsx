@@ -1,6 +1,6 @@
 import AboutUsBackground from "@/assets/images/about-us-background.png";
 import Image from "next/image";
-import Footer from "../_components/footer";
+import Footer from "~/components/footer";
 import Hero from "../_components/hero";
 import SectionOne from "./_components/section-one";
 import SectionTwo from "./_components/section-two";

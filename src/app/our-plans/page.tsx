@@ -1,4 +1,4 @@
-import Footer from "../_components/footer";
+import Footer from "~/components/footer";
 import Hero from "../_components/hero";
 import PricingSection from "./_components/pricing-section";
 import SectionOne from "./_components/section-one";

@@ -1,6 +1,6 @@
 "use client";
 
-import Footer from "../_components/footer";
+import Footer from "~/components/footer";
 import Hero from "../_components/hero";
 import FaqSection from "./faq-section";
 import FormSection from "./form-section";

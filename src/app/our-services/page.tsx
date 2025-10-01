@@ -1,5 +1,5 @@
+import Footer from "~/components/footer";
 import CommonServicesSection from "../_components/common-services-section";
-import Footer from "../_components/footer";
 import Hero from "../_components/hero";
 
 export default function OurServices() {

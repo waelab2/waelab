@@ -1,3 +1,4 @@
+import Footer from "~/components/footer";
 import SectionTitle from "~/components/section-title";
 import About from "./_components/about";
 import ComingSoon from "./_components/coming-soon";
@@ -25,6 +26,7 @@ export default async function Home() {
       <div className="mx-12 my-24">
         <FaqSection />
       </div>
+      <Footer />
     </>
   );
 
