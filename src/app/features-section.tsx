@@ -29,7 +29,7 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="flex flex-col items-center gap-8">
+    <section className="mx-12 my-24 flex flex-col items-center gap-8">
       <div className="flex min-h-[300px] w-full gap-8">
         {features.map((feature, index) => (
           <GradientBordered

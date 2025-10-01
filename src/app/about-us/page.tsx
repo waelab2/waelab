@@ -9,7 +9,7 @@ export default function About() {
   return (
     <>
       <Hero />
-      <main className="relative text-[#282830]">
+      <main className="text-ui-dark relative">
         <Image
           src={AboutUsBackground}
           alt="about-us-bg"

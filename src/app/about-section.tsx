@@ -1,12 +1,14 @@
+import AboutUsBackground from "@/assets/images/about-us-background.png";
 import { ArrowRightIcon } from "lucide-react";
 import Image from "next/image";
 import AccentedText from "~/components/accented-text";
 import PrimaryAccentedButton from "~/components/primary-accented-button";
 import SectionTitle from "~/components/section-title";
 
-export default function About() {
+export default function AboutSection() {
   return (
-    <section className="flex items-center px-8 py-16">
+    <section className="text-ui-dark relative m-12 mt-24 flex items-center">
+      <Image src={AboutUsBackground} alt="about-us-bg" fill className="-z-10" />
       <div className="flex-1">
         <Image
           src="/decoration-play-button.png"

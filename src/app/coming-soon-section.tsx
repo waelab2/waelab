@@ -1,9 +1,9 @@
 import Image from "next/image";
 import AccentedText from "~/components/accented-text";
 
-export default function ComingSoon() {
+export default function ComingSoonSection() {
   return (
-    <section className="relative flex w-full gap-8 bg-[#282830] p-8 text-white">
+    <section className="ui-dark relative flex w-full gap-12 px-12 py-24 text-white">
       <div className="flex-1 items-center">
         <Image
           src="/iphone-mockups.png"
@@ -12,7 +12,7 @@ export default function ComingSoon() {
           height={1}
         />
       </div>
-      <div className="flex flex-1 flex-col items-center justify-center gap-8">
+      <div className="flex flex-2 flex-col items-center justify-center gap-8">
         <h2 className="text-7xl font-bold">
           <AccentedText>WAELAB</AccentedText>
         </h2>

@@ -9,16 +9,27 @@ import ServiceImage3 from "@/assets/images/services-3.png";
 import ServiceImage4 from "@/assets/images/services-4.jpg";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import AccentedText from "~/components/accented-text";
+import SectionTitle from "~/components/section-title";
 
 export default function CommonServicesSection() {
   const [showServiceInfo, setShowServiceInfo] = useState(false);
+  const pathname = usePathname();
 
   return (
     <>
       {!showServiceInfo && (
-        <section className="flex flex-col items-center gap-4 px-8 py-16">
+        <section className="text-ui-dark m-12 my-24 flex flex-col items-center gap-4">
+          {pathname === "/" && (
+            <SectionTitle
+              title="Services"
+              leftArrow
+              rightArrow
+              className="justify-center"
+            />
+          )}
           <h2 className="mb-4 w-1/2 text-center text-4xl leading-tight font-bold">
             Comprehensive Solutions for{" "}
             <AccentedText>Creative Video</AccentedText> Production

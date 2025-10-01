@@ -9,9 +9,8 @@ export default function ContactUs() {
   return (
     <>
       <Hero />
-      <main className="relative m-12 min-h-screen bg-white py-16">
+      <main>
         <FormSection />
-        <div className="mb-24" />
         <FaqSection />
       </main>
       <Footer />

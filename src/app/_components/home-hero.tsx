@@ -47,7 +47,7 @@ export default function HomeHero() {
 
 function ContentBox({ children }: { children: React.ReactNode }) {
   return (
-    <section className="relative flex h-screen w-full rounded-b-[3rem] bg-[#282830] p-8 text-white">
+    <section className="ui-dark relative flex h-screen w-full rounded-b-[3rem] p-8 text-white">
       <div className="relative z-3 h-full w-full rounded-[2rem] border-3 border-[#EEEFF6] bg-[#EEEFF614] p-8">
         {children}
       </div>

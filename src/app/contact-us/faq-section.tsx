@@ -153,12 +153,13 @@ export default function FaqSection() {
   ];
 
   return (
-    <section className="text-ui-dark">
+    <section className="text-ui-dark m-12 my-24">
       <div className="flex items-center gap-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="flex-1"
         >
           <SectionTitle title="Q&A" rightArrow className="mb-4 text-xl" />
           <h2 className="mb-3 text-3xl font-semibold">
@@ -183,7 +184,7 @@ export default function FaqSection() {
           )}
         </motion.div>
 
-        <div className="w-1/2">
+        <div className="flex-1">
           {(pathname === "/" ? faqs.slice(0, 4) : faqs).map((faq, index) => (
             <div key={index}>
               <FAQItem {...faq} index={index} />
