@@ -34,8 +34,7 @@ export default function CommonServicesSection() {
             Comprehensive Solutions for{" "}
             <AccentedText>Creative Video</AccentedText> Production
           </h2>
-          <div className="flex w-full flex-col gap-4 lg:flex-row lg:gap-8">
-            {/* Main service card */}
+          <div className="flex w-full flex-col gap-8 lg:flex-row">
             <div className="flex w-full flex-col gap-4 rounded-xl p-4 shadow-lg lg:flex-1 lg:flex-row lg:gap-8">
               <figure className="relative h-48 w-full lg:h-full lg:flex-1">
                 <Image
@@ -85,8 +84,7 @@ export default function CommonServicesSection() {
               </div>
             </div>
             
-            {/* Service cards grid */}
-            <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:flex-1 lg:flex lg:gap-8 xl:grid-cols-3">
+            <div className="grid w-full grid-cols-1 gap-8 sm:grid-cols-2 lg:flex-1 lg:flex xl:grid-cols-3">
               <div className="relative flex flex-col items-center justify-between overflow-hidden rounded-xl px-1 py-4 shadow-lg">
                 <Image
                   src={ServiceImage2}

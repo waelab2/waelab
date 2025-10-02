@@ -1,4 +1,4 @@
-import WorkFromHomeImage from "@/assets/work-from-home.jpg";
+import WorkFromHomeImage from "@/assets/images/work-from-home.jpg";
 import Image from "next/image";
 import AccentedText from "~/components/accented-text";
 import VisionMissionCards from "./vision-mission-cards";
