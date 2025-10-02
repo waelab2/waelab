@@ -20,7 +20,7 @@ const CONTENT = [
 
 export default function VisionMissionCards() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       {CONTENT.map((item) => (
         <VisionMissionCard key={item.title} {...item} />
       ))}
@@ -34,13 +34,22 @@ function VisionMissionCard({
   icon,
 }: (typeof CONTENT)[number]) {
   return (
-    <div className="flex items-center gap-4 rounded-xl bg-white p-6 shadow-md">
-      <div className="text-ui-dark flex-1">
-        <h4 className="mb-2 text-2xl font-semibold">{title}</h4>
-        <p>{description}</p>
+    <div className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-md md:flex-row md:items-center md:gap-4 md:p-6">
+      <div className="flex justify-start md:hidden">
+        <Image src={icon} alt={title} width={64} height={64} />
       </div>
-      <div className="ml-4 flex h-full items-center">
-        <Image src={icon} alt={title} width={96} height={96} />
+      <div className="text-ui-dark flex-1">
+        <h4 className="mb-2 text-xl font-semibold md:text-2xl">{title}</h4>
+        <p className="text-sm md:text-base">{description}</p>
+      </div>
+      <div className="hidden md:ml-4 md:flex md:h-full md:items-center">
+        <Image
+          src={icon}
+          alt={title}
+          width={64}
+          height={64}
+          className="md:h-24 md:w-24"
+        />
       </div>
     </div>
   );

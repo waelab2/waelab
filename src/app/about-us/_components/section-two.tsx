@@ -4,26 +4,29 @@ import Image, { type StaticImageData } from "next/image";
 
 export default function SectionTwo() {
   return (
-    <section className="relative z-20 m-12 flex flex-col justify-center gap-12 md:flex-row">
-      <div className="flex flex-1">
+    <section className="relative z-20 m-8 flex flex-col justify-center gap-8 md:m-12 md:gap-12 lg:flex-row">
+      <div className="order-2 flex flex-1 lg:order-1">
         <Image
           src={DecorationPlayButton}
           alt="Decoration Play Button"
           className="w-full rounded-2xl object-cover"
         />
       </div>
-      <div className="flex flex-1 items-center">
-        <div className="flex flex-col gap-6 rounded-xl bg-white p-8 shadow-md">
+      <div className="order-1 flex flex-1 items-center lg:order-2">
+        <div className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-md md:gap-6 md:p-8">
           <div className="flex items-end justify-between gap-4">
-            <h4 className="text-2xl font-semibold">Our Values at Waelab</h4>
+            <h4 className="text-xl font-semibold md:text-2xl">
+              Our Values at Waelab
+            </h4>
             <Image
               src={ValuesIcon as StaticImageData}
               alt="Waelab Icon"
-              width={96}
-              height={96}
+              width={64}
+              height={64}
+              className="md:h-24 md:w-24"
             />
           </div>
-          <p className="text-ui-grey">
+          <p className="text-ui-grey text-sm md:text-base">
             At Waelab, we believe that creativity and innovation are the essence
             of progress. That is why we always strive to provide tools and
             technologies that inspire creativity and open new horizons for

@@ -5,14 +5,14 @@ import VisionMissionCards from "./vision-mission-cards";
 
 export default function SectionOne() {
   return (
-    <section className="relative z-20 m-12 flex flex-col justify-center gap-12 md:flex-row">
+    <section className="relative z-20 m-8 flex flex-col justify-center gap-8 md:m-12 md:gap-12 lg:flex-row">
       <div className="flex flex-1 flex-col gap-8">
         <div>
-          <h2 className="mb-4 text-4xl font-bold">
+          <h2 className="mb-4 text-2xl font-bold md:text-4xl">
             Elevating <AccentedText>Video Creation</AccentedText> with
             AI-Powered Innovation
           </h2>
-          <p className="text-[#737485]">
+          <p className="text-sm text-[#737485] md:text-base">
             Waelab is the leading platform in Saudi Arabia that combines
             artificial intelligence and artistic creativity to produce fully
             cinematic videos and scenes. Designed as an all-in-one solution, it
