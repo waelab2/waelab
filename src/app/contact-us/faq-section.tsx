@@ -38,11 +38,11 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4"
+        className="flex w-full items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 lg:gap-4 lg:px-6 lg:py-4"
       >
         <h3
           className={cn(
-            "text-left text-sm font-medium transition-colors duration-200 sm:text-base",
+            "text-left text-xs font-medium transition-colors duration-200 sm:text-sm lg:text-base",
             "text-ui-dark",
             isOpen && "",
           )}
@@ -60,7 +60,9 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
           }}
           className={cn("shrink-0 rounded-full p-0.5")}
         >
-          <AccentedText className="text-xl sm:text-2xl">+</AccentedText>
+          <AccentedText className="text-lg sm:text-xl lg:text-2xl">
+            +
+          </AccentedText>
         </motion.div>
       </button>
       <AnimatePresence initial={false}>
@@ -95,7 +97,7 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
               },
             }}
           >
-            <div className="border-border/40 border-t px-4 pt-2 pb-3 sm:px-6 sm:pb-4">
+            <div className="border-border/40 border-t px-3 pt-1 pb-2 sm:px-4 sm:pt-2 sm:pb-3 lg:px-6 lg:pb-4">
               <motion.p
                 initial={{ y: -8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -153,24 +155,24 @@ export default function FaqSection() {
   ];
 
   return (
-    <section className="text-ui-dark mx-4 my-12 sm:mx-8 md:mx-12 md:my-12 lg:my-24">
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-center">
+    <section className="text-ui-dark mx-4 my-8 sm:mx-8 sm:my-12 md:mx-12 md:my-16 lg:my-24">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="flex-1 text-center lg:text-left"
         >
-          <SectionTitle 
-            title="Q&A" 
-            rightArrow 
-            leftArrow 
-            className="mb-4 text-lg sm:text-xl justify-center lg:justify-start" 
+          <SectionTitle
+            title="Q&A"
+            rightArrow
+            leftArrow
+            className="mb-3 justify-center text-base sm:text-lg lg:justify-start lg:text-xl"
           />
-          <h2 className="mb-3 text-2xl font-semibold sm:text-3xl">
+          <h2 className="mb-2 text-xl font-semibold sm:text-2xl lg:text-3xl">
             Most <AccentedText>Common</AccentedText> Questions
           </h2>
-          <p className="text-ui-grey mb-6 text-sm leading-relaxed sm:text-base">
+          <p className="text-ui-grey mb-4 text-xs leading-relaxed sm:text-sm lg:mb-6 lg:text-base">
             Find everything you need to know about our services, pricing, and
             how we can help you create stunning videos effortlessly.
           </p>
@@ -179,11 +181,11 @@ export default function FaqSection() {
           {pathname === "/" && (
             <Link href="/contact-us#faq">
               <Button
-                className="waelab-gradient-bg min-w-40 rounded-full py-4 text-white shadow-none transition-all duration-300 hover:text-white hover:shadow-md sm:min-w-48 sm:py-6"
+                className="waelab-gradient-bg min-w-32 rounded-full py-3 text-sm text-white shadow-none transition-all duration-300 hover:text-white hover:shadow-md sm:min-w-40 sm:py-4 sm:text-base lg:min-w-48 lg:py-6"
                 type="button"
               >
                 View All
-                <ArrowRightIcon className="mr-2 h-4 w-4" />
+                <ArrowRightIcon className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </Link>
           )}
@@ -193,7 +195,9 @@ export default function FaqSection() {
           {(pathname === "/" ? faqs.slice(0, 4) : faqs).map((faq, index) => (
             <div key={index}>
               <FAQItem {...faq} index={index} />
-              {index < (pathname === "/" ? 3 : faqs.length - 1) && <Separator className="my-2 h-0.25" />}
+              {index < (pathname === "/" ? 3 : faqs.length - 1) && (
+                <Separator className="my-1 h-0.25 sm:my-2" />
+              )}
             </div>
           ))}
         </div>
