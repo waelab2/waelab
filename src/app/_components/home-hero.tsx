@@ -24,9 +24,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "~/components/ui/sheet";
+import { useLanguageToggle, useTranslations } from "~/hooks/use-translations";
 import { cn } from "~/lib/utils";
 
 export default function HomeHero() {
+  const { t } = useTranslations();
+
   return (
     <ContentBox>
       <div className="flex items-center justify-between">
@@ -47,16 +50,17 @@ export default function HomeHero() {
       </div>
       <div className="flex h-full flex-col items-center justify-center gap-4 sm:gap-6 md:gap-8">
         <h1 className="w-full max-w-4xl px-4 text-center text-3xl leading-tight font-bold sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight lg:text-6xl lg:leading-tight">
-          Unleash <AccentedText>Your</AccentedText> Creativity With AI-Powered
-          Magic
+          {t("home.hero.heading_part1")}{" "}
+          <AccentedText>{t("home.hero.heading_part2")}</AccentedText>{" "}
+          {t("home.hero.heading_part3")}
         </h1>
         <p className="w-full max-w-2xl px-4 text-center text-base sm:text-lg md:text-xl">
-          Transform your photos and ideas into stunning visual content
-          effortlessly. The future starts here!
+          {t("home.hero.description")}
         </p>
         <Link href="/dashboard">
           <PrimaryAccentedButton className="text-base sm:text-lg">
-            Start Now <ArrowRightIcon className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+            {t("home.hero.start_button")}{" "}
+            <ArrowRightIcon className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
           </PrimaryAccentedButton>
         </Link>
       </div>
@@ -107,13 +111,13 @@ function ContentBox({ children }: { children: React.ReactNode }) {
 
 function NavigationLinks() {
   const pathname = usePathname();
+  const { language, toggleLanguage } = useLanguageToggle();
   const links = [
     { href: "/", label: "Home" },
     { href: "/about-us", label: "About Us" },
     { href: "/our-services", label: "Our Services" },
     { href: "/our-plans", label: "Plans" },
     { href: "/contact-us", label: "Contact Us" },
-    { href: "#", label: "العربية" },
   ];
 
   return (
@@ -144,6 +148,17 @@ function NavigationLinks() {
             </NavigationMenuLink>
           </NavigationMenuItem>
         ))}
+        <NavigationMenuItem>
+          <button
+            onClick={toggleLanguage}
+            className={cn(
+              navigationMenuTriggerStyle(),
+              "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
+            )}
+          >
+            {language === "en" ? "العربية" : "English"}
+          </button>
+        </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
   );
@@ -151,26 +166,29 @@ function NavigationLinks() {
 
 function MobileNavigation() {
   const pathname = usePathname();
+  const { language, toggleLanguage } = useLanguageToggle();
   const links = [
     { href: "/", label: "Home" },
     { href: "/about-us", label: "About Us" },
     { href: "/our-services", label: "Our Services" },
     { href: "/our-plans", label: "Plans" },
     { href: "/contact-us", label: "Contact Us" },
-    { href: "#", label: "العربية" },
   ];
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button className="lg:hidden text-white hover:text-gray-300 transition-colors">
+        <button className="text-white transition-colors hover:text-gray-300 lg:hidden">
           <MenuIcon className="h-8 w-8" />
           <span className="sr-only">Open navigation menu</span>
         </button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-[#1a1a1a] border-[#333]">
+      <SheetContent
+        side="right"
+        className="w-[300px] border-[#333] bg-[#1a1a1a] sm:w-[400px]"
+      >
         <SheetHeader>
-          <SheetTitle className="text-white text-left">Navigation</SheetTitle>
+          <SheetTitle className="text-left text-white">Navigation</SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col space-y-4">
           {links.map((link) => (
@@ -178,8 +196,9 @@ function MobileNavigation() {
               key={link.href}
               href={link.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-white transition-colors hover:bg-[#333] hover:text-white",
-                pathname === link.href && "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white"
+                "flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white",
+                pathname === link.href &&
+                  "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white",
               )}
             >
               <span className="font-medium text-white">
@@ -191,10 +210,18 @@ function MobileNavigation() {
               </span>
             </Link>
           ))}
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white"
+          >
+            <span className="font-medium text-white">
+              {language === "en" ? "العربية" : "English"}
+            </span>
+          </button>
         </nav>
-        
+
         {/* Authentication Section */}
-        <div className="px-4 py-8 border-t border-[#333]">
+        <div className="border-t border-[#333] px-4 py-8">
           <div className="flex flex-col space-y-3">
             <Unauthenticated>
               <div className="flex gap-3">

@@ -24,6 +24,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "~/components/ui/sheet";
+import { useLanguageToggle } from "~/hooks/use-translations";
 import { hero_contents, nav_links, type NavLink } from "~/lib/constants/index";
 import { cn } from "~/lib/utils";
 
@@ -81,6 +82,7 @@ function ContentBox({ children }: { children: React.ReactNode }) {
 
 function NavigationLinks() {
   const pathname = usePathname();
+  const { language, toggleLanguage } = useLanguageToggle();
 
   return (
     <NavigationMenu viewport={false}>
@@ -110,6 +112,17 @@ function NavigationLinks() {
             </NavigationMenuLink>
           </NavigationMenuItem>
         ))}
+        <NavigationMenuItem>
+          <button
+            onClick={toggleLanguage}
+            className={cn(
+              navigationMenuTriggerStyle(),
+              "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
+            )}
+          >
+            {language === "en" ? "العربية" : "English"}
+          </button>
+        </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
   );
@@ -117,18 +130,22 @@ function NavigationLinks() {
 
 function MobileNavigation() {
   const pathname = usePathname();
+  const { language, toggleLanguage } = useLanguageToggle();
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button className="lg:hidden text-white hover:text-gray-300 transition-colors">
+        <button className="text-white transition-colors hover:text-gray-300 lg:hidden">
           <MenuIcon className="h-8 w-8" />
           <span className="sr-only">Open navigation menu</span>
         </button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-[#1a1a1a] border-[#333]">
+      <SheetContent
+        side="right"
+        className="w-[300px] border-[#333] bg-[#1a1a1a] sm:w-[400px]"
+      >
         <SheetHeader>
-          <SheetTitle className="text-white text-left">Navigation</SheetTitle>
+          <SheetTitle className="text-left text-white">Navigation</SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col space-y-4">
           {nav_links.map((link) => (
@@ -136,8 +153,9 @@ function MobileNavigation() {
               key={link.href}
               href={link.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-white transition-colors hover:bg-[#333] hover:text-white",
-                pathname === link.href && "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white"
+                "flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white",
+                pathname === link.href &&
+                  "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white",
               )}
             >
               <span className="font-medium text-white">
@@ -149,10 +167,18 @@ function MobileNavigation() {
               </span>
             </Link>
           ))}
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white"
+          >
+            <span className="font-medium text-white">
+              {language === "en" ? "العربية" : "English"}
+            </span>
+          </button>
         </nav>
-        
+
         {/* Authentication Section */}
-        <div className="px-4 py-8 border-t border-[#333]">
+        <div className="border-t border-[#333] px-4 py-8">
           <div className="flex flex-col space-y-3">
             <Unauthenticated>
               <div className="flex gap-3">

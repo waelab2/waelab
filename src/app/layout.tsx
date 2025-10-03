@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import { ClerkProvider } from "@clerk/nextjs";
+import { TranslationProvider } from "~/hooks/use-translations";
 import { TRPCReactProvider } from "~/trpc/react";
 import ConvexClientProvider from "./ConvexClientProvider";
 
@@ -26,7 +27,9 @@ export default function RootLayout({
       <body>
         <ClerkProvider>
           <TRPCReactProvider>
-            <ConvexClientProvider>{children}</ConvexClientProvider>
+            <ConvexClientProvider>
+              <TranslationProvider>{children}</TranslationProvider>
+            </ConvexClientProvider>
           </TRPCReactProvider>
         </ClerkProvider>
       </body>

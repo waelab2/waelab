@@ -110,4 +110,11 @@ export default defineSchema({
     ),
     generation_request_id: v.id("generation_requests"), // Link to main table
   }).index("by_generation_request", ["generation_request_id"]),
+
+  // Translations table for multilingual content
+  translations: defineTable({
+    key: v.string(), // Unique key like "home.hero_title", "nav.home_link"
+    en: v.string(), // English text
+    ar: v.string(), // Arabic text
+  }).index("by_key", ["key"]),
 });

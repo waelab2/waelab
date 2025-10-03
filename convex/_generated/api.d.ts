@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as generationRequests from "../generationRequests.js";
+import type * as translations from "../translations.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -25,6 +26,7 @@ import type * as generationRequests from "../generationRequests.js";
  */
 declare const fullApi: ApiFromModules<{
   generationRequests: typeof generationRequests;
+  translations: typeof translations;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
