@@ -19,6 +19,7 @@ import { ArrowRight, Check } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import { useEffect, useState } from "react";
 import GradientBordered from "~/components/gradient-bordered";
+import { useTranslations } from "~/hooks/use-translations";
 
 interface Plan {
   id: string;
@@ -34,65 +35,63 @@ interface Plan {
   popular?: boolean;
 }
 
-const plans: Plan[] = [
-  {
-    id: "starter",
-    name: "Starter - Free Plan",
-    icon: PinIcon as StaticImageData,
-    price: {
-      monthly: 0,
-      yearly: 0,
-    },
-    description:
-      "Get started with the essential tools for creating and editing visuals effortlessly. Perfect for beginners exploring basic features.",
-    features: [
-      "Limited support",
-      "Upload up to 5 images per month",
-      "Download content in low resolution",
-      "Basic video editing with limited effects",
-    ],
-    cta: "Get Started",
-  },
-  {
-    id: "essential",
-    name: "Essential Plan",
-    icon: PinIcon as StaticImageData,
-    price: {
-      monthly: 200,
-      yearly: 2000,
-    },
-    description:
-      "Unlock advanced tools for seamless video creation and editing. Ideal for users seeking more customization and professional results.",
-    features: [
-      "Basic customer support",
-      "Upload up to 50 images per month",
-      "Share content directly on social media",
-      "Create videos in HD quality",
-    ],
-    cta: "Get Started",
-    popular: true,
-  },
-  {
-    id: "premium",
-    name: "Premium Plan",
-    icon: PinIcon as StaticImageData,
-    price: {
-      monthly: 400,
-      yearly: 4000,
-    },
-    description:
-      "Experience the ultimate package with exclusive features, priority support, and full creative control. Designed for professionals.",
-    features: [
-      "Priority customer support",
-      "Unlimited uploads of images and videos",
-      "Export videos in 4K resolution",
-      "Access to professional editing tools and advanced effects",
-    ],
-    cta: "Get Started",
-  },
-];
-
 export default function PricingSection() {
+  const { t } = useTranslations();
+
+  const plans: Plan[] = [
+    {
+      id: "starter",
+      name: t("our_plans.pricing.starter.name"),
+      icon: PinIcon as StaticImageData,
+      price: {
+        monthly: 0,
+        yearly: 0,
+      },
+      description: t("our_plans.pricing.starter.description"),
+      features: [
+        t("our_plans.pricing.starter.feature_1"),
+        t("our_plans.pricing.starter.feature_2"),
+        t("our_plans.pricing.starter.feature_3"),
+        t("our_plans.pricing.starter.feature_4"),
+      ],
+      cta: t("our_plans.pricing.cta"),
+    },
+    {
+      id: "essential",
+      name: t("our_plans.pricing.essential.name"),
+      icon: PinIcon as StaticImageData,
+      price: {
+        monthly: 200,
+        yearly: 2000,
+      },
+      description: t("our_plans.pricing.essential.description"),
+      features: [
+        t("our_plans.pricing.essential.feature_1"),
+        t("our_plans.pricing.essential.feature_2"),
+        t("our_plans.pricing.essential.feature_3"),
+        t("our_plans.pricing.essential.feature_4"),
+      ],
+      cta: t("our_plans.pricing.cta"),
+      popular: true,
+    },
+    {
+      id: "premium",
+      name: t("our_plans.pricing.premium.name"),
+      icon: PinIcon as StaticImageData,
+      price: {
+        monthly: 400,
+        yearly: 4000,
+      },
+      description: t("our_plans.pricing.premium.description"),
+      features: [
+        t("our_plans.pricing.premium.feature_1"),
+        t("our_plans.pricing.premium.feature_2"),
+        t("our_plans.pricing.premium.feature_3"),
+        t("our_plans.pricing.premium.feature_4"),
+      ],
+      cta: t("our_plans.pricing.cta"),
+    },
+  ];
   const [frequency, setFrequency] = useState<string>("monthly");
   const [mounted, setMounted] = useState(false);
 
@@ -130,7 +129,7 @@ export default function PricingSection() {
                     alt="Monthly"
                     className="mr-2"
                   />
-                  Monthly
+                  {t("our_plans.pricing.tabs.monthly")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="yearly"
@@ -145,7 +144,7 @@ export default function PricingSection() {
                     alt="Yearly"
                     className="mr-2"
                   />
-                  Yearly
+                  {t("our_plans.pricing.tabs.yearly")}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -176,7 +175,9 @@ export default function PricingSection() {
                           </AccentedText>
                         </span>
                         <span className="text-ui-dark ml-1 text-sm">
-                          /month, billed {frequency}
+                          {t("our_plans.pricing.billing", {
+                            frequency: t(`our_plans.pricing.tabs.${frequency}`),
+                          })}
                         </span>
                       </div>
                     ) : (

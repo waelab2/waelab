@@ -112,12 +112,13 @@ function ContentBox({ children }: { children: React.ReactNode }) {
 function NavigationLinks() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
+  const { t } = useTranslations();
   const links = [
-    { href: "/", label: "Home" },
-    { href: "/about-us", label: "About Us" },
-    { href: "/our-services", label: "Our Services" },
-    { href: "/our-plans", label: "Plans" },
-    { href: "/contact-us", label: "Contact Us" },
+    { href: "/", label: t("nav.home") },
+    { href: "/about-us", label: t("nav.about_us") },
+    { href: "/our-services", label: t("nav.our_services") },
+    { href: "/our-plans", label: t("nav.our_plans") },
+    { href: "/contact-us", label: t("nav.contact_us") },
   ];
 
   return (
@@ -167,12 +168,13 @@ function NavigationLinks() {
 function MobileNavigation() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
+  const { t } = useTranslations();
   const links = [
-    { href: "/", label: "Home" },
-    { href: "/about-us", label: "About Us" },
-    { href: "/our-services", label: "Our Services" },
-    { href: "/our-plans", label: "Plans" },
-    { href: "/contact-us", label: "Contact Us" },
+    { href: "/", label: t("nav.home") },
+    { href: "/about-us", label: t("nav.about_us") },
+    { href: "/our-services", label: t("nav.our_services") },
+    { href: "/our-plans", label: t("nav.our_plans") },
+    { href: "/contact-us", label: t("nav.contact_us") },
   ];
 
   return (
@@ -235,7 +237,7 @@ function MobileNavigation() {
                       WebkitTextFillColor: "transparent",
                     }}
                   >
-                    Sign Up
+                    {t("nav.sign_up")}
                   </Button>
                 </SignUpButton>
                 <SignInButton>
@@ -243,7 +245,7 @@ function MobileNavigation() {
                     className="grow-1 rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white hover:opacity-90"
                     size="lg"
                   >
-                    Login <ArrowRightIcon className="ml-2 h-4 w-4" />
+                    {t("nav.login")} <ArrowRightIcon className="ml-2 h-4 w-4" />
                   </Button>
                 </SignInButton>
               </div>

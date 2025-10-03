@@ -24,13 +24,46 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "~/components/ui/sheet";
-import { useLanguageToggle } from "~/hooks/use-translations";
-import { hero_contents, nav_links, type NavLink } from "~/lib/constants/index";
+import { useLanguageToggle, useTranslations } from "~/hooks/use-translations";
+import { nav_links, type NavLink } from "~/lib/constants/index";
 import { cn } from "~/lib/utils";
 
 export default function Hero() {
   const pathname = usePathname() as unknown as Exclude<NavLink["href"], "/">;
-  const content = hero_contents[pathname].en;
+  const { t } = useTranslations();
+
+  // Get hero content based on current page
+  const getHeroContent = () => {
+    switch (pathname) {
+      case "/about-us":
+        return {
+          small_title: t("about_us.hero.small_title"),
+          main_title: t("about_us.hero.main_title"),
+        };
+      case "/our-services":
+        return {
+          small_title: t("our_services.hero.small_title"),
+          main_title: t("our_services.hero.main_title"),
+        };
+      case "/our-plans":
+        return {
+          small_title: t("our_plans.hero.small_title"),
+          main_title: t("our_plans.hero.main_title"),
+        };
+      case "/contact-us":
+        return {
+          small_title: t("contact_us.hero.small_title"),
+          main_title: t("contact_us.hero.main_title"),
+        };
+      default:
+        return {
+          small_title: "",
+          main_title: "",
+        };
+    }
+  };
+
+  const content = getHeroContent();
 
   return (
     <ContentBox>
@@ -83,6 +116,7 @@ function ContentBox({ children }: { children: React.ReactNode }) {
 function NavigationLinks() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
+  const { t } = useTranslations();
 
   return (
     <NavigationMenu viewport={false}>
@@ -103,10 +137,10 @@ function NavigationLinks() {
                 {pathname === link.href ? (
                   <span className="flex items-center gap-2">
                     <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
-                    <AccentedText>{link.label}</AccentedText>
+                    <AccentedText>{t(link.labelKey)}</AccentedText>
                   </span>
                 ) : (
-                  link.label
+                  t(link.labelKey)
                 )}
               </Link>
             </NavigationMenuLink>
@@ -131,6 +165,7 @@ function NavigationLinks() {
 function MobileNavigation() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
+  const { t } = useTranslations();
 
   return (
     <Sheet>
@@ -160,9 +195,9 @@ function MobileNavigation() {
             >
               <span className="font-medium text-white">
                 {pathname === link.href ? (
-                  <span className="text-white">{link.label}</span>
+                  <span className="text-white">{t(link.labelKey)}</span>
                 ) : (
-                  link.label
+                  t(link.labelKey)
                 )}
               </span>
             </Link>
@@ -192,7 +227,7 @@ function MobileNavigation() {
                       WebkitTextFillColor: "transparent",
                     }}
                   >
-                    Sign Up
+                    {t("nav.sign_up")}
                   </Button>
                 </SignUpButton>
                 <SignInButton>
@@ -200,7 +235,7 @@ function MobileNavigation() {
                     className="grow-1 rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white hover:opacity-90"
                     size="lg"
                   >
-                    Login <ArrowRightIcon className="ml-2 h-4 w-4" />
+                    {t("nav.login")} <ArrowRightIcon className="ml-2 h-4 w-4" />
                   </Button>
                 </SignInButton>
               </div>

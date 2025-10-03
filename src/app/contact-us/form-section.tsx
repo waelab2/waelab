@@ -1,3 +1,5 @@
+"use client";
+
 import EmailIcon from "@/assets/icons/email.svg";
 import FaxIcon from "@/assets/icons/fax.svg";
 import LocationIcon from "@/assets/icons/location.svg";
@@ -11,31 +13,33 @@ import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
 import Image, { type StaticImageData } from "next/image";
 import { Label } from "~/components/ui/label";
-
-const contactBoxes = [
-  {
-    icon: FaxIcon as StaticImageData,
-    title: "Fax",
-    text: "+966112497887",
-  },
-  {
-    icon: PhoneIcon as StaticImageData,
-    title: "Phone",
-    text: "+966920001221",
-  },
-  {
-    icon: EmailIcon as StaticImageData,
-    title: "Email",
-    text: "Info@DETASAD.com",
-  },
-  {
-    icon: LocationIcon as StaticImageData,
-    title: "Location",
-    text: "P.O. Box 22135 ----  Riyadh 11495 Kingdom of Saudi Arabia",
-  },
-];
+import { useTranslations } from "~/hooks/use-translations";
 
 export default function FormSection() {
+  const { t } = useTranslations();
+
+  const contactBoxes = [
+    {
+      icon: FaxIcon as StaticImageData,
+      title: t("contact_us.form.contact_fax"),
+      text: "+966112497887",
+    },
+    {
+      icon: PhoneIcon as StaticImageData,
+      title: t("contact_us.form.contact_phone"),
+      text: "+966920001221",
+    },
+    {
+      icon: EmailIcon as StaticImageData,
+      title: t("contact_us.form.contact_email"),
+      text: "Info@DETASAD.com",
+    },
+    {
+      icon: LocationIcon as StaticImageData,
+      title: t("contact_us.form.contact_location"),
+      text: "P.O. Box 22135 ----  Riyadh 11495 Kingdom of Saudi Arabia",
+    },
+  ];
   return (
     <section className="mx-4 my-8 grid gap-8 sm:mx-8 sm:my-12 md:mx-12 md:my-16 lg:my-24 lg:grid-cols-2 lg:gap-12">
       {/* Left Side */}
@@ -47,13 +51,12 @@ export default function FormSection() {
       >
         <div className="space-y-3 lg:space-y-4">
           <h1 className="text-ui-dark text-2xl font-bold sm:text-3xl md:text-4xl lg:text-5xl">
-            Let&apos;s <AccentedText>Connect</AccentedText> & Collaborate
+            {t("contact_us.form.heading_part1")}{" "}
+            <AccentedText>{t("contact_us.form.heading_part2")}</AccentedText>{" "}
+            {t("contact_us.form.heading_part3")}
           </h1>
           <p className="text-ui-grey text-base leading-relaxed sm:text-lg">
-            Have questions or need assistance? We&apos;re here to help! Reach
-            out to us for inquiries, support, or collaboration opportunities.
-            Our team is ready to assist you and ensure you get the best
-            experience.
+            {t("contact_us.form.description")}
           </p>
         </div>
 
@@ -106,10 +109,10 @@ export default function FormSection() {
               <div className="space-y-6 lg:space-y-8">
                 <div className="space-y-2">
                   <h2 className="text-ui-dark text-xl font-bold sm:text-2xl">
-                    Get in Touch
+                    {t("contact_us.form.form_heading")}
                   </h2>
                   <p className="text-ui-grey text-sm sm:text-base">
-                    Let&apos;s chat about how our expert team can help
+                    {t("contact_us.form.form_description")}
                   </p>
                 </div>
 
@@ -119,12 +122,12 @@ export default function FormSection() {
                       htmlFor="name"
                       className="text-ui-grey mb-2 ml-2 text-sm sm:text-base"
                     >
-                      Your Name
+                      {t("contact_us.form.labels.name")}
                     </Label>
                     <Input
                       name="name"
                       type="text"
-                      placeholder="Enter your name here"
+                      placeholder={t("contact_us.form.placeholders.name")}
                       className="border-ui-grey/30 text-ui-dark h-10 w-full rounded-full !bg-[#EEEFF6] px-4 placeholder-[#737485] focus:border-[#E9476E] focus:ring-0 sm:h-12 sm:px-6"
                     />
                   </div>
@@ -135,12 +138,12 @@ export default function FormSection() {
                         htmlFor="email"
                         className="text-ui-grey mb-2 ml-2 text-sm sm:text-base"
                       >
-                        Your Email
+                        {t("contact_us.form.labels.email")}
                       </Label>
                       <Input
                         name="email"
                         type="email"
-                        placeholder="Enter your email here"
+                        placeholder={t("contact_us.form.placeholders.email")}
                         className="border-ui-grey/30 text-ui-dark h-10 w-full rounded-full !bg-[#EEEFF6] px-4 placeholder-[#737485] focus:border-[#E9476E] focus:ring-0 sm:h-12 sm:px-6"
                       />
                     </div>
@@ -149,12 +152,12 @@ export default function FormSection() {
                         htmlFor="phone"
                         className="text-ui-grey mb-2 ml-2 text-sm sm:text-base"
                       >
-                        Your Phone
+                        {t("contact_us.form.labels.phone")}
                       </Label>
                       <Input
                         name="phone"
                         type="tel"
-                        placeholder="Enter your phone here"
+                        placeholder={t("contact_us.form.placeholders.phone")}
                         className="border-ui-grey/30 text-ui-dark h-10 w-full rounded-full !bg-[#EEEFF6] px-4 placeholder-[#737485] focus:border-[#E9476E] focus:ring-0 sm:h-12 sm:px-6"
                       />
                     </div>
@@ -165,12 +168,12 @@ export default function FormSection() {
                       htmlFor="subject"
                       className="text-ui-grey mb-2 ml-2 text-sm sm:text-base"
                     >
-                      Subject
+                      {t("contact_us.form.labels.subject")}
                     </Label>
                     <Input
                       name="subject"
                       type="text"
-                      placeholder="Enter the subject here"
+                      placeholder={t("contact_us.form.placeholders.subject")}
                       className="border-ui-grey/30 text-ui-dark h-10 w-full rounded-full !bg-[#EEEFF6] px-4 placeholder-[#737485] focus:border-[#E9476E] focus:ring-0 sm:h-12 sm:px-6"
                     />
                   </div>
@@ -180,11 +183,11 @@ export default function FormSection() {
                       htmlFor="message"
                       className="text-ui-grey mb-2 ml-2 text-sm sm:text-base"
                     >
-                      Your Message
+                      {t("contact_us.form.labels.message")}
                     </Label>
                     <Textarea
                       name="message"
-                      placeholder="Enter your message here"
+                      placeholder={t("contact_us.form.placeholders.message")}
                       rows={6}
                       className="border-ui-grey/30 text-ui-dark min-h-32 w-full resize-none rounded-2xl bg-[#EEEFF6] p-4 placeholder-[#737485] focus:border-[#E9476E] focus:ring-0 sm:min-h-40 sm:p-6"
                     />
@@ -194,7 +197,7 @@ export default function FormSection() {
                     type="submit"
                     className="waelab-gradient-bg h-10 w-full rounded-full font-medium text-white shadow-none transition-all duration-300 hover:text-white hover:shadow-lg sm:h-12"
                   >
-                    Send
+                    {t("contact_us.form.send_button")}
                   </Button>
                 </form>
               </div>

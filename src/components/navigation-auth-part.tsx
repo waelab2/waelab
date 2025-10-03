@@ -4,8 +4,11 @@ import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Authenticated, Unauthenticated } from "convex/react";
 import { ArrowRightIcon } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { useTranslations } from "~/hooks/use-translations";
 
 export default function NavigationAuthPart() {
+  const { t } = useTranslations();
+
   return (
     <div className="flex items-center">
       <Unauthenticated>
@@ -19,7 +22,7 @@ export default function NavigationAuthPart() {
               WebkitTextFillColor: "transparent",
             }}
           >
-            Sign Up
+            {t("nav.sign_up")}
           </Button>
         </SignUpButton>
         <SignInButton>
@@ -27,7 +30,7 @@ export default function NavigationAuthPart() {
             className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white"
             size="lg"
           >
-            Login <ArrowRightIcon className="ml-2 h-4 w-4" />
+            {t("nav.login")} <ArrowRightIcon className="ml-2 h-4 w-4" />
           </Button>
         </SignInButton>
       </Unauthenticated>

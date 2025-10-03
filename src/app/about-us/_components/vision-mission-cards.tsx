@@ -1,24 +1,26 @@
+"use client";
+
 import EyeIcon from "@/assets/icons/eye.svg";
 import TargetingIcon from "@/assets/icons/targeting.svg";
 import type { StaticImageData } from "next/image";
 import Image from "next/image";
-
-const CONTENT = [
-  {
-    title: "Our Vision",
-    description:
-      "To become the leading destination for digital creativity in the Arab world and revolutionize video production through AI technology. 🚀🎥",
-    icon: EyeIcon as StaticImageData,
-  },
-  {
-    title: "Our Mission",
-    description:
-      "To empower everyone with access to AI-driven technology for creating cinematic content that matches traditional production quality. With easy-to-use tools, we make creativity accessible to all. 🎬✨",
-    icon: TargetingIcon as StaticImageData,
-  },
-];
+import { useTranslations } from "~/hooks/use-translations";
 
 export default function VisionMissionCards() {
+  const { t } = useTranslations();
+
+  const CONTENT = [
+    {
+      title: t("about.vision_mission.vision.title"),
+      description: t("about.vision_mission.vision.description"),
+      icon: EyeIcon as StaticImageData,
+    },
+    {
+      title: t("about.vision_mission.mission.title"),
+      description: t("about.vision_mission.mission.description"),
+      icon: TargetingIcon as StaticImageData,
+    },
+  ];
   return (
     <div className="flex flex-col gap-8">
       {CONTENT.map((item) => (
