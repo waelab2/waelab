@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { Activity, Bot, SquareTerminal, Users } from "lucide-react";
+import { Activity, Bot, Languages, SquareTerminal, Users } from "lucide-react";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 
@@ -44,7 +44,50 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive: pathname.startsWith("/dashboard/playground"),
       },
     ],
-    other: [],
+    translations: [
+      {
+        title: "Home",
+        url: "/dashboard/translations/home",
+        icon: Languages,
+        isActive: pathname === "/dashboard/translations/home",
+      },
+      {
+        title: "About",
+        url: "/dashboard/translations/about",
+        icon: Languages,
+        isActive: pathname === "/dashboard/translations/about",
+      },
+      {
+        title: "Services",
+        url: "/dashboard/translations/services",
+        icon: Languages,
+        isActive: pathname === "/dashboard/translations/services",
+      },
+      {
+        title: "Plans",
+        url: "/dashboard/translations/plans",
+        icon: Languages,
+        isActive: pathname === "/dashboard/translations/plans",
+      },
+      {
+        title: "Contact",
+        url: "/dashboard/translations/contact",
+        icon: Languages,
+        isActive: pathname === "/dashboard/translations/contact",
+      },
+      {
+        title: "Navigation",
+        url: "/dashboard/translations/nav",
+        icon: Languages,
+        isActive: pathname === "/dashboard/translations/nav",
+      },
+      {
+        title: "Footer",
+        url: "/dashboard/translations/footer",
+        icon: Languages,
+        isActive: pathname === "/dashboard/translations/footer",
+      },
+    ],
   };
 
   return (
@@ -52,6 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <div className="absolute inset-0 bg-[#EEEFF614] backdrop-blur-sm" />
       <SidebarContent className="relative z-10">
         <NavMain items={data.navMain} />
+        <NavMain items={data.translations} label="Translations" />
         {/* <NavOther other={data.other} /> */}
       </SidebarContent>
       <SidebarFooter className="relative z-10 text-white [&_*]:text-white">
