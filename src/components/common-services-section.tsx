@@ -13,10 +13,12 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import AccentedText from "~/components/accented-text";
 import SectionTitle from "~/components/section-title";
+import { useTranslations } from "~/hooks/use-translations";
 
 export default function CommonServicesSection() {
   const [showServiceInfo, setShowServiceInfo] = useState(false);
   const pathname = usePathname();
+  const { t } = useTranslations();
 
   return (
     <>
@@ -24,15 +26,18 @@ export default function CommonServicesSection() {
         <section className="text-ui-dark mx-4 my-8 flex flex-col items-center gap-4 md:mx-12 md:my-12 lg:my-24">
           {pathname === "/" && (
             <SectionTitle
-              title="Services"
+              title={t("common_services_section.title")}
               leftArrow
               rightArrow
               className="justify-center"
             />
           )}
           <h2 className="mb-4 w-full text-center text-2xl leading-tight font-bold md:w-3/4 lg:w-1/2 lg:text-4xl">
-            Comprehensive Solutions for{" "}
-            <AccentedText>Creative Video</AccentedText> Production
+            {t("common_services_section.heading_part1")}{" "}
+            <AccentedText>
+              {t("common_services_section.heading_part2")}
+            </AccentedText>{" "}
+            {t("common_services_section.heading_part3")}
           </h2>
           <div className="flex w-full flex-col gap-8 lg:flex-row">
             <div className="flex w-full flex-col gap-4 rounded-xl p-4 shadow-lg lg:flex-1 lg:flex-row lg:gap-8">
@@ -51,30 +56,29 @@ export default function CommonServicesSection() {
                     alt="Service Icon 1"
                     width={80}
                     height={80}
-                    className="lg:w-[125px] lg:h-[125px]"
+                    className="lg:h-[125px] lg:w-[125px]"
                   />
                   <Image
                     src={ServiceIcon2}
                     alt="Service Icon 2"
                     width={80}
                     height={80}
-                    className="lg:w-[125px] lg:h-[125px]"
+                    className="lg:h-[125px] lg:w-[125px]"
                   />
                 </div>
                 <div>
                   <h4 className="mb-2 text-xl font-bold lg:text-2xl">
-                    Smart Video Editing
+                    {t("common_services_section.smart_editing.title")}
                   </h4>
                   <p className="mb-2 text-sm text-gray-500 lg:text-base">
-                    Enhance and refine your videos effortlessly with AI-powered
-                    editing tools.
+                    {t("common_services_section.smart_editing.description")}
                   </p>
                   <button
                     onClick={() => setShowServiceInfo(true)}
                     className="mb-2 flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 lg:gap-4"
                   >
                     <h5 className="text-sm font-semibold lg:text-lg">
-                      More about Smart Video Editing
+                      {t("common_services_section.smart_editing.more_button")}
                     </h5>
                     <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-1.5 lg:p-2">
                       <ArrowRightIcon className="h-4 w-4 text-white lg:h-6 lg:w-6" />
@@ -83,8 +87,8 @@ export default function CommonServicesSection() {
                 </div>
               </div>
             </div>
-            
-            <div className="grid w-full grid-cols-1 gap-8 sm:grid-cols-2 lg:flex-1 lg:flex xl:grid-cols-3">
+
+            <div className="grid w-full grid-cols-1 gap-8 sm:grid-cols-2 lg:flex lg:flex-1 xl:grid-cols-3">
               <div className="relative flex flex-col items-center justify-between overflow-hidden rounded-xl px-1 py-4 shadow-lg">
                 <Image
                   src={ServiceImage2}
@@ -94,10 +98,10 @@ export default function CommonServicesSection() {
                 />
                 <div className="absolute inset-0 z-20 bg-linear-to-r from-[#E9476E00] to-[#3B5DA84D]" />
                 <div className="relative z-20 rounded-full border border-white px-4 py-1 text-sm text-white lg:px-6">
-                  Library
+                  {t("common_services_section.templates.category")}
                 </div>
                 <div className="relative z-20 text-center text-lg font-semibold text-white lg:text-2xl">
-                  Creative Templates
+                  {t("common_services_section.templates.title")}
                 </div>
               </div>
               <div className="relative flex flex-col items-center justify-between overflow-hidden rounded-xl px-1 py-4 shadow-lg">
@@ -109,10 +113,10 @@ export default function CommonServicesSection() {
                 />
                 <div className="absolute inset-0 z-20 bg-linear-to-r from-[#E9476E00] to-[#3B5DA84D]" />
                 <div className="relative z-20 rounded-full border border-white px-4 py-1 text-sm text-white lg:px-6">
-                  Script
+                  {t("common_services_section.script.category")}
                 </div>
                 <div className="relative z-20 text-center text-lg font-semibold text-white lg:text-2xl">
-                  AI Script Writing
+                  {t("common_services_section.script.title")}
                 </div>
               </div>
               <div className="relative flex flex-col items-center justify-between overflow-hidden rounded-xl px-1 py-4 shadow-lg sm:col-span-2 xl:col-span-1">
@@ -124,10 +128,10 @@ export default function CommonServicesSection() {
                 />
                 <div className="absolute inset-0 z-20 bg-linear-to-r from-[#E9476E00] to-[#3B5DA84D]" />
                 <div className="relative z-20 rounded-full border border-white px-4 py-1 text-sm text-white lg:px-6">
-                  AI
+                  {t("common_services_section.ai_video.category")}
                 </div>
                 <div className="relative z-20 text-center text-lg font-semibold text-white lg:text-2xl">
-                  AI Video Creation
+                  {t("common_services_section.ai_video.title")}
                 </div>
               </div>
             </div>
@@ -142,6 +146,8 @@ export default function CommonServicesSection() {
 }
 
 function ServiceInfo({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslations();
+
   return (
     <div className="relative mx-4 my-8 rounded-2xl bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-0.5 md:mx-8 md:my-16">
       <Image
@@ -149,19 +155,15 @@ function ServiceInfo({ onBack }: { onBack: () => void }) {
         alt="Service Icon 1"
         width={64}
         height={64}
-        className="absolute top-0 left-4 -translate-y-1/2 md:left-16 md:w-24 md:h-24"
+        className="absolute top-0 left-4 -translate-y-1/2 md:left-16 md:h-24 md:w-24"
       />
       <div className="flex flex-col items-stretch rounded-2xl bg-white md:flex-row">
         <div className="flex flex-1 flex-col justify-center p-6 md:p-12">
           <h2 className="text-ui-dark mb-4 text-2xl font-semibold md:text-3xl">
-            Smart Video Editing
+            {t("common_services_section.modal.title")}
           </h2>
           <p className="text-ui-grey mb-6 text-sm md:text-base">
-            Enhance and refine your videos effortlessly with AI-powered editing
-            tools. Easily trim, merge, and adjust video speed while applying
-            cinematic effects. Take your videos to the next level with advanced
-            color correction, noise reduction, and automatic enhancement
-            features.
+            {t("common_services_section.modal.description")}
           </p>
           <button
             onClick={onBack}
@@ -171,7 +173,7 @@ function ServiceInfo({ onBack }: { onBack: () => void }) {
               <ArrowLeftIcon className="h-3 w-3 text-white md:h-4 md:w-4" />
             </div>
             <span className="text-sm font-semibold text-gray-700 md:text-lg">
-              Back to Services
+              {t("common_services_section.modal.back_button")}
             </span>
           </button>
         </div>
@@ -189,7 +191,7 @@ function ServiceInfo({ onBack }: { onBack: () => void }) {
               alt="Service Icon 2"
               width={80}
               height={80}
-              className="absolute bottom-2 left-0 z-30 -translate-x-1/2 md:bottom-4 md:w-32 md:h-32"
+              className="absolute bottom-2 left-0 z-30 -translate-x-1/2 md:bottom-4 md:h-32 md:w-32"
             />
           </figure>
         </div>

@@ -10,6 +10,7 @@ import { useState } from "react";
 import AccentedText from "~/components/accented-text";
 import SectionTitle from "~/components/section-title";
 import { Button } from "~/components/ui/button";
+import { useTranslations } from "~/hooks/use-translations";
 
 interface FAQItemProps {
   question: string;
@@ -120,37 +121,32 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
 
 export default function FaqSection() {
   const pathname = usePathname();
+  const { t } = useTranslations();
 
   const faqs: Omit<FAQItemProps, "index">[] = [
     {
-      question: "What types of videos can I create using your platform?",
-      answer:
-        "Our platform allows you to create a wide range of videos, including AI-generated content, cinematic edits, business promos, and social media content. Whether you need professional marketing videos or creative storytelling pieces, our tools provide everything you need.",
+      question: t("faq_section.faq_1.question"),
+      answer: t("faq_section.faq_1.answer"),
     },
     {
-      question: "Is there a free plan available?",
-      answer:
-        "Yes! We offer a free plan with essential features to get you started. You can upgrade anytime for more advanced tools and unlimited access to premium features.",
+      question: t("faq_section.faq_2.question"),
+      answer: t("faq_section.faq_2.answer"),
     },
     {
-      question: "How does AI help in video creation?",
-      answer:
-        "Our AI-powered tools assist in scriptwriting, scene transitions, and image integration, ensuring your videos look professional without requiring extensive editing experience.",
+      question: t("faq_section.faq_3.question"),
+      answer: t("faq_section.faq_3.answer"),
     },
     {
-      question: "Can I export videos in different formats?",
-      answer:
-        "Yes, you can export your videos in various formats including MP4, MOV, and more. We support multiple resolutions and aspect ratios to fit your specific platform needs.",
+      question: t("faq_section.faq_4.question"),
+      answer: t("faq_section.faq_4.answer"),
     },
     {
-      question: "How long does it take to generate a video?",
-      answer:
-        "Generation time depends on video length and complexity, but most videos are ready within minutes. Our AI-powered system ensures fast processing without compromising quality.",
+      question: t("faq_section.faq_5.question"),
+      answer: t("faq_section.faq_5.answer"),
     },
     {
-      question: "Do I need video editing experience?",
-      answer:
-        "Not at all! Our platform is designed for users of all skill levels. The intuitive interface and AI assistance make it easy for anyone to create professional-quality videos.",
+      question: t("faq_section.faq_6.question"),
+      answer: t("faq_section.faq_6.answer"),
     },
   ];
 
@@ -164,17 +160,18 @@ export default function FaqSection() {
           className="flex-1 text-center lg:text-left"
         >
           <SectionTitle
-            title="Q&A"
+            title={t("faq_section.title")}
             rightArrow
             leftArrow
             className="mb-3 justify-center text-base sm:text-lg lg:justify-start lg:text-xl"
           />
           <h2 className="mb-2 text-xl font-semibold sm:text-2xl lg:text-3xl">
-            Most <AccentedText>Common</AccentedText> Questions
+            {t("faq_section.heading_part1")}{" "}
+            <AccentedText>{t("faq_section.heading_part2")}</AccentedText>{" "}
+            {t("faq_section.heading_part3")}
           </h2>
           <p className="text-ui-grey mb-4 text-xs leading-relaxed sm:text-sm lg:mb-6 lg:text-base">
-            Find everything you need to know about our services, pricing, and
-            how we can help you create stunning videos effortlessly.
+            {t("faq_section.description")}
           </p>
 
           {/* Because this component is borrowed by home page */}
@@ -184,7 +181,7 @@ export default function FaqSection() {
                 className="waelab-gradient-bg min-w-32 rounded-full py-3 text-sm text-white shadow-none transition-all duration-300 hover:text-white hover:shadow-md sm:min-w-40 sm:py-4 sm:text-base lg:min-w-48 lg:py-6"
                 type="button"
               >
-                View All
+                {t("faq_section.view_all_button")}
                 <ArrowRightIcon className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </Link>

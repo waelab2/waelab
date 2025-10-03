@@ -14,27 +14,12 @@ import SnapchatIcon from "~/assets/icons/snapchat.svg";
 import TiktokIcon from "~/assets/icons/tiktok.svg";
 import XIcon from "~/assets/icons/x.svg";
 import FooterBackground from "~/assets/images/footer-background.svg";
+import { useTranslations } from "~/hooks/use-translations";
 import AccentedText from "./accented-text";
 import { Input } from "./ui/input";
 import { Separator } from "./ui/separator";
 
-const toExploreLinks = [
-  { text: "Home", href: "/" },
-  { text: "About Us", href: "/about-us" },
-  { text: "Our Services", href: "/our-services" },
-  { text: "Our Plans", href: "/our-plans" },
-];
-
-const helpAndServicesLinks = [
-  { text: "Contact Us", href: "/contact-us" },
-  { text: "Q&A", href: "/contact-us#faq" },
-  { text: "How it Works", href: "#" },
-];
-
-const moreLinks = [
-  { text: "Privacy Policy", href: "/privacy-policy" },
-  { text: "Terms of Service", href: "/terms-of-service" },
-];
+// These will be moved inside the component to use translations
 
 const contactInfo = [
   { icon: Mail, text: "Info@DETASAD.com" },
@@ -68,9 +53,28 @@ const socialLinks = [
 
 export default function Footer() {
   const pathname = usePathname();
+  const { t } = useTranslations();
+
+  const toExploreLinks = [
+    { text: t("footer.nav.home"), href: "/" },
+    { text: t("footer.nav.about_us"), href: "/about-us" },
+    { text: t("footer.nav.our_services"), href: "/our-services" },
+    { text: t("footer.nav.our_plans"), href: "/our-plans" },
+  ];
+
+  const helpAndServicesLinks = [
+    { text: t("footer.nav.contact_us"), href: "/contact-us" },
+    { text: t("footer.nav.qa"), href: "/contact-us#faq" },
+    { text: t("footer.nav.how_it_works"), href: "#" },
+  ];
+
+  const moreLinks = [
+    { text: t("footer.nav.privacy_policy"), href: "/privacy-policy" },
+    { text: t("footer.nav.terms_of_service"), href: "/terms-of-service" },
+  ];
 
   return (
-    <footer className="ui-dark relative w-full place-self-end p-8 py-12 sm:p-8 sm:pt-16 lg:p-12 lg:pt-24 text-white">
+    <footer className="ui-dark relative w-full place-self-end p-8 py-12 text-white sm:p-8 sm:pt-16 lg:p-12 lg:pt-24">
       <Image
         src={FooterBackground as StaticImageData}
         alt="Footer Background"
@@ -79,33 +83,40 @@ export default function Footer() {
       <div className="relative z-20 flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:gap-16 xl:gap-32">
         <div className="flex-1 lg:flex-2">
           <Link href="/">
-            <Image src={FooterLogo as StaticImageData} alt="logo" className="w-4/5 -translate-x-1/10 lg:translate-x-0 lg:w-auto mx-auto" />
+            <Image
+              src={FooterLogo as StaticImageData}
+              alt="logo"
+              className="mx-auto w-4/5 -translate-x-1/10 lg:w-auto lg:translate-x-0"
+            />
           </Link>
         </div>
         <div className="w-full lg:flex-3">
           <div className="flex flex-col gap-6 rounded-[2rem] border-3 border-[#EEEFF6] bg-[#EEEFF615] p-8 sm:p-12 lg:p-16">
-            <div className="text-xl sm:text-2xl">Stay Inspired Weekly!</div>
+            <div className="text-xl sm:text-2xl">
+              {t("footer.newsletter.title")}
+            </div>
             <div className="text-sm sm:text-base">
-              Get the latest updates, tips, and exclusive content delivered
-              straight to your inbox. 🚀
+              {t("footer.newsletter.description")}
             </div>
             <div className="relative rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-0.5">
               <div className="bg-primary absolute top-0.5 right-0.5 bottom-0.5 left-0.5 z-10 rounded-full" />
               <div className="absolute top-0.5 right-0.5 bottom-0.5 left-0.5 z-20 rounded-full bg-[#EEEFF615]" />
               <Input
                 className="relative z-30 rounded-full border-none px-4 py-4 sm:py-6"
-                placeholder="Enter You Mail Here"
+                placeholder={t("footer.newsletter.placeholder")}
               />
             </div>
           </div>
         </div>
       </div>
-      <Separator className="my-12 sm:my-16 lg:my-24 bg-[#EEEFF650]" />
+      <Separator className="my-12 bg-[#EEEFF650] sm:my-16 lg:my-24" />
       <div className="relative z-20">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div className="text-left">
-            <p className="text-base sm:text-lg font-medium">To Explore</p>
-            <ul className="mt-4 sm:mt-6 lg:mt-8 space-y-3 sm:space-y-4 text-sm">
+            <p className="text-base font-medium sm:text-lg">
+              {t("footer.sections.to_explore")}
+            </p>
+            <ul className="mt-4 space-y-3 text-sm sm:mt-6 sm:space-y-4 lg:mt-8">
               {toExploreLinks.map(({ text, href }) => (
                 <li key={text}>
                   <Link
@@ -127,8 +138,10 @@ export default function Footer() {
           </div>
 
           <div className="text-left">
-            <p className="text-base sm:text-lg font-medium">Help and Services</p>
-            <ul className="mt-4 sm:mt-6 lg:mt-8 space-y-3 sm:space-y-4 text-sm">
+            <p className="text-base font-medium sm:text-lg">
+              {t("footer.sections.help_and_services")}
+            </p>
+            <ul className="mt-4 space-y-3 text-sm sm:mt-6 sm:space-y-4 lg:mt-8">
               {helpAndServicesLinks.map(({ text, href }) => (
                 <li key={text}>
                   <Link
@@ -150,24 +163,30 @@ export default function Footer() {
           </div>
 
           <div className="text-left">
-            <p className="text-base sm:text-lg font-medium">Helpful Links</p>
-            <ul className="mt-4 sm:mt-6 lg:mt-8 space-y-3 sm:space-y-4 text-sm">
+            <p className="text-base font-medium sm:text-lg">
+              {t("footer.sections.helpful_links")}
+            </p>
+            <ul className="mt-4 space-y-3 text-sm sm:mt-6 sm:space-y-4 lg:mt-8">
               <Unauthenticated>
                 <SignInButton>
                   <li className="cursor-pointer">
-                    <span className="transition">Login</span>
+                    <span className="transition">{t("footer.auth.login")}</span>
                   </li>
                 </SignInButton>
                 <SignUpButton>
                   <li className="cursor-pointer">
-                    <span className="transition">Sign Up</span>
+                    <span className="transition">
+                      {t("footer.auth.sign_up")}
+                    </span>
                   </li>
                 </SignUpButton>
               </Unauthenticated>
               <Authenticated>
                 <li>
                   <Link href="/dashboard">
-                    <span className="transition">Dashboard</span>
+                    <span className="transition">
+                      {t("footer.auth.dashboard")}
+                    </span>
                   </Link>
                 </li>
               </Authenticated>
@@ -192,8 +211,10 @@ export default function Footer() {
           </div>
 
           <div className="text-left">
-            <p className="text-base sm:text-lg font-medium">Contact Us</p>
-            <ul className="mt-4 sm:mt-6 lg:mt-8 space-y-3 sm:space-y-4 text-sm">
+            <p className="text-base font-medium sm:text-lg">
+              {t("footer.sections.contact_us")}
+            </p>
+            <ul className="mt-4 space-y-3 text-sm sm:mt-6 sm:space-y-4 lg:mt-8">
               {contactInfo.map(({ icon: Icon, text, isAddress }) => (
                 <li
                   key={text}
@@ -213,11 +234,13 @@ export default function Footer() {
           </div>
 
           <div className="text-left">
-            <p className="text-base sm:text-lg font-medium">Follow Us</p>
-            <ul className="mt-6 sm:mt-8 grid grid-cols-6 gap-8 md:gap-16 lg:gap-8 lg:grid-cols-3 text-sm">
+            <p className="text-base font-medium sm:text-lg">
+              {t("footer.sections.follow_us")}
+            </p>
+            <ul className="mt-6 grid grid-cols-6 gap-8 text-sm sm:mt-8 md:gap-16 lg:grid-cols-3 lg:gap-8">
               {socialLinks.map(({ label, href, icon }) => (
                 <Link key={label} className="transition" href={href}>
-                  <li className="flex h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 items-center justify-center rounded-full border border-white transition hover:bg-white/10">
+                  <li className="flex h-12 w-12 items-center justify-center rounded-full border border-white transition hover:bg-white/10 sm:h-14 sm:w-14 lg:h-16 lg:w-16">
                     <Image src={icon as StaticImageData} alt={label} />
                   </li>
                 </Link>
@@ -226,8 +249,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 sm:mt-10 lg:mt-12 text-center text-sm sm:text-base">
-          &copy; 2025 <AccentedText>Waelab</AccentedText> - All rights reserved.
+        <div className="mt-8 text-center text-sm sm:mt-10 sm:text-base lg:mt-12">
+          &copy; 2025 <AccentedText>Waelab</AccentedText> -{" "}
+          {t("footer.copyright")}
         </div>
       </div>
     </footer>
