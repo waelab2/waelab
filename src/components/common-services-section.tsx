@@ -13,12 +13,13 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import AccentedText from "~/components/accented-text";
 import SectionTitle from "~/components/section-title";
-import { useTranslations } from "~/hooks/use-translations";
+import { useLanguageToggle, useTranslations } from "~/hooks/use-translations";
 
 export default function CommonServicesSection() {
   const [showServiceInfo, setShowServiceInfo] = useState(false);
   const pathname = usePathname();
   const { t } = useTranslations();
+  const { language } = useLanguageToggle();
 
   return (
     <>
@@ -77,12 +78,29 @@ export default function CommonServicesSection() {
                     onClick={() => setShowServiceInfo(true)}
                     className="mb-2 flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 lg:gap-4"
                   >
-                    <h5 className="text-sm font-semibold lg:text-lg">
-                      {t("common_services_section.smart_editing.more_button")}
-                    </h5>
-                    <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-1.5 lg:p-2">
-                      <ArrowRightIcon className="h-4 w-4 text-white lg:h-6 lg:w-6" />
-                    </div>
+                    {language === "ar" ? (
+                      <>
+                        <h5 className="text-sm font-semibold lg:text-lg">
+                          {t(
+                            "common_services_section.smart_editing.more_button",
+                          )}
+                        </h5>
+                        <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-1.5 lg:p-2">
+                          <ArrowLeftIcon className="h-4 w-4 text-white lg:h-6 lg:w-6" />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <h5 className="text-sm font-semibold lg:text-lg">
+                          {t(
+                            "common_services_section.smart_editing.more_button",
+                          )}
+                        </h5>
+                        <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-1.5 lg:p-2">
+                          <ArrowRightIcon className="h-4 w-4 text-white lg:h-6 lg:w-6" />
+                        </div>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -147,6 +165,7 @@ export default function CommonServicesSection() {
 
 function ServiceInfo({ onBack }: { onBack: () => void }) {
   const { t } = useTranslations();
+  const { language } = useLanguageToggle();
 
   return (
     <div className="relative mx-4 my-8 rounded-2xl bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-0.5 md:mx-8 md:my-16">
@@ -155,7 +174,7 @@ function ServiceInfo({ onBack }: { onBack: () => void }) {
         alt="Service Icon 1"
         width={64}
         height={64}
-        className="absolute top-0 left-4 -translate-y-1/2 md:left-16 md:h-24 md:w-24"
+        className={`absolute top-0 -translate-y-1/2 md:h-24 md:w-24 ${language === "ar" ? "right-4 md:right-16" : "left-4 md:left-16"}`}
       />
       <div className="flex flex-col items-stretch rounded-2xl bg-white md:flex-row">
         <div className="flex flex-1 flex-col justify-center p-6 md:p-12">
@@ -169,17 +188,32 @@ function ServiceInfo({ onBack }: { onBack: () => void }) {
             onClick={onBack}
             className="flex w-fit cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 md:gap-3"
           >
-            <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-1.5 md:p-2">
-              <ArrowLeftIcon className="h-3 w-3 text-white md:h-4 md:w-4" />
-            </div>
-            <span className="text-sm font-semibold text-gray-700 md:text-lg">
-              {t("common_services_section.modal.back_button")}
-            </span>
+            {language === "ar" ? (
+              <>
+                <span className="text-sm font-semibold text-gray-700 md:text-lg">
+                  {t("common_services_section.modal.back_button")}
+                </span>
+                <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-1.5 md:p-2">
+                  <ArrowLeftIcon className="h-3 w-3 text-white md:h-4 md:w-4" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] p-1.5 md:p-2">
+                  <ArrowLeftIcon className="h-3 w-3 text-white md:h-4 md:w-4" />
+                </div>
+                <span className="text-sm font-semibold text-gray-700 md:text-lg">
+                  {t("common_services_section.modal.back_button")}
+                </span>
+              </>
+            )}
           </button>
         </div>
         <div className="relative flex flex-1 items-center justify-center p-6 md:p-12">
           <figure className="relative aspect-video w-full">
-            <div className="absolute -top-3 left-3 z-10 h-full w-full rounded-xl bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] md:-top-6 md:left-6" />
+            <div
+              className={`absolute -top-3 z-10 h-full w-full rounded-xl bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] md:-top-6 ${language === "ar" ? "right-3 md:right-6" : "left-3 md:left-6"}`}
+            />
             <Image
               src={PhotoEditorImage}
               alt="Service Info"
@@ -191,7 +225,7 @@ function ServiceInfo({ onBack }: { onBack: () => void }) {
               alt="Service Icon 2"
               width={80}
               height={80}
-              className="absolute bottom-2 left-0 z-30 -translate-x-1/2 md:bottom-4 md:h-32 md:w-32"
+              className={`absolute bottom-2 z-30 md:bottom-4 md:h-32 md:w-32 ${language === "ar" ? "right-0 translate-x-1/2" : "left-0 -translate-x-1/2"}`}
             />
           </figure>
         </div>

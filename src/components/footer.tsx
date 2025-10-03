@@ -14,7 +14,7 @@ import SnapchatIcon from "~/assets/icons/snapchat.svg";
 import TiktokIcon from "~/assets/icons/tiktok.svg";
 import XIcon from "~/assets/icons/x.svg";
 import FooterBackground from "~/assets/images/footer-background.svg";
-import { useTranslations } from "~/hooks/use-translations";
+import { useLanguageToggle, useTranslations } from "~/hooks/use-translations";
 import AccentedText from "./accented-text";
 import { Input } from "./ui/input";
 import { Separator } from "./ui/separator";
@@ -54,6 +54,7 @@ const socialLinks = [
 export default function Footer() {
   const pathname = usePathname();
   const { t } = useTranslations();
+  const { language } = useLanguageToggle();
 
   const toExploreLinks = [
     { text: t("footer.nav.home"), href: "/" },
@@ -112,7 +113,7 @@ export default function Footer() {
       <Separator className="my-12 bg-[#EEEFF650] sm:my-16 lg:my-24" />
       <div className="relative z-20">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          <div className="text-left">
+          <div className={language === "ar" ? "text-right" : "text-left"}>
             <p className="text-base font-medium sm:text-lg">
               {t("footer.sections.to_explore")}
             </p>
@@ -124,10 +125,17 @@ export default function Footer() {
                     className="text-white transition hover:text-white focus:text-white active:text-white"
                   >
                     {pathname === href ? (
-                      <span className="flex items-center justify-start gap-2">
-                        <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
-                        <AccentedText>{text}</AccentedText>
-                      </span>
+                      language === "ar" ? (
+                        <span className="flex flex-row-reverse items-center justify-end gap-2">
+                          <AccentedText>{text}</AccentedText>
+                          <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-start gap-2">
+                          <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                          <AccentedText>{text}</AccentedText>
+                        </span>
+                      )
                     ) : (
                       text
                     )}
@@ -137,7 +145,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className="text-left">
+          <div className={language === "ar" ? "text-right" : "text-left"}>
             <p className="text-base font-medium sm:text-lg">
               {t("footer.sections.help_and_services")}
             </p>
@@ -149,10 +157,17 @@ export default function Footer() {
                     className="text-white transition hover:text-white focus:text-white active:text-white"
                   >
                     {pathname === href ? (
-                      <span className="flex items-center justify-start gap-2">
-                        <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
-                        <AccentedText>{text}</AccentedText>
-                      </span>
+                      language === "ar" ? (
+                        <span className="flex flex-row-reverse items-center justify-end gap-2">
+                          <AccentedText>{text}</AccentedText>
+                          <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-start gap-2">
+                          <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                          <AccentedText>{text}</AccentedText>
+                        </span>
+                      )
                     ) : (
                       text
                     )}
@@ -162,7 +177,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className="text-left">
+          <div className={language === "ar" ? "text-right" : "text-left"}>
             <p className="text-base font-medium sm:text-lg">
               {t("footer.sections.helpful_links")}
             </p>
@@ -197,10 +212,17 @@ export default function Footer() {
                     className="text-white hover:text-white focus:text-white active:text-white"
                   >
                     {pathname === href ? (
-                      <span className="flex items-center justify-start gap-2 transition">
-                        <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
-                        <AccentedText>{text}</AccentedText>
-                      </span>
+                      language === "ar" ? (
+                        <span className="flex flex-row-reverse items-center justify-end gap-2 transition">
+                          <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                          <AccentedText>{text}</AccentedText>
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-start gap-2 transition">
+                          <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                          <AccentedText>{text}</AccentedText>
+                        </span>
+                      )
                     ) : (
                       <span className="transition">{text}</span>
                     )}
@@ -210,7 +232,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className="text-left">
+          <div className={language === "ar" ? "text-right" : "text-left"}>
             <p className="text-base font-medium sm:text-lg">
               {t("footer.sections.contact_us")}
             </p>
@@ -218,7 +240,7 @@ export default function Footer() {
               {contactInfo.map(({ icon: Icon, text, isAddress }) => (
                 <li
                   key={text}
-                  className="flex items-center justify-start gap-1.5"
+                  className={`flex items-center gap-1.5 ${language === "ar" ? "justify-end" : "justify-start"}`}
                 >
                   <Icon className="size-5 shrink-0 shadow-sm" />
                   {isAddress ? (
@@ -233,7 +255,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className="text-left">
+          <div className={language === "ar" ? "text-right" : "text-left"}>
             <p className="text-base font-medium sm:text-lg">
               {t("footer.sections.follow_us")}
             </p>

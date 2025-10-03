@@ -29,7 +29,16 @@ export function TranslationProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [language, setLanguage] = useState<Language>("en");
+  // Initialize language from localStorage if available, otherwise default to "en"
+  const [language, setLanguage] = useState<Language>(() => {
+    if (typeof window !== "undefined") {
+      const savedLanguage = localStorage.getItem("language") as Language;
+      if (savedLanguage && (savedLanguage === "en" || savedLanguage === "ar")) {
+        return savedLanguage;
+      }
+    }
+    return "en";
+  });
 
   // Load all translations from Convex
   const translationsData = useQuery(api.translations.getAllTranslations);
@@ -62,13 +71,7 @@ export function TranslationProvider({
     return language === "ar" ? translation.ar : translation.en;
   };
 
-  // Load language preference from localStorage
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem("language") as Language;
-    if (savedLanguage && (savedLanguage === "en" || savedLanguage === "ar")) {
-      setLanguage(savedLanguage);
-    }
-  }, []);
+  // Language is now initialized synchronously from localStorage in useState initializer
 
   // Save language preference to localStorage
   const handleSetLanguage = (newLanguage: Language) => {
@@ -146,7 +149,8 @@ export function useLanguageToggle() {
   const { language, setLanguage } = useTranslations();
 
   const toggleLanguage = () => {
-    setLanguage(language === "en" ? "ar" : "en");
+    const newLanguage = language === "en" ? "ar" : "en";
+    setLanguage(newLanguage);
   };
 
   return { language, toggleLanguage };

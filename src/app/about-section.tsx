@@ -1,8 +1,8 @@
 "use client";
 
 import AboutUsBackground from "@/assets/images/about-us-background.png";
-import { useTranslations } from "@/hooks/use-translations";
-import { ArrowRightIcon } from "lucide-react";
+import { useLanguageToggle, useTranslations } from "@/hooks/use-translations";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import Image from "next/image";
 import AccentedText from "~/components/accented-text";
 import PrimaryAccentedButton from "~/components/primary-accented-button";
@@ -10,6 +10,7 @@ import SectionTitle from "~/components/section-title";
 
 export default function AboutSection() {
   const { t } = useTranslations();
+  const { language } = useLanguageToggle();
 
   return (
     <section className="text-ui-dark relative px-8 py-12 md:px-12 lg:pt-24 lg:pb-0">
@@ -17,8 +18,10 @@ export default function AboutSection() {
 
       {/* Mobile: Stack vertically (content first, then image), Desktop: Side by side */}
       <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:gap-12">
-        {/* Content section - appears first on mobile */}
-        <div className="order-1 flex flex-1 flex-col gap-4 lg:order-2 lg:gap-6">
+        {/* Content section - appears first on mobile, stays on left for Arabic */}
+        <div
+          className={`order-1 flex flex-1 flex-col gap-4 lg:gap-6 ${language === "ar" ? "lg:order-1" : "lg:order-2"}`}
+        >
           <SectionTitle title={t("home.about_section.title")} rightArrow />
           <h2 className="text-2xl leading-tight font-bold md:text-3xl lg:text-4xl">
             {t("home.about_section.heading_part1")}{" "}
@@ -42,13 +45,24 @@ export default function AboutSection() {
             {t("home.about_section.description")}
           </p>
           <PrimaryAccentedButton className="w-fit text-sm md:text-base">
-            {t("home.about_section.read_more_button")}{" "}
-            <ArrowRightIcon className="ml-2 h-4 w-4" />
+            {language === "ar" ? (
+              <>
+                {t("home.about_section.read_more_button")}
+                <ArrowLeftIcon className="mr-2 h-4 w-4" />
+              </>
+            ) : (
+              <>
+                {t("home.about_section.read_more_button")}{" "}
+                <ArrowRightIcon className="ml-2 h-4 w-4" />
+              </>
+            )}
           </PrimaryAccentedButton>
         </div>
 
-        {/* Image section - appears second on mobile */}
-        <div className="order-2 w-full max-w-md flex-1 lg:order-1 lg:max-w-none">
+        {/* Image section - appears second on mobile, stays on right for Arabic */}
+        <div
+          className={`order-2 w-full max-w-md flex-1 lg:max-w-none ${language === "ar" ? "lg:order-2" : "lg:order-1"}`}
+        >
           <Image
             src="/decoration-play-button.png"
             alt="about"

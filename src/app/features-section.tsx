@@ -6,11 +6,12 @@ import VideoIcon from "@/assets/icons/video.svg";
 import Image from "next/image";
 import GradientBordered from "~/components/gradient-bordered";
 import { Card, CardContent } from "~/components/ui/card";
-import { useTranslations } from "~/hooks/use-translations";
+import { useLanguageToggle, useTranslations } from "~/hooks/use-translations";
 import { cn } from "~/lib/utils";
 
 export default function FeaturesSection() {
   const { t } = useTranslations();
+  const { language } = useLanguageToggle();
 
   const features = [
     {
@@ -46,7 +47,9 @@ export default function FeaturesSection() {
           >
             <Card className="h-full rounded-2xl border-0 bg-white shadow-none">
               <CardContent className="px-4 py-6">
-                <div className="flex flex-col items-center gap-4 text-center lg:flex-row lg:items-start lg:text-left">
+                <div
+                  className={`flex flex-col items-center gap-4 text-center lg:flex-row lg:items-start ${language === "ar" ? "lg:text-right" : "lg:text-left"}`}
+                >
                   <Image
                     src={feature.icon}
                     alt={feature.title}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useLanguageToggle } from "@/hooks/use-translations";
+import { useLanguageToggle } from "~/hooks/use-translations";
 
 /**
  * Language Switcher Component

@@ -3,14 +3,14 @@
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import AccentedText from "~/components/accented-text";
 import SectionTitle from "~/components/section-title";
 import { Button } from "~/components/ui/button";
-import { useTranslations } from "~/hooks/use-translations";
+import { useLanguageToggle, useTranslations } from "~/hooks/use-translations";
 
 interface FAQItemProps {
   question: string;
@@ -122,6 +122,7 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
 export default function FaqSection() {
   const pathname = usePathname();
   const { t } = useTranslations();
+  const { language } = useLanguageToggle();
 
   const faqs: Omit<FAQItemProps, "index">[] = [
     {
@@ -157,7 +158,7 @@ export default function FaqSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex-1 text-center lg:text-left"
+          className={`flex-1 text-center ${language === "ar" ? "lg:text-right" : "lg:text-left"}`}
         >
           <SectionTitle
             title={t("faq_section.title")}
@@ -181,8 +182,17 @@ export default function FaqSection() {
                 className="waelab-gradient-bg min-w-32 rounded-full py-3 text-sm text-white shadow-none transition-all duration-300 hover:text-white hover:shadow-md sm:min-w-40 sm:py-4 sm:text-base lg:min-w-48 lg:py-6"
                 type="button"
               >
-                {t("faq_section.view_all_button")}
-                <ArrowRightIcon className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+                {language === "ar" ? (
+                  <>
+                    {t("faq_section.view_all_button")}
+                    <ArrowLeftIcon className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  </>
+                ) : (
+                  <>
+                    {t("faq_section.view_all_button")}
+                    <ArrowRightIcon className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  </>
+                )}
               </Button>
             </Link>
           )}

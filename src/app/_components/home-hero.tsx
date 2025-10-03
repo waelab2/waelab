@@ -2,10 +2,11 @@
 
 import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Authenticated, Unauthenticated } from "convex/react";
-import { ArrowRightIcon, MenuIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, MenuIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import AccentedText from "~/components/accented-text";
 import NavigationAuthPart from "~/components/navigation-auth-part";
 import PrimaryAccentedButton from "~/components/primary-accented-button";
@@ -29,6 +30,7 @@ import { cn } from "~/lib/utils";
 
 export default function HomeHero() {
   const { t } = useTranslations();
+  const { language } = useLanguageToggle();
 
   return (
     <ContentBox>
@@ -59,8 +61,17 @@ export default function HomeHero() {
         </p>
         <Link href="/dashboard">
           <PrimaryAccentedButton className="text-base sm:text-lg">
-            {t("home.hero.start_button")}{" "}
-            <ArrowRightIcon className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+            {language === "ar" ? (
+              <>
+                {t("home.hero.start_button")}
+                <ArrowLeftIcon className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              </>
+            ) : (
+              <>
+                {t("home.hero.start_button")}{" "}
+                <ArrowRightIcon className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+              </>
+            )}
           </PrimaryAccentedButton>
         </Link>
       </div>
@@ -113,6 +124,11 @@ function NavigationLinks() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
   const { t } = useTranslations();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   const links = [
     { href: "/", label: t("nav.home") },
     { href: "/about-us", label: t("nav.about_us") },
@@ -121,45 +137,66 @@ function NavigationLinks() {
     { href: "/contact-us", label: t("nav.contact_us") },
   ];
 
+  // Create navigation items with language switcher
+  const navigationItems = [
+    ...links.map((link) => ({ type: "link", ...link })),
+    { type: "language-switcher" },
+  ];
+
+  // Reverse order for RTL (Arabic)
+  const displayItems =
+    isClient && language === "ar"
+      ? [...navigationItems].reverse()
+      : navigationItems;
+
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList className="hidden lg:flex">
-        {links.map((link) => (
-          <NavigationMenuItem key={link.href}>
-            <NavigationMenuLink
-              asChild
-              className={cn(
-                navigationMenuTriggerStyle(),
-                "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
-              )}
-            >
-              <Link
-                href={link.href}
-                className="text-white hover:text-white focus:text-white active:text-white"
-              >
-                {pathname === link.href ? (
-                  <span className="flex items-center gap-2">
-                    <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
-                    <AccentedText>{link.label}</AccentedText>
-                  </span>
-                ) : (
-                  link.label
+        {displayItems.map((item, index) => (
+          <NavigationMenuItem
+            key={item.type === "link" ? item.href : "language-switcher"}
+          >
+            {item.type === "link" ? (
+              <NavigationMenuLink
+                asChild
+                className={cn(
+                  navigationMenuTriggerStyle(),
+                  "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
                 )}
-              </Link>
-            </NavigationMenuLink>
+              >
+                <Link
+                  href={item.href}
+                  className="text-white hover:text-white focus:text-white active:text-white"
+                >
+                  {pathname === item.href ? (
+                    <span
+                      className={`flex items-center gap-2 ${isClient && language === "ar" ? "flex-row-reverse" : ""}`}
+                    >
+                      <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                      <AccentedText>{item.label}</AccentedText>
+                    </span>
+                  ) : (
+                    item.label
+                  )}
+                </Link>
+              </NavigationMenuLink>
+            ) : (
+              <button
+                onClick={toggleLanguage}
+                className={cn(
+                  navigationMenuTriggerStyle(),
+                  "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
+                )}
+              >
+                {!isClient
+                  ? "English"
+                  : language === "en"
+                    ? "العربية"
+                    : "English"}
+              </button>
+            )}
           </NavigationMenuItem>
         ))}
-        <NavigationMenuItem>
-          <button
-            onClick={toggleLanguage}
-            className={cn(
-              navigationMenuTriggerStyle(),
-              "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
-            )}
-          >
-            {language === "en" ? "العربية" : "English"}
-          </button>
-        </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
   );
@@ -169,6 +206,11 @@ function MobileNavigation() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
   const { t } = useTranslations();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   const links = [
     { href: "/", label: t("nav.home") },
     { href: "/about-us", label: t("nav.about_us") },
@@ -176,6 +218,18 @@ function MobileNavigation() {
     { href: "/our-plans", label: t("nav.our_plans") },
     { href: "/contact-us", label: t("nav.contact_us") },
   ];
+
+  // Create navigation items with language switcher
+  const navigationItems = [
+    ...links.map((link) => ({ type: "link", ...link })),
+    { type: "language-switcher" },
+  ];
+
+  // Reverse order for RTL (Arabic)
+  const displayItems =
+    isClient && language === "ar"
+      ? [...navigationItems].reverse()
+      : navigationItems;
 
   return (
     <Sheet>
@@ -193,33 +247,41 @@ function MobileNavigation() {
           <SheetTitle className="text-left text-white">Navigation</SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col space-y-4">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white",
-                pathname === link.href &&
-                  "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white",
-              )}
-            >
-              <span className="font-medium text-white">
-                {pathname === link.href ? (
-                  <span className="text-white">{link.label}</span>
-                ) : (
-                  link.label
+          {displayItems.map((item) =>
+            item.type === "link" ? (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white",
+                  pathname === item.href &&
+                    "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white",
                 )}
-              </span>
-            </Link>
-          ))}
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white"
-          >
-            <span className="font-medium text-white">
-              {language === "en" ? "العربية" : "English"}
-            </span>
-          </button>
+              >
+                <span className="font-medium text-white">
+                  {pathname === item.href ? (
+                    <span className="text-white">{item.label}</span>
+                  ) : (
+                    item.label
+                  )}
+                </span>
+              </Link>
+            ) : (
+              <button
+                key="language-switcher"
+                onClick={toggleLanguage}
+                className="flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white"
+              >
+                <span className="font-medium text-white">
+                  {!isClient
+                    ? "English"
+                    : language === "en"
+                      ? "العربية"
+                      : "English"}
+                </span>
+              </button>
+            ),
+          )}
         </nav>
 
         {/* Authentication Section */}
