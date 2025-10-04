@@ -10,10 +10,12 @@ export default function TranslationsPage() {
   const groupedTranslations = translations?.reduce(
     (acc, translation) => {
       const section = translation.key.split(".")[0];
-      if (!acc[section]) {
+      if (section && !acc[section]) {
         acc[section] = [];
       }
-      acc[section].push(translation);
+      if (section && acc[section]) {
+        acc[section].push(translation);
+      }
       return acc;
     },
     {} as Record<string, typeof translations>,

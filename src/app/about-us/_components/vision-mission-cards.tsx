@@ -6,10 +6,16 @@ import type { StaticImageData } from "next/image";
 import Image from "next/image";
 import { useTranslations } from "~/hooks/use-translations";
 
+type VisionMissionItem = {
+  title: string;
+  description: string;
+  icon: StaticImageData;
+};
+
 export default function VisionMissionCards() {
   const { t } = useTranslations();
 
-  const CONTENT = [
+  const CONTENT: VisionMissionItem[] = [
     {
       title: t("about.vision_mission.vision.title"),
       description: t("about.vision_mission.vision.description"),
@@ -30,11 +36,7 @@ export default function VisionMissionCards() {
   );
 }
 
-function VisionMissionCard({
-  title,
-  description,
-  icon,
-}: (typeof CONTENT)[number]) {
+function VisionMissionCard({ title, description, icon }: VisionMissionItem) {
   return (
     <div className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-md md:flex-row md:items-center md:gap-4 md:p-6">
       <div className="flex justify-start md:hidden">

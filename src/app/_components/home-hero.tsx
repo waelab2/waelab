@@ -120,6 +120,18 @@ function ContentBox({ children }: { children: React.ReactNode }) {
   );
 }
 
+type NavigationLinkItem = {
+  type: "link";
+  href: string;
+  label: string;
+};
+
+type LanguageSwitcherItem = {
+  type: "language-switcher";
+};
+
+type NavigationItem = NavigationLinkItem | LanguageSwitcherItem;
+
 function NavigationLinks() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
@@ -138,9 +150,9 @@ function NavigationLinks() {
   ];
 
   // Create navigation items with language switcher
-  const navigationItems = [
-    ...links.map((link) => ({ type: "link", ...link })),
-    { type: "language-switcher" },
+  const navigationItems: NavigationItem[] = [
+    ...links.map((link) => ({ type: "link" as const, ...link })),
+    { type: "language-switcher" as const },
   ];
 
   // Reverse order for RTL (Arabic)
@@ -154,7 +166,11 @@ function NavigationLinks() {
       <NavigationMenuList className="hidden lg:flex">
         {displayItems.map((item, index) => (
           <NavigationMenuItem
-            key={item.type === "link" ? item.href : "language-switcher"}
+            key={
+              item.type === "link"
+                ? (item as NavigationLinkItem).href
+                : "language-switcher"
+            }
           >
             {item.type === "link" ? (
               <NavigationMenuLink
@@ -165,18 +181,20 @@ function NavigationLinks() {
                 )}
               >
                 <Link
-                  href={item.href}
+                  href={(item as NavigationLinkItem).href}
                   className="text-white hover:text-white focus:text-white active:text-white"
                 >
-                  {pathname === item.href ? (
+                  {pathname === (item as NavigationLinkItem).href ? (
                     <span
                       className={`flex items-center gap-2 ${isClient && language === "ar" ? "flex-row-reverse" : ""}`}
                     >
                       <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
-                      <AccentedText>{item.label}</AccentedText>
+                      <AccentedText>
+                        {(item as NavigationLinkItem).label}
+                      </AccentedText>
                     </span>
                   ) : (
-                    item.label
+                    (item as NavigationLinkItem).label
                   )}
                 </Link>
               </NavigationMenuLink>
@@ -220,9 +238,9 @@ function MobileNavigation() {
   ];
 
   // Create navigation items with language switcher
-  const navigationItems = [
-    ...links.map((link) => ({ type: "link", ...link })),
-    { type: "language-switcher" },
+  const navigationItems: NavigationItem[] = [
+    ...links.map((link) => ({ type: "link" as const, ...link })),
+    { type: "language-switcher" as const },
   ];
 
   // Reverse order for RTL (Arabic)
@@ -250,19 +268,21 @@ function MobileNavigation() {
           {displayItems.map((item) =>
             item.type === "link" ? (
               <Link
-                key={item.href}
-                href={item.href}
+                key={(item as NavigationLinkItem).href}
+                href={(item as NavigationLinkItem).href}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white",
-                  pathname === item.href &&
+                  pathname === (item as NavigationLinkItem).href &&
                     "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white",
                 )}
               >
                 <span className="font-medium text-white">
-                  {pathname === item.href ? (
-                    <span className="text-white">{item.label}</span>
+                  {pathname === (item as NavigationLinkItem).href ? (
+                    <span className="text-white">
+                      {(item as NavigationLinkItem).label}
+                    </span>
                   ) : (
-                    item.label
+                    (item as NavigationLinkItem).label
                   )}
                 </span>
               </Link>

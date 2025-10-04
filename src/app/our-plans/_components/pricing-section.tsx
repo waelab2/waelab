@@ -175,9 +175,8 @@ export default function PricingSection() {
                           </AccentedText>
                         </span>
                         <span className="text-ui-dark ml-1 text-sm">
-                          {t("our_plans.pricing.billing", {
-                            frequency: t(`our_plans.pricing.tabs.${frequency}`),
-                          })}
+                          {t("our_plans.pricing.billing")}{" "}
+                          {t(`our_plans.pricing.tabs.${frequency}`)}
                         </span>
                       </div>
                     ) : (
