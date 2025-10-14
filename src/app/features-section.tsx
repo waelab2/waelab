@@ -3,7 +3,7 @@
 import ScriptIcon from "@/assets/icons/script.svg";
 import VideoEditingIcon from "@/assets/icons/video-editing.svg";
 import VideoIcon from "@/assets/icons/video.svg";
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import GradientBordered from "~/components/gradient-bordered";
 import { Card, CardContent } from "~/components/ui/card";
 import { useLanguageToggle, useTranslations } from "~/hooks/use-translations";
@@ -17,17 +17,17 @@ export default function FeaturesSection() {
     {
       title: t("features_section.feature_1.title"),
       description: t("features_section.feature_1.description"),
-      icon: VideoIcon,
+      icon: VideoIcon as StaticImageData,
     },
     {
       title: t("features_section.feature_2.title"),
       description: t("features_section.feature_2.description"),
-      icon: ScriptIcon,
+      icon: ScriptIcon as StaticImageData,
     },
     {
       title: t("features_section.feature_3.title"),
       description: t("features_section.feature_3.description"),
-      icon: VideoEditingIcon,
+      icon: VideoEditingIcon as StaticImageData,
     },
   ];
   return (

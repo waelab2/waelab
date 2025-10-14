@@ -164,13 +164,9 @@ function NavigationLinks() {
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList className="hidden lg:flex">
-        {displayItems.map((item, index) => (
+        {displayItems.map((item) => (
           <NavigationMenuItem
-            key={
-              item.type === "link"
-                ? (item as NavigationLinkItem).href
-                : "language-switcher"
-            }
+            key={item.type === "link" ? item.href : "language-switcher"}
           >
             {item.type === "link" ? (
               <NavigationMenuLink
@@ -181,20 +177,18 @@ function NavigationLinks() {
                 )}
               >
                 <Link
-                  href={(item as NavigationLinkItem).href}
+                  href={item.href}
                   className="text-white hover:text-white focus:text-white active:text-white"
                 >
-                  {pathname === (item as NavigationLinkItem).href ? (
+                  {pathname === item.href ? (
                     <span
                       className={`flex items-center gap-2 ${isClient && language === "ar" ? "flex-row-reverse" : ""}`}
                     >
                       <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
-                      <AccentedText>
-                        {(item as NavigationLinkItem).label}
-                      </AccentedText>
+                      <AccentedText>{item.label}</AccentedText>
                     </span>
                   ) : (
-                    (item as NavigationLinkItem).label
+                    item.label
                   )}
                 </Link>
               </NavigationMenuLink>
@@ -268,21 +262,19 @@ function MobileNavigation() {
           {displayItems.map((item) =>
             item.type === "link" ? (
               <Link
-                key={(item as NavigationLinkItem).href}
-                href={(item as NavigationLinkItem).href}
+                key={item.href}
+                href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white",
-                  pathname === (item as NavigationLinkItem).href &&
+                  pathname === item.href &&
                     "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white",
                 )}
               >
                 <span className="font-medium text-white">
-                  {pathname === (item as NavigationLinkItem).href ? (
-                    <span className="text-white">
-                      {(item as NavigationLinkItem).label}
-                    </span>
+                  {pathname === item.href ? (
+                    <span className="text-white">{item.label}</span>
                   ) : (
-                    (item as NavigationLinkItem).label
+                    item.label
                   )}
                 </span>
               </Link>

@@ -39,13 +39,29 @@ const contactInfo = [
 ];
 
 const socialLinks = [
-  { icon: TiktokIcon, label: "TikTok", href: "https://www.tiktok.com" },
-  { icon: XIcon, label: "X", href: "https://x.com" },
-  { icon: SnapchatIcon, label: "Snapchat", href: "https://www.snapchat.com" },
-  { icon: FacebookIcon, label: "Facebook", href: "https://facebook.com" },
-  { icon: LinkedinIcon, label: "LinkedIn", href: "https://www.linkedin.com" },
   {
-    icon: InstagramIcon,
+    icon: TiktokIcon as StaticImageData,
+    label: "TikTok",
+    href: "https://www.tiktok.com",
+  },
+  { icon: XIcon as StaticImageData, label: "X", href: "https://x.com" },
+  {
+    icon: SnapchatIcon as StaticImageData,
+    label: "Snapchat",
+    href: "https://www.snapchat.com",
+  },
+  {
+    icon: FacebookIcon as StaticImageData,
+    label: "Facebook",
+    href: "https://facebook.com",
+  },
+  {
+    icon: LinkedinIcon as StaticImageData,
+    label: "LinkedIn",
+    href: "https://www.linkedin.com",
+  },
+  {
+    icon: InstagramIcon as StaticImageData,
     label: "Instagram",
     href: "https://www.instagram.com",
   },
@@ -263,7 +279,7 @@ export default function Footer() {
               {socialLinks.map(({ label, href, icon }) => (
                 <Link key={label} className="transition" href={href}>
                   <li className="flex h-12 w-12 items-center justify-center rounded-full border border-white transition hover:bg-white/10 sm:h-14 sm:w-14 lg:h-16 lg:w-16">
-                    <Image src={icon as StaticImageData} alt={label} />
+                    <Image src={icon} alt={label} />
                   </li>
                 </Link>
               ))}
