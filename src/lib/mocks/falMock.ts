@@ -97,14 +97,15 @@ function generateMockFileMetadata(): {
 
 // Calculate realistic generation time based on model and duration
 function calculateGenerationTime(modelId: string, duration?: string): number {
-  const baseTimes = {
-    "fal-ai/kling-video/v2.1/master/text-to-video": 10000, // 10 seconds
-    "fal-ai/kling-video/v2/master/text-to-video": 8000, // 8 seconds
-    "fal-ai/kling-video/v1.6/pro/text-to-video": 6000, // 6 seconds
-    "fal-ai/minimax/hailuo-02/standard/text-to-video": 7000, // 7 seconds
-  };
+  // const baseTimes = {
+  //   "fal-ai/kling-video/v2.1/master/text-to-video": 10000, // 10 seconds
+  //   "fal-ai/kling-video/v2/master/text-to-video": 8000, // 8 seconds
+  //   "fal-ai/kling-video/v1.6/pro/text-to-video": 6000, // 6 seconds
+  //   "fal-ai/minimax/hailuo-02/standard/text-to-video": 7000, // 7 seconds
+  // };
 
-  const baseTime = baseTimes[modelId as keyof typeof baseTimes] || 8000;
+  // const baseTime = baseTimes[modelId as keyof typeof baseTimes] || 8000;
+  const baseTime = 60 * 1000;
 
   // Add extra time for longer videos
   const durationMultiplier =
@@ -215,7 +216,7 @@ export const falMock: MockFalClient = {
       // Still provide a working mock even if schema fetching fails
       setTimeout(() => onQueueUpdate({ status: "IN_QUEUE" }), 100);
       setTimeout(() => onQueueUpdate({ status: "IN_PROGRESS" }), 2000);
-      setTimeout(() => onQueueUpdate({ status: "COMPLETED" }), 8000);
+      setTimeout(() => onQueueUpdate({ status: "COMPLETED" }), 8 * 1000);
 
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -231,7 +232,7 @@ export const falMock: MockFalClient = {
               },
             },
           });
-        }, 8000);
+        }, 8 * 1000);
       });
     }
   },

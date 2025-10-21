@@ -9,8 +9,6 @@ import type {
 // === DEBUG CONFIGURATION ===
 const DEBUG_RUNWAY = true; // Set to false to disable debug logs
 const USE_MOCK_IN_DEV = true; // Set to false to test real API in development
-// TEMPORARY: Force mock usage even in production
-const FORCE_MOCK_IN_PRODUCTION = true;
 
 function debugLog(message: string, data?: unknown) {
   if (DEBUG_RUNWAY) {
@@ -179,13 +177,11 @@ import { runwayMock } from "~/lib/mocks/runwayMock";
  */
 export function createRunwayClient(): RunwayClientInterface {
   const shouldUseMock =
-    FORCE_MOCK_IN_PRODUCTION ||
-    (USE_MOCK_IN_DEV && process.env.NODE_ENV === "development");
+    USE_MOCK_IN_DEV && process.env.NODE_ENV === "development";
 
   debugLog("Client selection", {
     nodeEnv: process.env.NODE_ENV,
     useMockInDev: USE_MOCK_IN_DEV,
-    forceMockInProduction: FORCE_MOCK_IN_PRODUCTION,
     shouldUseMock: shouldUseMock,
     clientType: shouldUseMock ? "mock" : "production",
   });
@@ -220,46 +216,3 @@ export const runwayClient: RunwayClientInterface = new Proxy(
     },
   },
 );
-
-// === UTILITY FUNCTIONS ===
-
-/**
- * Test function to verify Runway integration
- */
-export async function testRunwayIntegration(
-  testImage = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=",
-) {
-  debugLog("Starting Runway integration test", {
-    testImageLength: testImage.length,
-    clientType:
-      FORCE_MOCK_IN_PRODUCTION ||
-      (USE_MOCK_IN_DEV && process.env.NODE_ENV === "development")
-        ? "mock"
-        : "production",
-  });
-
-  try {
-    const result = await runwayClient.generate({
-      input: {
-        promptImage: testImage,
-        promptText: "A beautiful sunset over mountains",
-        ratio: "16:9",
-        duration: 5,
-      },
-      onProgress: (progress) => {
-        debugLog("Test progress update", progress);
-      },
-    });
-
-    debugLog("Integration test completed successfully", {
-      videoUrl: result.data.video.url.substring(0, 50) + "...",
-      fileSize: result.data.video.file_size,
-      metadata: result.data.metadata,
-    });
-
-    return result;
-  } catch (error) {
-    debugError("Integration test failed", error);
-    throw error;
-  }
-}

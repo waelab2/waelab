@@ -1,3 +1,4 @@
+import { fal } from "@fal-ai/client";
 import { falMock, type MockFalClient } from "./mocks/falMock";
 
 // Type that unifies both real and mock clients
@@ -17,8 +18,8 @@ export interface FalClient {
 }
 
 // Environment-based client selection
-// TEMPORARY: Force mock usage even in production
-export const falClient: FalClient = falMock;
+export const falClient: FalClient =
+  process.env.NODE_ENV === "development" ? falMock : fal;
 
 // Export the type for use in components
 export type { MockFalClient };
