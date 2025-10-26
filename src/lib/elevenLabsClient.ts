@@ -147,12 +147,17 @@ class ElevenLabsProductionClient implements ElevenLabsClientInterface {
       }
 
       const audioBlob = new Blob([audioBuffer], { type: "audio/mpeg" });
-      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Convert blob to base64 data URL for cross-context compatibility
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const base64 = Buffer.from(arrayBuffer).toString("base64");
+      const audioUrl = `data:audio/mpeg;base64,${base64}`;
 
       debugLog("Blob created successfully", {
         blobSize: audioBlob.size,
         blobType: audioBlob.type,
         urlCreated: !!audioUrl,
+        urlType: "data-url",
       });
 
       onProgress?.({ status: "COMPLETED" });
