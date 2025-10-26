@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "sonner";
 import { DirectionProvider } from "~/components/direction-provider";
 import { TranslationProvider } from "~/hooks/use-translations";
 import { TRPCReactProvider } from "~/trpc/react";
@@ -30,7 +31,10 @@ export default function RootLayout({
           <TRPCReactProvider>
             <ConvexClientProvider>
               <TranslationProvider>
-                <DirectionProvider>{children}</DirectionProvider>
+                <DirectionProvider>
+                  {children}
+                  <Toaster position="top-right" richColors />
+                </DirectionProvider>
               </TranslationProvider>
             </ConvexClientProvider>
           </TRPCReactProvider>

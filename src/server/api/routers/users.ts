@@ -103,6 +103,74 @@ export const usersRouter = createTRPCRouter({
         throw new Error("Failed to fetch recent users");
       }
     }),
+
+  // Invitation procedures
+  createInvitation: protectedProcedure
+    .input(z.object({ emailAddress: z.string().email() }))
+    .mutation(async ({ input }) => {
+      try {
+        const client = await clerkClient();
+        const invitation = await client.invitations.createInvitation({
+          emailAddress: input.emailAddress,
+        });
+        return invitation;
+      } catch (error) {
+        console.error("Error creating invitation:", error);
+        throw new Error("Failed to create invitation");
+      }
+    }),
+
+  getAllInvitations: protectedProcedure.query(async () => {
+    try {
+      const client = await clerkClient();
+      const invitations = await client.invitations.getInvitationList({
+        limit: 100,
+      });
+      return invitations.data;
+    } catch (error) {
+      console.error("Error fetching invitations from Clerk:", error);
+      throw new Error("Failed to fetch invitations");
+    }
+  }),
+
+  getInvitationStats: protectedProcedure.query(async () => {
+    try {
+      const client = await clerkClient();
+      const invitations = await client.invitations.getInvitationList({
+        limit: 100,
+      });
+
+      const stats = {
+        total: invitations.data.length,
+        pending: invitations.data.filter((inv) => inv.status === "pending")
+          .length,
+        accepted: invitations.data.filter((inv) => inv.status === "accepted")
+          .length,
+        revoked: invitations.data.filter((inv) => inv.status === "revoked")
+          .length,
+      };
+
+      return stats;
+    } catch (error) {
+      console.error("Error fetching invitation stats:", error);
+      throw new Error("Failed to fetch invitation stats");
+    }
+  }),
+
+  revokeInvitation: protectedProcedure
+    .input(z.object({ invitationId: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        const client = await clerkClient();
+        const invitation = await client.invitations.revokeInvitation(
+          input.invitationId,
+        );
+        return invitation;
+      } catch (error) {
+        console.error("Error revoking invitation:", error);
+        throw new Error("Failed to revoke invitation");
+      }
+    }),
 });
 
 export type UsersRouter = typeof usersRouter;

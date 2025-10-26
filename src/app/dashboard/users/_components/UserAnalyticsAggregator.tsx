@@ -3,13 +3,19 @@
 import { DashboardCard } from "@/components/ui/dashboard-card";
 // import { useMultipleUsersAnalytics } from "@/hooks/use-analytics";
 import { formatNumber } from "@/lib/utils";
-import { Activity, CheckCircle, Users, Zap } from "lucide-react";
+import { CheckCircle, Clock, Mail, Users } from "lucide-react";
 import { useMemo } from "react";
 
 interface UserAnalyticsAggregatorProps {
   userIds: string[];
   totalUsers: number;
   activeUsers: number;
+  invitationStats?: {
+    total: number;
+    pending: number;
+    accepted: number;
+    revoked: number;
+  };
   isLoading?: boolean;
 }
 
@@ -17,6 +23,7 @@ export function UserAnalyticsAggregator({
   userIds: _userIds,
   totalUsers,
   activeUsers,
+  invitationStats,
   isLoading = false,
 }: UserAnalyticsAggregatorProps) {
   // Get analytics for all users at once
@@ -46,30 +53,25 @@ export function UserAnalyticsAggregator({
           bgColor: "bg-green-500/10",
         },
         {
-          title: "Total Generations",
+          title: "Total Invitations",
           value: "Loading...",
           change: "0%",
           changeType: "positive" as const,
-          icon: Activity,
-          color: "text-purple-500",
-          bgColor: "bg-purple-500/10",
+          icon: Mail,
+          color: "text-indigo-500",
+          bgColor: "bg-indigo-500/10",
         },
         {
-          title: "Avg. per User",
+          title: "Pending Invitations",
           value: "Loading...",
           change: "0%",
           changeType: "positive" as const,
-          icon: Zap,
-          color: "text-orange-500",
-          bgColor: "bg-orange-500/10",
+          icon: Clock,
+          color: "text-yellow-500",
+          bgColor: "bg-yellow-500/10",
         },
       ];
     }
-
-    // Get totals from the aggregated analytics
-    // Temporarily set to 0 until Convex deployment is fixed
-    const totalGenerations = 0;
-    const avgGenerationsPerUser = 0;
 
     return [
       {
@@ -91,25 +93,25 @@ export function UserAnalyticsAggregator({
         bgColor: "bg-green-500/10",
       },
       {
-        title: "Total Generations",
-        value: formatNumber(totalGenerations),
+        title: "Total Invitations",
+        value: formatNumber(invitationStats?.total ?? 0),
         change: "0%",
         changeType: "positive" as const,
-        icon: Activity,
-        color: "text-purple-500",
-        bgColor: "bg-purple-500/10",
+        icon: Mail,
+        color: "text-indigo-500",
+        bgColor: "bg-indigo-500/10",
       },
       {
-        title: "Avg. per User",
-        value: formatNumber(avgGenerationsPerUser),
+        title: "Pending Invitations",
+        value: formatNumber(invitationStats?.pending ?? 0),
         change: "0%",
         changeType: "positive" as const,
-        icon: Zap,
-        color: "text-orange-500",
-        bgColor: "bg-orange-500/10",
+        icon: Clock,
+        color: "text-yellow-500",
+        bgColor: "bg-yellow-500/10",
       },
     ];
-  }, [totalUsers, activeUsers, isLoading]);
+  }, [totalUsers, activeUsers, invitationStats, isLoading]);
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
