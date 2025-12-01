@@ -5,48 +5,56 @@ export const models = [
     name: "Kling Video v2.1 Master",
     price_per_second: 0.28,
     category: "text-to-video",
+    generation_time_minutes: 5,
   },
   {
     id: "fal-ai/kling-video/v2/master/text-to-video",
     name: "Kling Video v2 Master",
     price_per_second: 0.28,
     category: "text-to-video",
+    generation_time_minutes: 5,
   },
   {
     id: "fal-ai/kling-video/v1.6/pro/text-to-video",
     name: "Kling Video v1.6 Pro",
     price_per_second: 0.095,
     category: "text-to-video",
+    generation_time_minutes: 4,
   },
   {
     id: "fal-ai/minimax/hailuo-02/standard/text-to-video",
     name: "Hailuo 02 Standard",
     price_per_second: 0.045,
     category: "text-to-video",
+    generation_time_minutes: 4,
   },
   {
     id: "moonvalley/marey/t2v",
     name: "Marey Realism V1.5",
     price_per_second: 0.3,
     category: "text-to-video",
+    generation_time_minutes: null,
   },
   {
     id: "fal-ai/pixverse/v5/text-to-video",
     name: "Pixverse V5",
     price_per_second: 0.08,
     category: "text-to-video",
+    generation_time_minutes: null,
   },
   {
     id: "fal-ai/veo3/fast",
     name: "Veo3 Fast",
-    price_per_second: 0.4,
+    price_per_second: 0.15,
     category: "text-to-video",
+    generation_time_minutes: null,
   },
   {
     id: "fal-ai/veo3",
     name: "Veo3",
-    price_per_second: 0.75,
+    price_per_second: 0.4,
     category: "text-to-video",
+    generation_time_minutes: null,
   },
 
   // === IMAGE-TO-VIDEO MODELS ===
@@ -61,7 +69,7 @@ export const models = [
       "Advanced image-to-video generation with high-quality motion and realistic transformations",
   },
 
-  // Kling Models (100% Compatible - Phase 1)
+  // === FAL MODELS ===
   {
     id: "fal-ai/kling-video/v2.1/master/image-to-video",
     name: "Kling 2.1 Master (I2V)",
@@ -69,6 +77,7 @@ export const models = [
     category: "image-to-video",
     description:
       "Premium endpoint for Kling 2.1 with unparalleled motion fluidity and cinematic visuals",
+    generation_time_minutes: 6,
   },
   {
     id: "fal-ai/kling-video/v2.1/standard/image-to-video",
@@ -77,6 +86,7 @@ export const models = [
     category: "image-to-video",
     description:
       "Cost-efficient Kling 2.1 with high-quality image-to-video generation",
+    generation_time_minutes: null,
   },
   {
     id: "fal-ai/kling-video/v2/master/image-to-video",
@@ -85,6 +95,7 @@ export const models = [
     category: "image-to-video",
     description:
       "Kling 2.0 Master for high-quality image-to-video with advanced motion control",
+    generation_time_minutes: null,
   },
   {
     id: "fal-ai/kling-video/v1.6/pro/image-to-video",
@@ -93,9 +104,8 @@ export const models = [
     category: "image-to-video",
     description:
       "Professional Kling 1.6 with advanced parameters including aspect ratio control",
+    generation_time_minutes: 6,
   },
-
-  // MiniMax Models (100% Compatible - Phase 1)
   {
     id: "fal-ai/minimax/hailuo-02/standard/image-to-video",
     name: "MiniMax Hailuo 02 (I2V)",
@@ -103,17 +113,17 @@ export const models = [
     category: "image-to-video",
     description:
       "Advanced image-to-video with 768p/512p resolutions and prompt optimization",
+    generation_time_minutes: 4,
   },
   {
     id: "fal-ai/minimax/video-01/image-to-video",
     name: "MiniMax Video 01 (I2V)",
-    price_per_second: 0.01,
+    price_per_second: 0.1,
     category: "image-to-video",
     description:
       "Motion and transformation focused video generation with prompt optimization",
+    generation_time_minutes: null,
   },
-
-  // Veo2 (100% Compatible - Phase 1)
   {
     id: "fal-ai/veo2/image-to-video",
     name: "Veo 2 (I2V)",
@@ -121,9 +131,8 @@ export const models = [
     category: "image-to-video",
     description:
       "Realistic motion with very high quality output and flexible duration options",
+    generation_time_minutes: null,
   },
-
-  // Seedance Pro (95% Compatible - Phase 2)
   {
     id: "fal-ai/bytedance/seedance/v1/pro/image-to-video",
     name: "Seedance 1.0 Pro (I2V)",
@@ -131,16 +140,16 @@ export const models = [
     category: "image-to-video",
     description:
       "High quality 1080p video generation with advanced camera and safety controls",
+    generation_time_minutes: null,
   },
-
-  // Wan Models (90% Compatible - Phase 2)
   {
     id: "fal-ai/wan-i2v",
     name: "Wan 2.1 (I2V)",
-    price_per_second: 0.08,
+    price_per_second: 0.067,
     category: "image-to-video",
     description:
       "High visual quality with motion diversity and advanced inference controls",
+    generation_time_minutes: 1,
   },
   {
     id: "fal-ai/wan-pro/image-to-video",
@@ -148,6 +157,7 @@ export const models = [
     price_per_second: 0.16,
     category: "image-to-video",
     description: "Premium 1080p videos at 30fps with up to 6 seconds duration",
+    generation_time_minutes: 5,
   },
 
   // === TEXT-TO-AUDIO MODELS ===

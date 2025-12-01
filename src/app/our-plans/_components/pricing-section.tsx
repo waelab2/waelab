@@ -44,8 +44,8 @@ export default function PricingSection() {
       name: t("our_plans.pricing.starter.name"),
       icon: PinIcon as StaticImageData,
       price: {
-        monthly: 0,
-        yearly: 0,
+        monthly: 75,
+        yearly: 900, // 75 * 12 (no discount)
       },
       description: t("our_plans.pricing.starter.description"),
       features: [
@@ -57,19 +57,19 @@ export default function PricingSection() {
       cta: t("our_plans.pricing.cta"),
     },
     {
-      id: "essential",
-      name: t("our_plans.pricing.essential.name"),
+      id: "pro",
+      name: t("our_plans.pricing.pro.name"),
       icon: PinIcon as StaticImageData,
       price: {
-        monthly: 200,
-        yearly: 2000,
+        monthly: 180,
+        yearly: 2160, // 180 * 12 (no discount)
       },
-      description: t("our_plans.pricing.essential.description"),
+      description: t("our_plans.pricing.pro.description"),
       features: [
-        t("our_plans.pricing.essential.feature_1"),
-        t("our_plans.pricing.essential.feature_2"),
-        t("our_plans.pricing.essential.feature_3"),
-        t("our_plans.pricing.essential.feature_4"),
+        t("our_plans.pricing.pro.feature_1"),
+        t("our_plans.pricing.pro.feature_2"),
+        t("our_plans.pricing.pro.feature_3"),
+        t("our_plans.pricing.pro.feature_4"),
       ],
       cta: t("our_plans.pricing.cta"),
       popular: true,
@@ -79,8 +79,8 @@ export default function PricingSection() {
       name: t("our_plans.pricing.premium.name"),
       icon: PinIcon as StaticImageData,
       price: {
-        monthly: 400,
-        yearly: 4000,
+        monthly: 375,
+        yearly: 4500, // 375 * 12 (no discount)
       },
       description: t("our_plans.pricing.premium.description"),
       features: [
@@ -120,7 +120,7 @@ export default function PricingSection() {
                   value="monthly"
                   className={`text-ui-dark rounded-full px-6 py-3 transition-all duration-300 ${
                     frequency === "monthly"
-                      ? "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white"
+                      ? "bg-linear-to-r from-[#E9476E] to-[#3B5DA8] text-white"
                       : ""
                   }`}
                 >
@@ -135,7 +135,7 @@ export default function PricingSection() {
                   value="yearly"
                   className={`text-ui-dark rounded-full px-6 py-3 transition-all duration-300 ${
                     frequency === "yearly"
-                      ? "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white"
+                      ? "bg-linear-to-r from-[#E9476E] to-[#3B5DA8] text-white"
                       : ""
                   }`}
                 >
