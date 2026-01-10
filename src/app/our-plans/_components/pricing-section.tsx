@@ -14,12 +14,14 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import { useEffect, useState } from "react";
 import GradientBordered from "~/components/gradient-bordered";
 import { useTranslations } from "~/hooks/use-translations";
+import { api } from "~/trpc/react";
 
 interface Plan {
   id: string;
@@ -36,7 +38,36 @@ interface Plan {
 }
 
 export default function PricingSection() {
-  const { t } = useTranslations();
+  const { t, language } = useTranslations();
+  const { userId, isLoaded } = useAuth();
+  const clerk = useClerk();
+  const checkoutMutation = api.plans.handlePlanCheckout.useMutation();
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+
+  const handleGetStarted = async (planId: string) => {
+    // Wait for auth to load
+    if (!isLoaded) {
+      return;
+    }
+
+    // If not authenticated, open Clerk's sign-in (same as clicking SignInButton)
+    if (!userId) {
+      clerk.openSignIn({
+        redirectUrl: "/our-plans",
+      });
+      return;
+    }
+
+    // If authenticated, call the server function
+    setPendingPlanId(planId);
+    try {
+      await checkoutMutation.mutateAsync({ planId });
+    } catch (error) {
+      console.error("Error handling checkout:", error);
+    } finally {
+      setPendingPlanId(null);
+    }
+  };
 
   const plans: Plan[] = [
     {
@@ -118,11 +149,10 @@ export default function PricingSection() {
               <TabsList className="bg-transparent">
                 <TabsTrigger
                   value="monthly"
-                  className={`text-ui-dark rounded-full px-6 py-3 transition-all duration-300 ${
-                    frequency === "monthly"
-                      ? "bg-linear-to-r from-[#E9476E] to-[#3B5DA8] text-white"
-                      : ""
-                  }`}
+                  className={`text-ui-dark rounded-full px-6 py-3 transition-all duration-300 ${frequency === "monthly"
+                    ? "bg-linear-to-r from-[#E9476E] to-[#3B5DA8] text-white"
+                    : ""
+                    }`}
                 >
                   <Image
                     src={WhiteLogo as StaticImageData}
@@ -133,11 +163,10 @@ export default function PricingSection() {
                 </TabsTrigger>
                 <TabsTrigger
                   value="yearly"
-                  className={`text-ui-dark rounded-full px-6 py-3 transition-all duration-300 ${
-                    frequency === "yearly"
-                      ? "bg-linear-to-r from-[#E9476E] to-[#3B5DA8] text-white"
-                      : ""
-                  }`}
+                  className={`text-ui-dark rounded-full px-6 py-3 transition-all duration-300 ${frequency === "yearly"
+                    ? "bg-linear-to-r from-[#E9476E] to-[#3B5DA8] text-white"
+                    : ""
+                    }`}
                 >
                   <Image
                     src={WhiteLogo as StaticImageData}
@@ -166,7 +195,7 @@ export default function PricingSection() {
                   {/* Price at the top */}
                   <div className="mb-8">
                     {typeof plan.price[frequency as keyof typeof plan.price] ===
-                    "number" ? (
+                      "number" ? (
                       <div className="flex items-baseline">
                         <span className="text-ui-dark text-3xl font-medium">
                           R.S{" "}
@@ -224,9 +253,20 @@ export default function PricingSection() {
                   <Button
                     variant={plan.popular ? "default" : "outline"}
                     className="waelab-gradient-bg w-full rounded-full py-6 font-medium text-white shadow-none transition-all duration-300 hover:text-white hover:shadow-none"
+                    onClick={() => handleGetStarted(plan.id)}
+                    disabled={!isLoaded || pendingPlanId !== null}
                   >
-                    {plan.cta}
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    {pendingPlanId === plan.id ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {language === "ar" ? "جاري المعالجة..." : "Loading..."}
+                      </>
+                    ) : (
+                      <>
+                        {plan.cta}
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                      </>
+                    )}
                   </Button>
                 </CardFooter>
               </Card>
