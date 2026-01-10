@@ -61,7 +61,12 @@ export default function PricingSection() {
     // If authenticated, call the server function
     setPendingPlanId(planId);
     try {
-      await checkoutMutation.mutateAsync({ planId });
+      const result = await checkoutMutation.mutateAsync({ planId, language });
+      
+      // Navigate to the Tap payment page
+      if (result.transactionUrl) {
+        window.location.href = result.transactionUrl;
+      }
     } catch (error) {
       console.error("Error handling checkout:", error);
     } finally {

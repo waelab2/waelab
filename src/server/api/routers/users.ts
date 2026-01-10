@@ -104,6 +104,46 @@ export const usersRouter = createTRPCRouter({
       }
     }),
 
+  // Tap customer ID procedures
+  setTapCustomerId: protectedProcedure
+    .input(z.object({ tapCustomerId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const client = await clerkClient();
+
+        // Update the user's privateMetadata with tap_customer_id
+        await client.users.updateUser(ctx.userId, {
+          privateMetadata: {
+            tap_customer_id: input.tapCustomerId,
+          },
+        });
+
+        return { success: true };
+      } catch (error) {
+        console.error("Error setting tap_customer_id:", error);
+        throw new Error("Failed to set tap_customer_id");
+      }
+    }),
+
+  hasTapCustomerId: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const client = await clerkClient();
+      const user = await client.users.getUser(ctx.userId);
+
+      const tapCustomerId = user.privateMetadata?.tap_customer_id as
+        | string
+        | undefined;
+
+      return {
+        exists: !!tapCustomerId,
+        tapCustomerId: tapCustomerId ?? null,
+      };
+    } catch (error) {
+      console.error("Error checking tap_customer_id:", error);
+      throw new Error("Failed to check tap_customer_id");
+    }
+  }),
+
   // Invitation procedures
   createInvitation: protectedProcedure
     .input(z.object({ emailAddress: z.string().email() }))

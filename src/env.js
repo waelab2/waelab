@@ -11,6 +11,7 @@ export const env = createEnv({
     ELEVENLABS_API_KEY: z.string(),
     RUNWAY_API_KEY: z.string(),
     CLERK_SECRET_KEY: z.string(),
+    TEST_SECRET_KEY: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -35,6 +36,7 @@ export const env = createEnv({
     ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
     RUNWAY_API_KEY: process.env.RUNWAY_API_KEY,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    TEST_SECRET_KEY: process.env.TEST_SECRET_KEY,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
     NEXT_PUBLIC_CLERK_FRONTEND_API_URL:
