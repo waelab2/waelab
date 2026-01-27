@@ -117,4 +117,54 @@ export default defineSchema({
     en: v.string(), // English text
     ar: v.string(), // Arabic text
   }).index("by_key", ["key"]),
+
+  // Payment agreements table for Tap Payments
+  payment_agreements: defineTable({
+    tap_payment_agreement_id: v.string(), // Tap's payment agreement ID
+    tap_customer_id: v.string(), // Tap's customer ID
+    tap_card_id: v.optional(v.string()), // Tap's card ID (if available)
+    contract_type: v.union(
+      v.literal("UNSCHEDULED"),
+      v.literal("SUBSCRIPTION"),
+      v.literal("INSTALLMENT"),
+      v.literal("MILESTONE"),
+      v.literal("ORDER"),
+    ),
+    status: v.union(
+      v.literal("active"),
+      v.literal("cancelled"),
+      v.literal("expired"),
+    ),
+    user_id: v.string(), // Clerk user ID
+    created_at: v.number(),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_tap_payment_agreement_id", ["tap_payment_agreement_id"])
+    .index("by_tap_customer_id", ["tap_customer_id"])
+    .index("by_status", ["status"]),
+
+  // Subscriptions table for recurring billing
+  subscriptions: defineTable({
+    user_id: v.string(), // Clerk user ID
+    plan_id: v.string(), // Plan identifier (starter, pro, premium)
+    payment_agreement_id: v.optional(v.id("payment_agreements")), // Link to payment agreement (optional - temporarily null)
+    amount: v.number(), // Subscription amount in smallest currency unit
+    currency: v.string(), // Currency code (e.g., "SAR")
+    status: v.union(
+      v.literal("active"),
+      v.literal("cancelled"),
+      v.literal("failed"),
+      v.literal("expired"),
+    ),
+    next_billing_date: v.number(), // Unix timestamp for next billing date
+    created_at: v.number(),
+    cancelled_at: v.optional(v.number()),
+    last_billing_date: v.optional(v.number()),
+    last_billing_charge_id: v.optional(v.string()), // Tap charge ID from last billing
+  })
+    .index("by_user", ["user_id"])
+    .index("by_payment_agreement", ["payment_agreement_id"])
+    .index("by_next_billing_date", ["next_billing_date"])
+    .index("by_status", ["status"])
+    .index("by_user_and_status", ["user_id", "status"]),
 });

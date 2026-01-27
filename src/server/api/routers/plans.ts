@@ -19,47 +19,69 @@ export const plansRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // Get plan amount
-      const amount = PLAN_PRICES[input.planId];
-      if (!amount) {
-        throw new Error(`Invalid planId: ${input.planId}`);
-      }
+      try {
+        // Get plan amount
+        const amount = PLAN_PRICES[input.planId];
+        if (!amount) {
+          throw new Error(`Invalid planId: ${input.planId}`);
+        }
 
-      // Check if user already has a Tap customer ID
-      const client = await clerkClient();
-      const user = await client.users.getUser(ctx.userId);
+        // Check if user already has a Tap customer ID
+        const client = await clerkClient();
+        const user = await client.users.getUser(ctx.userId);
 
-      const existingTapCustomerId = user.privateMetadata?.tap_customer_id as
-        | string
-        | undefined;
+        const existingTapCustomerId = user.privateMetadata?.tap_customer_id as
+          | string
+          | undefined;
 
-      let tapCustomerId: string;
+        let tapCustomerId: string;
 
-      if (!existingTapCustomerId) {
-        // Create new Tap customer for the user if it doesn't exist
-        const tapCustomer = await createTapCustomer(ctx.userId);
-        tapCustomerId = tapCustomer.customer.id;
+        if (!existingTapCustomerId) {
+          // Create new Tap customer for the user if it doesn't exist
+          const tapCustomer = await createTapCustomer(ctx.userId);
+          tapCustomerId = tapCustomer.customer.id;
 
-        // Store the Tap customer ID in user's privateMetadata
-        await client.users.updateUser(ctx.userId, {
-          privateMetadata: {
-            tap_customer_id: tapCustomerId,
+          // Store the Tap customer ID in user's privateMetadata
+          await client.users.updateUser(ctx.userId, {
+            privateMetadata: {
+              tap_customer_id: tapCustomerId,
+            },
+          });
+
+          console.log("Tap customer created and stored:", tapCustomerId);
+        } else {
+          tapCustomerId = existingTapCustomerId;
+        }
+
+        // Create charge (temporarily without save_card - will enable later)
+        // For now, subscriptions will be created without payment agreements
+        const transactionUrl = await createCharge(
+          tapCustomerId,
+          amount,
+          input.language,
+          {
+            saveCard: false, // Temporarily false - will enable card saving later
+            agreementType: "subscription",
+            metadata: {
+              user_id: ctx.userId,
+              plan_id: input.planId,
+            },
           },
-        });
+        );
+        console.log(
+          "Tap charge created with payment agreement, transaction URL:",
+          transactionUrl,
+        );
 
-        console.log("Tap customer created and stored:", tapCustomerId);
-      } else {
-        tapCustomerId = existingTapCustomerId;
+        return { success: true, tapCustomerId, transactionUrl };
+      } catch (error) {
+        console.error("Error in handlePlanCheckout:", error);
+        // Re-throw with better error message
+        throw new Error(
+          error instanceof Error
+            ? error.message
+            : "Failed to process plan checkout. Please check your Tap configuration.",
+        );
       }
-
-      // Create charge now that we have a tap customer ID
-      const transactionUrl = await createCharge(
-        tapCustomerId,
-        amount,
-        input.language,
-      );
-      console.log("Tap charge created, transaction URL:", transactionUrl);
-
-      return { success: true, tapCustomerId, transactionUrl };
     }),
 });

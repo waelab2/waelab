@@ -11,7 +11,12 @@ export const env = createEnv({
     ELEVENLABS_API_KEY: z.string(),
     RUNWAY_API_KEY: z.string(),
     CLERK_SECRET_KEY: z.string(),
-    TEST_SECRET_KEY: z.string(),
+    // TAP_SECRET_KEY takes precedence if set (allows easy swapping for debugging)
+    // Otherwise falls back to TEST_SECRET_KEY or LIVE_SECRET_KEY
+    TAP_SECRET_KEY: z.string().optional(),
+    TEST_SECRET_KEY: z.string().optional(),
+    LIVE_SECRET_KEY: z.string().optional(),
+    TAP_WEBHOOK_URL: z.string().url().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -36,7 +41,10 @@ export const env = createEnv({
     ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
     RUNWAY_API_KEY: process.env.RUNWAY_API_KEY,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    TAP_SECRET_KEY: process.env.TAP_SECRET_KEY,
     TEST_SECRET_KEY: process.env.TEST_SECRET_KEY,
+    LIVE_SECRET_KEY: process.env.LIVE_SECRET_KEY,
+    TAP_WEBHOOK_URL: process.env.TAP_WEBHOOK_URL,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
     NEXT_PUBLIC_CLERK_FRONTEND_API_URL:

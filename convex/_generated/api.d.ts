@@ -8,7 +8,10 @@
  * @module
  */
 
+import type * as crons from "../crons.js";
 import type * as generationRequests from "../generationRequests.js";
+import type * as paymentAgreements from "../paymentAgreements.js";
+import type * as subscriptionBilling from "../subscriptionBilling.js";
 import type * as translations from "../translations.js";
 
 import type {
@@ -18,7 +21,10 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  crons: typeof crons;
   generationRequests: typeof generationRequests;
+  paymentAgreements: typeof paymentAgreements;
+  subscriptionBilling: typeof subscriptionBilling;
   translations: typeof translations;
 }>;
 
