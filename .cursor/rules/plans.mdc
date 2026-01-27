@@ -9,6 +9,8 @@ globs: **/*.ts,**/*.tsx,**/*.js,**/*.jsx
 
 The plans system manages subscription plans with the following components:
 - **Frontend**: `src/app/our-plans/` - UI components for displaying and selecting plans
+- **Admin Dashboard**: `src/app/dashboard/users/` - Admin interface for viewing user subscriptions
+- **Hooks**: `src/hooks/use-subscription.ts` - React hook for fetching subscription data
 - **tRPC Router**: `src/server/api/routers/plans.ts` - Server-side plan checkout logic
 - **Convex**: `convex/paymentAgreements.ts` - Subscription and payment agreement management
 - **Clerk**: User authentication and Tap customer ID storage
@@ -224,6 +226,30 @@ await client.users.updateUser(userId, {
 - Clerk doesn't provide type safety for `privateMetadata`
 - Store only non-sensitive data (IDs, not secrets)
 
+## Frontend Hooks
+
+### useUserSubscription Hook (`src/hooks/use-subscription.ts`)
+
+**Purpose**: React hook to fetch user subscription data from Convex.
+
+**Usage**:
+```typescript
+import { useUserSubscription } from "@/hooks/use-subscription";
+
+const subscription = useUserSubscription(userId);
+// Returns subscription object or null if no subscription exists
+```
+
+**Returns**:
+- `null` if user has no active subscription
+- Subscription object with: `plan_id`, `status`, `amount`, `currency`, `next_billing_date`, `cancelled_at`, etc.
+
+**Important**:
+- Uses Convex `useQuery` under the hood
+- Automatically handles loading states
+- Returns `null` (not `undefined`) when no subscription exists
+- Only fetches active subscriptions (via `getUserSubscription` query)
+
 ## Tap Payment Integration
 
 ### Creating Charges (`src/server/api/routers/tap.ts`)
@@ -390,7 +416,13 @@ const subscription = await ctx.db
   )
   .first();
 
-// Via Convex API from frontend
+// Via Convex API from frontend (using hook)
+import { useUserSubscription } from "@/hooks/use-subscription";
+
+const subscription = useUserSubscription(userId);
+// Returns subscription object or null if no subscription exists
+
+// Or via Convex query directly
 const subscription = await convex.query(api.paymentAgreements.getUserSubscription, {
   userId: clerkUserId,
 });
