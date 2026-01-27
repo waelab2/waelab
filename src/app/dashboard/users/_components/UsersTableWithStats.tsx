@@ -97,8 +97,7 @@ const UserRowWithStats = memo(
 
     const handleRevokeSubscription = async () => {
       if (
-        !subscription ||
-        subscription.status !== "active" ||
+        subscription?.status !== "active" ||
         !confirm(
           `Are you sure you want to revoke ${user.name}'s subscription? This action cannot be undone.`,
         )
@@ -109,7 +108,7 @@ const UserRowWithStats = memo(
       setIsRevoking(true);
       try {
         await revokeMutation.mutateAsync({ userId: user.id });
-      } catch (error) {
+      } catch {
         // Error is handled in onError callback
       }
     };

@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../convex/_generated/api";
+import type { Id } from "../../../../../convex/_generated/dataModel";
 import { env } from "~/env";
 import { clerkClient } from "@clerk/nextjs/server";
 import crypto from "crypto";
@@ -123,13 +125,13 @@ function verifyWebhookSignature(
  * Find user by Tap customer ID
  */
 async function findUserByTapCustomerId(
-  tapCustomerId: string,
+  _tapCustomerId: string,
 ): Promise<string | null> {
   try {
     // Search through users to find one with matching tap_customer_id
     // This is a simplified approach - in production, you might want to
     // maintain a mapping table or use a more efficient lookup
-    const client = await clerkClient();
+    await clerkClient();
 
     // Note: Clerk doesn't have a direct way to search by metadata
     // You may need to maintain a separate mapping or use Convex to store this
@@ -158,7 +160,7 @@ export async function POST(request: NextRequest) {
 
     let webhookPayload: TapWebhookChargePayload | TapWebhookEvent;
     try {
-      webhookPayload = JSON.parse(body);
+      webhookPayload = JSON.parse(body) as TapWebhookChargePayload | TapWebhookEvent;
     } catch (parseError) {
       console.error("Failed to parse webhook body:", parseError);
       return NextResponse.json(
@@ -174,7 +176,7 @@ export async function POST(request: NextRequest) {
     
     if ('data' in webhookPayload && webhookPayload.data?.object) {
       // Wrapped event structure (if Tap ever uses it)
-      eventType = (webhookPayload as TapWebhookEvent).type;
+      eventType = webhookPayload.type;
       charge = webhookPayload.data.object;
     } else if ('object' in webhookPayload && webhookPayload.object === 'charge') {
       // Direct charge structure (what Tap actually sends)
@@ -200,8 +202,8 @@ export async function POST(request: NextRequest) {
 
       // Try to find user from metadata in charge (if we stored it)
       let userId: string | null = null;
-      if (charge.metadata && typeof charge.metadata.user_id === "string") {
-        userId = charge.metadata.user_id as string;
+      if (typeof charge.metadata?.user_id === "string") {
+        userId = charge.metadata.user_id;
       } else {
         // Fallback: try to find by Tap customer ID
         userId = await findUserByTapCustomerId(tapCustomerId);
@@ -214,7 +216,7 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let agreementId: string | undefined = undefined;
+        let agreementId: Id<"payment_agreements"> | undefined = undefined;
 
         // Store payment agreement in Convex if it exists (temporarily optional)
         if (charge.payment_agreement?.id) {
@@ -247,11 +249,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Create subscription if plan_id is in metadata (works with or without payment agreement)
-        if (
-          charge.metadata &&
-          typeof charge.metadata.plan_id === "string"
-        ) {
-          const planId = charge.metadata.plan_id as string;
+        if (typeof charge.metadata?.plan_id === "string") {
+          const planId = charge.metadata.plan_id;
           const amount = charge.amount;
           const currency = charge.currency;
 
@@ -277,8 +276,8 @@ export async function POST(request: NextRequest) {
     if (eventType === "charge.failed" || (webhookPayload as TapWebhookChargePayload).status === "FAILED" || (webhookPayload as TapWebhookChargePayload).status === "DECLINED") {
 
       // Try to find subscription and update status
-      if (charge.metadata && typeof charge.metadata.user_id === "string") {
-        const userId = charge.metadata.user_id as string;
+      if (typeof charge.metadata?.user_id === "string") {
+        const userId = charge.metadata.user_id;
 
         try {
           // Update subscription status to failed

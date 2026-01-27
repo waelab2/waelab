@@ -111,8 +111,9 @@ export async function createTapCustomer(
         const phoneWithoutPlus = primaryPhone.replace(/^\+/, "");
         // Try to extract country code (assuming 1-3 digits) and number
         // This is a simple approach - you might need to adjust based on your phone number format
-        const match = phoneWithoutPlus.match(/^(\d{1,3})(\d+)$/);
-        if (match && match[1] && match[2]) {
+        const phoneRegex = /^(\d{1,3})(\d+)$/;
+        const match = phoneRegex.exec(phoneWithoutPlus);
+        if (match?.[1] && match?.[2]) {
           payload.phone = {
             country_code: match[1],
             number: match[2],
@@ -377,7 +378,10 @@ export async function createCharge(
       };
       
       try {
-        errorData = JSON.parse(errorText);
+        errorData = JSON.parse(errorText) as {
+          errors?: Array<{ message?: string; code?: string; field?: string }>;
+          message?: string;
+        };
       } catch {
         errorData = { message: errorText };
       }
@@ -406,7 +410,7 @@ export async function createCharge(
       
       // Provide helpful error message for common error codes
       let fullErrorMessage = errorMessage;
-      if (errorCode === "1108" || errorCode === 1108) {
+      if (errorCode === "1108") {
         fullErrorMessage = `Save Card feature is not enabled on your Tap merchant account. Please contact your Tap account manager to enable the "Save Card" feature. Original error: ${errorMessage}`;
       } else if (errorCode || errorField) {
         fullErrorMessage = `${errorMessage} (Code: ${errorCode}${errorField ? `, Field: ${errorField}` : ""})`;
