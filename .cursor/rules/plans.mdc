@@ -9,9 +9,9 @@ globs: **/*.ts,**/*.tsx,**/*.js,**/*.jsx
 
 The plans system manages subscription plans with the following components:
 - **Frontend**: `src/app/our-plans/` - UI components for displaying and selecting plans
-- **Admin Dashboard**: `src/app/dashboard/users/` - Admin interface for viewing user subscriptions
+- **Admin Dashboard**: `src/app/dashboard/users/` - Admin interface for viewing and managing user subscriptions (including revoking)
 - **Hooks**: `src/hooks/use-subscription.ts` - React hook for fetching subscription data
-- **tRPC Router**: `src/server/api/routers/plans.ts` - Server-side plan checkout logic
+- **tRPC Router**: `src/server/api/routers/plans.ts` - Server-side plan checkout and revocation logic
 - **Convex**: `convex/paymentAgreements.ts` - Subscription and payment agreement management
 - **Clerk**: User authentication and Tap customer ID storage
 - **Tap Payments**: Payment processing and webhook handling
@@ -52,10 +52,11 @@ interface Plan {
 }
 ```
 
-## Frontend Components (`src/app/our-plans/`)
+## Frontend Components
 
-### File Structure
+### Public Plans Page (`src/app/our-plans/`)
 
+**File Structure**:
 - `page.tsx` - Main page component (renders Hero, SectionOne, PricingSection, Footer)
 - `_components/pricing-section.tsx` - Main pricing display component
 - `_components/section-one.tsx` - Informational section component
@@ -99,6 +100,46 @@ if (result.transactionUrl) {
 - `our_plans.pricing.billing`
 - `our_plans.pricing.cta`
 
+### Admin Dashboard (`src/app/dashboard/users/`)
+
+**File Structure**:
+- `page.tsx` - Main users page component
+- `_components/UsersTableWithStats.tsx` - Table component displaying users with subscription info and revoke button
+
+**UsersTableWithStats Component**:
+- Displays user information, analytics, and subscription details
+- Shows revoke subscription button for users with active subscriptions
+- Uses `api.plans.revokeSubscription.useMutation()` for revocation
+- Includes confirmation dialog before revoking
+- Shows loading state and toast notifications
+
+**Key Features**:
+- Subscription status badges (active, cancelled, failed, expired)
+- Plan name and pricing display
+- Next billing date for active subscriptions
+- Revoke button (only for active subscriptions, admin-only)
+- Real-time subscription data via `useUserSubscription` hook
+
+**Important Patterns**:
+```typescript
+// Revoke subscription with confirmation
+const revokeMutation = api.plans.revokeSubscription.useMutation({
+  onSuccess: () => {
+    toast.success("Subscription revoked successfully");
+  },
+  onError: (error) => {
+    toast.error(error.message);
+  },
+});
+
+const handleRevoke = async () => {
+  if (!confirm("Are you sure you want to revoke this subscription?")) {
+    return;
+  }
+  await revokeMutation.mutateAsync({ userId: targetUserId });
+};
+```
+
 ## tRPC Router (`src/server/api/routers/plans.ts`)
 
 ### handlePlanCheckout Mutation
@@ -135,6 +176,33 @@ if (result.transactionUrl) {
 - Always use `protectedProcedure` for plan operations
 - Tap customer ID is stored in Clerk `privateMetadata.tap_customer_id`
 - Charge metadata must include `user_id` and `plan_id` for webhook processing
+
+### revokeSubscription Mutation
+
+**Purpose**: Allows admins to revoke (cancel) a user's active subscription.
+
+**Input Schema**:
+```typescript
+{
+  userId: z.string(), // Clerk user ID of the user whose subscription to revoke
+}
+```
+
+**Flow**:
+1. Verifies current user is an Admin (checks `publicMetadata.role`)
+2. Calls Convex `updateSubscriptionStatus` mutation with status `"cancelled"`
+3. Returns `{ success: true, subscriptionId }` on success
+
+**Error Handling**:
+- Throws error if user is not an Admin
+- Throws error if no active subscription found for the user
+- All errors include descriptive messages
+
+**Important**:
+- **Admin-only**: Only users with `role: "Admin"` in `publicMetadata` can revoke subscriptions
+- Uses `ConvexHttpClient` to call Convex mutations from tRPC
+- Sets subscription status to `"cancelled"` and `cancelled_at` timestamp
+- Subscription will no longer be billed after revocation
 
 ## Convex Functions (`convex/paymentAgreements.ts`)
 
@@ -458,6 +526,34 @@ await convexClient.mutation(api.paymentAgreements.createSubscription, {
 });
 ```
 
+### Revoking a Subscription (Admin Only)
+
+```typescript
+// From tRPC mutation (admin dashboard)
+const result = await api.plans.revokeSubscription.mutateAsync({
+  userId: targetUserId,
+});
+
+// From frontend component
+const revokeMutation = api.plans.revokeSubscription.useMutation({
+  onSuccess: () => {
+    toast.success("Subscription revoked successfully");
+  },
+  onError: (error) => {
+    toast.error(error.message);
+  },
+});
+
+// Call the mutation
+await revokeMutation.mutateAsync({ userId: targetUserId });
+```
+
+**Important**:
+- Only admins can revoke subscriptions (checked via `publicMetadata.role`)
+- Revocation sets subscription status to `"cancelled"` and sets `cancelled_at` timestamp
+- Revoked subscriptions will not be billed in future billing cycles
+- UI should show confirmation dialog before revoking to prevent accidental cancellations
+
 ## Testing Considerations
 
 1. **Plan Checkout Flow**:
@@ -480,3 +576,10 @@ await convexClient.mutation(api.paymentAgreements.createSubscription, {
    - User without Tap customer
    - Missing metadata in webhook
    - Invalid plan IDs
+
+5. **Subscription Revocation**:
+   - Test admin-only access (non-admins should be rejected)
+   - Test revoking active subscriptions
+   - Test revoking already-cancelled subscriptions (should fail gracefully)
+   - Verify subscription status updates correctly in Convex
+   - Verify UI updates after revocation

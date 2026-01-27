@@ -1,18 +1,22 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useUserAnalytics } from "@/hooks/use-analytics";
 import { useUserSubscription } from "@/hooks/use-subscription";
 import { formatNumber } from "@/lib/utils";
+import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import {
   Activity,
   Calendar,
   CreditCard,
   Mail,
+  X,
   Zap,
 } from "lucide-react";
 import Image from "next/image";
-import { memo } from "react";
+import { memo, useState } from "react";
+import { toast } from "sonner";
 
 export interface UserWithStats {
   id: string;
@@ -78,6 +82,37 @@ const UserRowWithStats = memo(
   ({ user, index }: { user: UserWithStats; index: number }) => {
     const userAnalytics = useUserAnalytics(user.id);
     const subscription = useUserSubscription(user.id);
+    const [isRevoking, setIsRevoking] = useState(false);
+
+    const revokeMutation = api.plans.revokeSubscription.useMutation({
+      onSuccess: () => {
+        toast.success("Subscription revoked successfully");
+        setIsRevoking(false);
+      },
+      onError: (error) => {
+        toast.error(error.message ?? "Failed to revoke subscription");
+        setIsRevoking(false);
+      },
+    });
+
+    const handleRevokeSubscription = async () => {
+      if (
+        !subscription ||
+        subscription.status !== "active" ||
+        !confirm(
+          `Are you sure you want to revoke ${user.name}'s subscription? This action cannot be undone.`,
+        )
+      ) {
+        return;
+      }
+
+      setIsRevoking(true);
+      try {
+        await revokeMutation.mutateAsync({ userId: user.id });
+      } catch (error) {
+        // Error is handled in onError callback
+      }
+    };
 
     // Format plan name
     const getPlanName = (planId: string) => {
@@ -243,6 +278,20 @@ const UserRowWithStats = memo(
                 )}
               </div>
             </div>
+            {subscription?.status === "active" && (
+              <div className="mt-2">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleRevokeSubscription}
+                  disabled={isRevoking}
+                  className="w-full sm:w-auto"
+                >
+                  <X className="mr-2 h-3 w-3" />
+                  {isRevoking ? "Revoking..." : "Revoke Subscription"}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>

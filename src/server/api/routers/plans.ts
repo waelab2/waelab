@@ -1,8 +1,13 @@
 import { clerkClient } from "@clerk/nextjs/server";
+import { ConvexHttpClient } from "convex/browser";
+import { api as convexApi } from "../../../../convex/_generated/api";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { getPlanPrice } from "~/lib/constants/plans";
 import { createCharge, createTapCustomer } from "./tap";
+import { env } from "~/env";
+
+const convexClient = new ConvexHttpClient(env.NEXT_PUBLIC_CONVEX_URL);
 
 export const plansRouter = createTRPCRouter({
   handlePlanCheckout: protectedProcedure
@@ -75,6 +80,49 @@ export const plansRouter = createTRPCRouter({
           error instanceof Error
             ? error.message
             : "Failed to process plan checkout. Please check your Tap configuration.",
+        );
+      }
+    }),
+
+  revokeSubscription: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Only allow admins to revoke subscriptions
+        // You may want to add role checking here
+        const client = await clerkClient();
+        const currentUser = await client.users.getUser(ctx.userId);
+        const userRole = currentUser.publicMetadata?.role as string | undefined;
+
+        // Check if user is admin (adjust this check based on your role system)
+        if (userRole !== "Admin") {
+          throw new Error("Unauthorized: Only admins can revoke subscriptions");
+        }
+
+        // Call Convex mutation to update subscription status to cancelled
+        const subscriptionId = await convexClient.mutation(
+          convexApi.paymentAgreements.updateSubscriptionStatus,
+          {
+            userId: input.userId,
+            status: "cancelled",
+          },
+        );
+
+        if (!subscriptionId) {
+          throw new Error("No active subscription found for this user");
+        }
+
+        return { success: true, subscriptionId };
+      } catch (error) {
+        console.error("Error revoking subscription:", error);
+        throw new Error(
+          error instanceof Error
+            ? error.message
+            : "Failed to revoke subscription",
         );
       }
     }),
