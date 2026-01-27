@@ -1,0 +1,450 @@
+---
+description: Guidelines and best practices for working with subscription plans, including frontend components, tRPC routers, Convex functions, Clerk integration, and Tap payment processing
+globs: **/*.ts,**/*.tsx,**/*.js,**/*.jsx
+---
+
+# Plans System Guidelines
+
+## Overview
+
+The plans system manages subscription plans with the following components:
+- **Frontend**: `src/app/our-plans/` - UI components for displaying and selecting plans
+- **tRPC Router**: `src/server/api/routers/plans.ts` - Server-side plan checkout logic
+- **Convex**: `convex/paymentAgreements.ts` - Subscription and payment agreement management
+- **Clerk**: User authentication and Tap customer ID storage
+- **Tap Payments**: Payment processing and webhook handling
+
+## Plan Structure
+
+### Plan IDs and Pricing
+
+Plans are identified by string IDs and have fixed monthly prices:
+- `starter`: 75 SAR/month
+- `pro`: 180 SAR/month (marked as popular)
+- `premium`: 375 SAR/month
+
+**Important**: Plan prices are defined in a single shared location:
+- `src/lib/constants/plans.ts` - `PLAN_PRICES` constant (used by both frontend and backend)
+
+Both the frontend display and backend checkout use the same source of truth via helper functions:
+- `getPlanPrice(planId)` - Returns monthly price
+- `getYearlyPrice(planId)` - Returns yearly price (monthly * 12)
+
+**When modifying prices**: Update only `src/lib/constants/plans.ts`.
+
+### Plan Data Structure
+
+```typescript
+interface Plan {
+  id: string; // "starter" | "pro" | "premium"
+  name: string; // Translated plan name
+  icon: StaticImageData;
+  price: {
+    monthly: number | string;
+    yearly: number | string; // Currently: monthly * 12 (no discount)
+  };
+  description: string; // Translated description
+  features: string[]; // Translated feature list
+  cta: string; // Translated call-to-action
+  popular?: boolean; // Only "pro" plan has this
+}
+```
+
+## Frontend Components (`src/app/our-plans/`)
+
+### File Structure
+
+- `page.tsx` - Main page component (renders Hero, SectionOne, PricingSection, Footer)
+- `_components/pricing-section.tsx` - Main pricing display component
+- `_components/section-one.tsx` - Informational section component
+
+### PricingSection Component
+
+**Key Features**:
+- Uses `useAuth()` and `useClerk()` from Clerk for authentication
+- Uses `api.plans.handlePlanCheckout.useMutation()` for checkout
+- Handles monthly/yearly frequency toggle (UI only - billing is always monthly)
+- Redirects unauthenticated users to Clerk sign-in
+- Redirects authenticated users to Tap payment page
+
+**Important Patterns**:
+```typescript
+// Always check if auth is loaded before proceeding
+if (!isLoaded) {
+  return;
+}
+
+// Handle unauthenticated users
+if (!userId) {
+  clerk.openSignIn({
+    redirectUrl: "/our-plans",
+  });
+  return;
+}
+
+// Call tRPC mutation with planId and language
+const result = await checkoutMutation.mutateAsync({ planId, language });
+if (result.transactionUrl) {
+  window.location.href = result.transactionUrl;
+}
+```
+
+**Translation Keys**:
+- `our_plans.pricing.starter.*` - Starter plan translations
+- `our_plans.pricing.pro.*` - Pro plan translations
+- `our_plans.pricing.premium.*` - Premium plan translations
+- `our_plans.pricing.tabs.monthly` / `our_plans.pricing.tabs.yearly`
+- `our_plans.pricing.billing`
+- `our_plans.pricing.cta`
+
+## tRPC Router (`src/server/api/routers/plans.ts`)
+
+### handlePlanCheckout Mutation
+
+**Purpose**: Initiates plan checkout by creating/retrieving Tap customer and creating charge.
+
+**Input Schema**:
+```typescript
+{
+  planId: z.string(), // Must match PLAN_PRICES keys
+  language: z.enum(["en", "ar"]),
+}
+```
+
+**Flow**:
+1. Validates `planId` against `PLAN_PRICES` constant
+2. Gets or creates Tap customer ID:
+   - Checks Clerk `user.privateMetadata.tap_customer_id`
+   - If missing, calls `createTapCustomer()` from `./tap`
+   - Stores Tap customer ID in Clerk `privateMetadata`
+3. Creates Tap charge with:
+   - `saveCard: false` (temporarily disabled)
+   - `agreementType: "subscription"`
+   - Metadata: `{ user_id, plan_id }`
+4. Returns `{ success: true, tapCustomerId, transactionUrl }`
+
+**Error Handling**:
+- Throws error if `planId` is invalid
+- Throws error if Tap customer creation fails
+- Throws error if charge creation fails
+- All errors include descriptive messages
+
+**Important**: 
+- Always use `protectedProcedure` for plan operations
+- Tap customer ID is stored in Clerk `privateMetadata.tap_customer_id`
+- Charge metadata must include `user_id` and `plan_id` for webhook processing
+
+## Convex Functions (`convex/paymentAgreements.ts`)
+
+### Payment Agreements
+
+**Table**: `payment_agreements`
+- Stores Tap payment agreement data
+- Links to user via `user_id` (Clerk user ID)
+- Status: `active` | `cancelled` | `expired`
+
+**Key Functions**:
+- `storePaymentAgreement` - Stores payment agreement from webhook
+- `getPaymentAgreementByTapId` - Query by Tap payment agreement ID
+- `getPaymentAgreementById` - Internal query by Convex ID
+
+### Subscriptions
+
+**Table**: `subscriptions`
+- Stores subscription records
+- Links to user via `user_id` (Clerk user ID)
+- Links to payment agreement via `payment_agreement_id` (optional - temporarily null)
+- Status: `active` | `cancelled` | `failed` | `expired`
+
+**Key Functions**:
+- `createSubscription` - Creates or updates subscription
+  - If user has active subscription, updates it
+  - Otherwise creates new subscription
+  - `paymentAgreementId` is optional (temporarily null until card saving enabled)
+- `getUserSubscription` - Query user's active subscription
+- `updateSubscriptionStatus` - Updates subscription status
+  - Sets `cancelled_at` when cancelling
+  - Updates `last_billing_date` and `next_billing_date` when billing succeeds
+- `getSubscriptionsForBilling` - Internal query for subscriptions due for billing
+
+**Important Patterns**:
+```typescript
+// Always check for existing active subscription before creating
+const existing = await ctx.db
+  .query("subscriptions")
+  .withIndex("by_user_and_status", (q) =>
+    q.eq("user_id", args.userId).eq("status", "active"),
+  )
+  .first();
+
+if (existing) {
+  // Update existing instead of creating duplicate
+  await ctx.db.patch(existing._id, { ... });
+}
+```
+
+**Billing Cycle**:
+- Subscriptions are billed monthly (30 days)
+- `next_billing_date` is calculated as: `Date.now() + 30 * 24 * 60 * 60 * 1000`
+- Recurring billing is handled by `convex/subscriptionBilling.ts` cron job
+
+## Clerk Integration
+
+### User Metadata Storage
+
+**Tap Customer ID**:
+- Stored in: `user.privateMetadata.tap_customer_id`
+- Type: `string | undefined`
+- Set when: First plan checkout (if not already set)
+- Used for: Creating charges and recurring payments
+
+**Tap Payment Agreement ID**:
+- Stored in: `user.privateMetadata.tap_payment_agreement_id`
+- Type: `string | undefined`
+- Set when: Webhook receives payment agreement
+- Used for: Linking subscriptions to payment agreements
+
+**Access Pattern**:
+```typescript
+const client = await clerkClient();
+const user = await client.users.getUser(userId);
+const tapCustomerId = user.privateMetadata?.tap_customer_id as string | undefined;
+
+// Update metadata
+await client.users.updateUser(userId, {
+  privateMetadata: {
+    tap_customer_id: tapCustomerId,
+    // ... other metadata
+  },
+});
+```
+
+**Important**: 
+- Always use type assertion when accessing `privateMetadata` fields
+- Clerk doesn't provide type safety for `privateMetadata`
+- Store only non-sensitive data (IDs, not secrets)
+
+## Tap Payment Integration
+
+### Creating Charges (`src/server/api/routers/tap.ts`)
+
+**createCharge Function**:
+- Creates Tap charge for one-time or initial subscription payment
+- Returns transaction URL for redirect
+- Supports `saveCard` option (currently disabled)
+- Supports `agreementType` for subscription setup
+
+**createRecurringCharge Function**:
+- Creates merchant-initiated charge using payment agreement
+- Requires payment agreement ID and Tap customer ID
+- Generates token before creating charge
+- Used for recurring billing
+
+**Important**:
+- Always include `metadata` with `user_id` and `plan_id` for webhook processing
+- Webhook URL is configured via `TAP_WEBHOOK_URL` env var
+- Redirect URL after payment: `/dashboard` (hardcoded in `createCharge`)
+
+### Webhook Handling (`src/app/api/tap/webhook/route.ts`)
+
+**Webhook Flow**:
+1. Verifies webhook signature (hashstring)
+2. Parses charge object from Tap
+3. Handles `CAPTURED` status (successful payment):
+   - Finds user by Tap customer ID
+   - Stores payment agreement if present
+   - Creates subscription if `plan_id` in metadata
+4. Returns 200 OK to acknowledge webhook
+
+**Key Processing**:
+```typescript
+// Store payment agreement
+if (charge.payment_agreement?.id) {
+  await convexClient.mutation(api.paymentAgreements.storePaymentAgreement, {
+    tapPaymentAgreementId: charge.payment_agreement.id,
+    tapCustomerId: tapCustomerId,
+    userId: userId,
+    // ...
+  });
+}
+
+// Create subscription
+if (charge.metadata?.plan_id) {
+  await convexClient.mutation(api.paymentAgreements.createSubscription, {
+    userId: userId,
+    planId: charge.metadata.plan_id,
+    paymentAgreementId: agreementId, // May be undefined
+    amount: charge.amount,
+    currency: charge.currency,
+    nextBillingDate: Date.now() + 30 * 24 * 60 * 60 * 1000,
+  });
+}
+```
+
+**Important**:
+- Webhook must always return 200 OK to prevent Tap retries
+- Handle errors gracefully but log them
+- Payment agreement is optional (temporarily null until card saving enabled)
+
+## Recurring Billing
+
+### Cron Job (`convex/subscriptionBilling.ts`)
+
+**processRecurringBilling**:
+- Runs daily via Convex cron
+- Queries subscriptions due for billing (`next_billing_date <= now`)
+- For each subscription:
+  - Gets payment agreement (if exists)
+  - Creates recurring charge via Tap API
+  - Updates subscription status and billing dates
+- Returns processing statistics
+
+**Important**:
+- Only processes `active` subscriptions
+- Updates `next_billing_date` to 30 days from now after successful billing
+- Sets subscription to `failed` if charge fails
+- Logs all billing attempts for debugging
+
+## Best Practices
+
+### When Adding New Plans
+
+1. **Update Plan Prices**:
+   - Add to `PLAN_PRICES` in `src/server/api/routers/plans.ts`
+   - Add plan data to `plans` array in `pricing-section.tsx`
+
+2. **Add Translations**:
+   - Add translation keys for plan name, description, features
+   - Follow pattern: `our_plans.pricing.{planId}.{field}`
+
+3. **Test Flow**:
+   - Test checkout flow end-to-end
+   - Verify webhook creates subscription correctly
+   - Verify subscription appears in Convex
+
+### When Modifying Subscription Logic
+
+1. **Always Check for Existing Subscriptions**:
+   - Use `by_user_and_status` index
+   - Update existing instead of creating duplicates
+
+2. **Handle Payment Agreement Optionality**:
+   - `payment_agreement_id` is optional (temporarily null)
+   - Code should work with or without payment agreement
+   - Use conditional spreading: `...(args.paymentAgreementId && { payment_agreement_id: args.paymentAgreementId })`
+
+3. **Maintain Data Consistency**:
+   - Keep Clerk metadata in sync with Convex data
+   - Update both when payment agreement is created
+   - Handle race conditions in webhook processing
+
+### Error Handling
+
+1. **Frontend**:
+   - Show loading states during checkout
+   - Handle authentication errors gracefully
+   - Display user-friendly error messages
+
+2. **tRPC**:
+   - Validate inputs with Zod schemas
+   - Provide descriptive error messages
+   - Log errors for debugging
+
+3. **Convex**:
+   - Return `null` for not-found queries (not errors)
+   - Use proper return validators
+   - Handle edge cases (existing subscriptions, missing data)
+
+4. **Webhook**:
+   - Always return 200 OK to prevent retries
+   - Log errors but don't fail the webhook
+   - Handle missing data gracefully
+
+### Type Safety
+
+1. **Plan IDs**:
+   - Use string literals: `"starter" | "pro" | "premium"`
+   - Validate against `PLAN_PRICES` keys
+   - Don't use `any` type
+
+2. **Clerk Metadata**:
+   - Use type assertions: `as string | undefined`
+   - Check for existence before use
+   - Handle undefined cases
+
+3. **Convex Validators**:
+   - Always include `args` and `returns` validators
+   - Use proper union types for status fields
+   - Use `v.optional()` for nullable fields
+
+## Common Patterns
+
+### Getting User's Active Subscription
+
+```typescript
+// In Convex query
+const subscription = await ctx.db
+  .query("subscriptions")
+  .withIndex("by_user_and_status", (q) =>
+    q.eq("user_id", userId).eq("status", "active"),
+  )
+  .first();
+
+// Via Convex API from frontend
+const subscription = await convex.query(api.paymentAgreements.getUserSubscription, {
+  userId: clerkUserId,
+});
+```
+
+### Checking if User Has Tap Customer
+
+```typescript
+const client = await clerkClient();
+const user = await client.users.getUser(userId);
+const tapCustomerId = user.privateMetadata?.tap_customer_id as string | undefined;
+
+if (!tapCustomerId) {
+  // Create new Tap customer
+  const result = await createTapCustomer(userId);
+  // Store in Clerk metadata
+}
+```
+
+### Creating Subscription from Webhook
+
+```typescript
+// Calculate next billing date (30 days from now)
+const nextBillingDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+
+await convexClient.mutation(api.paymentAgreements.createSubscription, {
+  userId: userId,
+  planId: planId,
+  paymentAgreementId: agreementId, // Optional
+  amount: amount,
+  currency: currency,
+  nextBillingDate: nextBillingDate,
+});
+```
+
+## Testing Considerations
+
+1. **Plan Checkout Flow**:
+   - Test with authenticated and unauthenticated users
+   - Verify Tap customer creation
+   - Verify charge creation and redirect
+
+2. **Webhook Processing**:
+   - Test with and without payment agreements
+   - Test subscription creation
+   - Test duplicate webhook handling
+
+3. **Recurring Billing**:
+   - Test billing date calculation
+   - Test payment agreement usage
+   - Test failed charge handling
+
+4. **Edge Cases**:
+   - User with existing subscription
+   - User without Tap customer
+   - Missing metadata in webhook
+   - Invalid plan IDs
