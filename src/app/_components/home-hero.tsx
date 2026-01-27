@@ -243,6 +243,16 @@ function MobileNavigation() {
       ? [...navigationItems].reverse()
       : navigationItems;
 
+  // Prevent hydration mismatch by only rendering Sheet on client
+  if (!isClient) {
+    return (
+      <button className="text-white transition-colors hover:text-gray-300 lg:hidden">
+        <MenuIcon className="h-8 w-8" />
+        <span className="sr-only">Open navigation menu</span>
+      </button>
+    );
+  }
+
   return (
     <Sheet>
       <SheetTrigger asChild>

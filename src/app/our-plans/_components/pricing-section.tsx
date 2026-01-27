@@ -20,6 +20,7 @@ import { ArrowRight, Check, Loader2 } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import { useEffect, useState } from "react";
 import GradientBordered from "~/components/gradient-bordered";
+import { getPlanPrice, getYearlyPrice } from "~/lib/constants/plans";
 import { useTranslations } from "~/hooks/use-translations";
 import { api } from "~/trpc/react";
 
@@ -80,8 +81,8 @@ export default function PricingSection() {
       name: t("our_plans.pricing.starter.name"),
       icon: PinIcon as StaticImageData,
       price: {
-        monthly: 75,
-        yearly: 900, // 75 * 12 (no discount)
+        monthly: getPlanPrice("starter"),
+        yearly: getYearlyPrice("starter"),
       },
       description: t("our_plans.pricing.starter.description"),
       features: [
@@ -97,8 +98,8 @@ export default function PricingSection() {
       name: t("our_plans.pricing.pro.name"),
       icon: PinIcon as StaticImageData,
       price: {
-        monthly: 180,
-        yearly: 2160, // 180 * 12 (no discount)
+        monthly: getPlanPrice("pro"),
+        yearly: getYearlyPrice("pro"),
       },
       description: t("our_plans.pricing.pro.description"),
       features: [
@@ -115,8 +116,8 @@ export default function PricingSection() {
       name: t("our_plans.pricing.premium.name"),
       icon: PinIcon as StaticImageData,
       price: {
-        monthly: 375,
-        yearly: 4500, // 375 * 12 (no discount)
+        monthly: getPlanPrice("premium"),
+        yearly: getYearlyPrice("premium"),
       },
       description: t("our_plans.pricing.premium.description"),
       features: [

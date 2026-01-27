@@ -1,14 +1,8 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { getPlanPrice } from "~/lib/constants/plans";
 import { createCharge, createTapCustomer } from "./tap";
-
-// Plan ID to monthly price mapping
-const PLAN_PRICES: Record<string, number> = {
-  starter: 75,
-  pro: 180,
-  premium: 375,
-};
 
 export const plansRouter = createTRPCRouter({
   handlePlanCheckout: protectedProcedure
@@ -21,7 +15,7 @@ export const plansRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         // Get plan amount
-        const amount = PLAN_PRICES[input.planId];
+        const amount = getPlanPrice(input.planId);
         if (!amount) {
           throw new Error(`Invalid planId: ${input.planId}`);
         }
