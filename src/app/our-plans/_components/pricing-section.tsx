@@ -3,6 +3,7 @@
 import PinIcon from "@/assets/icons/pin-icon.svg";
 import WhiteLogo from "@/assets/icons/white-logo.svg";
 import AccentedText from "@/components/accented-text";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,6 +23,7 @@ import { useEffect, useState } from "react";
 import GradientBordered from "~/components/gradient-bordered";
 import { getPlanPrice, getYearlyPrice } from "~/lib/constants/plans";
 import { useTranslations } from "~/hooks/use-translations";
+import { useUserSubscription } from "~/hooks/use-subscription";
 import { api } from "~/trpc/react";
 
 interface Plan {
@@ -44,10 +46,23 @@ export default function PricingSection() {
   const clerk = useClerk();
   const checkoutMutation = api.plans.handlePlanCheckout.useMutation();
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+  
+  // Get user's active subscription (only if authenticated)
+  const subscription = useUserSubscription(userId ?? "");
+  const hasActiveSubscription =
+    userId !== null &&
+    subscription !== null &&
+    subscription.status === "active";
+  const currentPlanId = subscription?.plan_id;
 
   const handleGetStarted = async (planId: string) => {
     // Wait for auth to load
     if (!isLoaded) {
+      return;
+    }
+
+    // Prevent checkout if user already has an active subscription
+    if (hasActiveSubscription) {
       return;
     }
 
@@ -198,6 +213,18 @@ export default function PricingSection() {
             >
               <Card className="bg-secondary/20 relative h-full w-full border border-[#73748525] text-left transition-all duration-300 hover:shadow-lg">
                 <CardHeader>
+                  {/* Current Plan Badge */}
+                  {hasActiveSubscription && currentPlanId === plan.id && (
+                    <div className="mb-4">
+                      <Badge
+                        variant="default"
+                        className="waelab-gradient-bg border-transparent text-white"
+                      >
+                        {language === "ar" ? "خطتك الحالية" : "Current Plan"}
+                      </Badge>
+                    </div>
+                  )}
+
                   {/* Price at the top */}
                   <div className="mb-8">
                     {typeof plan.price[frequency as keyof typeof plan.price] ===
@@ -258,14 +285,28 @@ export default function PricingSection() {
                 <CardFooter>
                   <Button
                     variant={plan.popular ? "default" : "outline"}
-                    className="waelab-gradient-bg w-full rounded-full py-6 font-medium text-white shadow-none transition-all duration-300 hover:text-white hover:shadow-none"
+                    className="waelab-gradient-bg w-full rounded-full py-6 font-medium text-white shadow-none transition-all duration-300 hover:text-white hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => handleGetStarted(plan.id)}
-                    disabled={!isLoaded || pendingPlanId !== null}
+                    disabled={
+                      !isLoaded ||
+                      pendingPlanId !== null ||
+                      hasActiveSubscription
+                    }
                   >
                     {pendingPlanId === plan.id ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         {language === "ar" ? "جاري المعالجة..." : "Loading..."}
+                      </>
+                    ) : hasActiveSubscription && currentPlanId === plan.id ? (
+                      <>
+                        {language === "ar" ? "خطتك الحالية" : "Current Plan"}
+                      </>
+                    ) : hasActiveSubscription ? (
+                      <>
+                        {language === "ar"
+                          ? "لديك اشتراك نشط"
+                          : "You have an active subscription"}
                       </>
                     ) : (
                       <>
