@@ -17,6 +17,7 @@ export const env = createEnv({
     TEST_SECRET_KEY: z.string().optional(),
     LIVE_SECRET_KEY: z.string().optional(),
     TAP_WEBHOOK_URL: z.string().url().optional(),
+    TAP_REDIRECT_URL: z.string().url().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -45,6 +46,7 @@ export const env = createEnv({
     TEST_SECRET_KEY: process.env.TEST_SECRET_KEY,
     LIVE_SECRET_KEY: process.env.LIVE_SECRET_KEY,
     TAP_WEBHOOK_URL: process.env.TAP_WEBHOOK_URL,
+    TAP_REDIRECT_URL: process.env.TAP_REDIRECT_URL,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
     NEXT_PUBLIC_CLERK_FRONTEND_API_URL:

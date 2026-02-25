@@ -1,13 +1,21 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { ConvexHttpClient } from "convex/browser";
-import { api as convexApi } from "../../../../convex/_generated/api";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { getPlanPrice } from "~/lib/constants/plans";
-import { createCharge, createTapCustomer } from "./tap";
 import { env } from "~/env";
+import { getPlanPrice } from "~/lib/constants/plans";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { api as convexApi } from "../../../../convex/_generated/api";
+import { createCharge, createTapCustomer, TapSaveCardNotEnabledError } from "./tap";
 
 const convexClient = new ConvexHttpClient(env.NEXT_PUBLIC_CONVEX_URL);
+
+/**
+ * Differentiating users with a saved card vs without:
+ * - With saved card: user.privateMetadata.tap_payment_agreement_id is set (Clerk),
+ *   and Convex payment_agreements has a row for this user_id.
+ * - Without: tap_customer_id may exist but tap_payment_agreement_id is absent;
+ *   subscription may exist with payment_agreement_id null.
+ */
 
 export const plansRouter = createTRPCRouter({
   handlePlanCheckout: protectedProcedure
@@ -52,25 +60,50 @@ export const plansRouter = createTRPCRouter({
           tapCustomerId = existingTapCustomerId;
         }
 
-        // Create charge (temporarily without save_card - will enable later)
-        // For now, subscriptions will be created without payment agreements
-        const transactionUrl = await createCharge(
-          tapCustomerId,
-          amount,
-          input.language,
-          {
-            saveCard: false, // Temporarily false - will enable card saving later
-            agreementType: "subscription",
-            metadata: {
-              user_id: ctx.userId,
-              plan_id: input.planId,
+        const metadata = {
+          user_id: ctx.userId,
+          plan_id: input.planId,
+        };
+
+        // Try with save_card first; if Save Card is not enabled on Tap account, retry without it
+        let transactionUrl: string;
+        try {
+          transactionUrl = await createCharge(
+            tapCustomerId,
+            amount,
+            input.language,
+            {
+              saveCard: true,
+              agreementType: "subscription",
+              metadata,
             },
-          },
-        );
-        console.log(
-          "Tap charge created with payment agreement, transaction URL:",
-          transactionUrl,
-        );
+          );
+          console.log(
+            "Tap charge created with payment agreement, transaction URL:",
+            transactionUrl,
+          );
+        } catch (chargeError) {
+          if (chargeError instanceof TapSaveCardNotEnabledError) {
+            console.warn(
+              "Save Card not enabled on Tap account; retrying charge without save_card",
+            );
+            transactionUrl = await createCharge(
+              tapCustomerId,
+              amount,
+              input.language,
+              {
+                saveCard: false,
+                metadata,
+              },
+            );
+            console.log(
+              "Tap charge created (no card saved), transaction URL:",
+              transactionUrl,
+            );
+          } else {
+            throw chargeError;
+          }
+        }
 
         return { success: true, tapCustomerId, transactionUrl };
       } catch (error) {

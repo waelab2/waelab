@@ -2,6 +2,18 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { env } from "~/env";
 
 /**
+ * Thrown when Tap returns error 1108 (Save Card feature not enabled).
+ * Callers can catch this and retry the charge with save_card disabled.
+ */
+export class TapSaveCardNotEnabledError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TapSaveCardNotEnabledError";
+    Object.setPrototypeOf(this, TapSaveCardNotEnabledError.prototype);
+  }
+}
+
+/**
  * Get the Tap secret key to use.
  * Priority: TAP_SECRET_KEY > TEST_SECRET_KEY > LIVE_SECRET_KEY
  * This allows easy swapping without code changes - just set TAP_SECRET_KEY to override.
@@ -309,8 +321,12 @@ export async function createCharge(
     // Use environment variable for webhook URL or fallback to default
     const webhookUrl =
       options?.webhookUrl ??
-      process.env.TAP_WEBHOOK_URL ??
+      env.TAP_WEBHOOK_URL ??
       "https://webhook.site/48c244ea-3a61-4d9f-81e9-28292b638860";
+
+    // Use environment variable for redirect URL or fallback to default
+    const redirectUrl =
+      env.TAP_REDIRECT_URL ?? "http://localhost:3000/dashboard";
 
     const payload: TapCreateChargeRequest = {
       amount,
@@ -332,7 +348,7 @@ export async function createCharge(
         url: webhookUrl,
       },
       redirect: {
-        url: "http://localhost:3000/dashboard",
+        url: redirectUrl,
       },
     };
 
@@ -373,13 +389,13 @@ export async function createCharge(
     if (!response.ok) {
       const errorText = await response.text();
       let errorData: {
-        errors?: Array<{ message?: string; code?: string; field?: string }>;
+        errors?: Array<{ message?: string; code?: string | number; field?: string }>;
         message?: string;
       };
       
       try {
         errorData = JSON.parse(errorText) as {
-          errors?: Array<{ message?: string; code?: string; field?: string }>;
+          errors?: Array<{ message?: string; code?: string | number; field?: string }>;
           message?: string;
         };
       } catch {
@@ -410,9 +426,12 @@ export async function createCharge(
       
       // Provide helpful error message for common error codes
       let fullErrorMessage = errorMessage;
-      if (errorCode === "1108") {
+      const isSaveCardNotEnabled = errorCode === "1108" || errorCode === 1108;
+      if (isSaveCardNotEnabled) {
         fullErrorMessage = `Save Card feature is not enabled on your Tap merchant account. Please contact your Tap account manager to enable the "Save Card" feature. Original error: ${errorMessage}`;
-      } else if (errorCode || errorField) {
+        throw new TapSaveCardNotEnabledError(fullErrorMessage);
+      }
+      if (errorCode ?? errorField) {
         fullErrorMessage = `${errorMessage} (Code: ${errorCode}${errorField ? `, Field: ${errorField}` : ""})`;
       }
 
