@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getViewerAccess } from "~/server/authz";
 
-export default async function TranslationsLayout({
+export default async function UsersLayout({
   children,
 }: {
   children: React.ReactNode;

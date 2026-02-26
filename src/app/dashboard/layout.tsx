@@ -6,13 +6,16 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "~/components/ui/sidebar";
+import { getViewerAccess } from "~/server/authz";
 import Breadcrumbs from "./_components/Breadcrumbs";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const viewerAccess = await getViewerAccess();
+
   return (
     <div className="relative min-h-screen bg-[#282830]">
       {/* Top-left decoration image - covering whole page */}
@@ -27,7 +30,7 @@ export default function DashboardLayout({
       </div>
 
       <SidebarProvider>
-        <AppSidebar />
+        <AppSidebar isAdmin={viewerAccess.isAdmin} />
         <SidebarInset className="relative h-screen overflow-hidden bg-transparent">
           {/* Decoration Images - Now only in the main content area */}
           <div className="absolute right-0 bottom-0 z-0">

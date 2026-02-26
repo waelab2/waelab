@@ -2,8 +2,7 @@
 
 import { Switch } from "@/components/ui/switch";
 import { TextReveal } from "@/components/ui/text-reveal";
-import { useGenerationRequests, useUserRequests } from "@/hooks/use-analytics";
-import { useAuth } from "@clerk/nextjs";
+import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -19,7 +18,6 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-// Helper function to format time ago
 const formatTimeAgo = (timestamp: number): string => {
   const now = Date.now();
   const diff = now - timestamp;
@@ -33,7 +31,6 @@ const formatTimeAgo = (timestamp: number): string => {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 };
 
-// Helper function to get service icon and color
 const getServiceInfo = (service: string) => {
   switch (service) {
     case "fal":
@@ -47,7 +44,6 @@ const getServiceInfo = (service: string) => {
   }
 };
 
-// Helper function to get status icon and color
 const getStatusInfo = (status: string) => {
   switch (status) {
     case "completed":
@@ -61,7 +57,6 @@ const getStatusInfo = (status: string) => {
   }
 };
 
-// Helper function to format date
 const formatDate = (timestamp: number): string => {
   return new Date(timestamp).toLocaleDateString("en-US", {
     year: "numeric",
@@ -73,18 +68,17 @@ const formatDate = (timestamp: number): string => {
 };
 
 export default function ActivityPage() {
-  // State for user scope toggle (false = all users, true = user-specific)
   const [isUserScope, setIsUserScope] = useState(false);
 
-  // Get current user ID from Clerk
-  const { userId } = useAuth();
+  const { data: viewerAccess } = api.users.getViewerAccess.useQuery();
+  const isAdmin = viewerAccess?.isAdmin ?? false;
+  const effectiveScope = isAdmin ? (isUserScope ? "my" : "all") : "my";
 
-  // Fetch all recent activity (first 100) - use appropriate hook based on scope
-  const allRequests = useGenerationRequests({ limit: 100 });
-  const userRequests = useUserRequests(userId ?? undefined, 100);
-  const requests = isUserScope ? userRequests : allRequests;
+  const { data: requests } = api.analytics.getGenerationRequests.useQuery({
+    limit: 100,
+    scope: effectiveScope,
+  });
 
-  // Group requests by date for better organization
   const groupedRequests = useMemo(() => {
     if (!requests) return {};
 
@@ -96,7 +90,6 @@ export default function ActivityPage() {
       groups[date].push(request);
     });
 
-    // Sort dates in descending order (most recent first)
     const sortedGroups: Record<string, typeof requests> = {};
     Object.keys(groups)
       .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
@@ -107,7 +100,6 @@ export default function ActivityPage() {
     return sortedGroups;
   }, [requests]);
 
-  // Calculate summary stats
   const stats = useMemo(() => {
     if (!requests) {
       return {
@@ -142,26 +134,29 @@ export default function ActivityPage() {
               delay={0.15}
               duration={0.2}
             >
-              View all recent generation requests and their status
+              {isAdmin
+                ? "View all recent generation requests and their status"
+                : "View your recent generation requests and their status"}
             </TextReveal>
           </div>
-          <div className="flex items-center gap-2">
+          {isAdmin ? (
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-400">All Users</span>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-gray-400" />
+                <span className="text-sm text-gray-400">All Users</span>
+              </div>
+              <Switch
+                checked={isUserScope}
+                onCheckedChange={setIsUserScope}
+                aria-label="Toggle between all users and user-specific data"
+              />
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-gray-400" />
+                <span className="text-sm text-gray-400">My Activity</span>
+              </div>
             </div>
-            <Switch
-              checked={isUserScope}
-              onCheckedChange={setIsUserScope}
-              aria-label="Toggle between all users and user-specific data"
-            />
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-400">My Activity</span>
-            </div>
-          </div>
+          ) : null}
 
-          {/* Summary Stats */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             <div className="rounded-xl border border-gray-700 bg-gray-800/40 p-4">
               <div className="flex items-center gap-2">
@@ -184,24 +179,19 @@ export default function ActivityPage() {
                 <XCircle className="h-4 w-4 text-red-500" />
                 <span className="text-sm text-gray-400">Failed</span>
               </div>
-              <div className="text-2xl font-bold text-white">
-                {stats.failed}
-              </div>
+              <div className="text-2xl font-bold text-white">{stats.failed}</div>
             </div>
             <div className="rounded-xl border border-gray-700 bg-gray-800/40 p-4">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-yellow-500" />
                 <span className="text-sm text-gray-400">Pending</span>
               </div>
-              <div className="text-2xl font-bold text-white">
-                {stats.pending}
-              </div>
+              <div className="text-2xl font-bold text-white">{stats.pending}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Activity List */}
       <div className="px-2 sm:px-0">
         {!requests ? (
           <div className="flex items-center justify-center py-12">
@@ -259,15 +249,29 @@ export default function ActivityPage() {
                               className={`h-3 w-3 ${statusInfo.color}`}
                             />
                           </div>
-                          <div className="mb-1 text-xs text-gray-400">
+                          <div className="truncate text-xs text-gray-400">
                             Model: {request.model_id}
+                          </div>
+                          <div className="mt-1 flex items-center gap-4 text-xs text-gray-500">
+                            <span>ID: {request.request_id}</span>
+                            {request.credits_used !== undefined && (
+                              <span>Credits: {request.credits_used}</span>
+                            )}
+                            {request.file_size !== undefined && (
+                              <span>
+                                Size: {(request.file_size / 1024 / 1024).toFixed(2)}
+                                MB
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">
+                            {formatTimeAgo(request.created_at)}
                           </div>
                           <div className="text-xs text-gray-500">
                             {formatDate(request.created_at)}
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                          <span>{formatTimeAgo(request.created_at)}</span>
                         </div>
                       </motion.div>
                     );

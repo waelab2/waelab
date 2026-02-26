@@ -10,12 +10,6 @@ import type { TimePeriod } from "@/components/ui/time-period-selector";
 import { TimePeriodSelector } from "@/components/ui/time-period-selector";
 import { UsersTable } from "@/components/ui/users-table";
 import {
-  useGenerationRequests,
-  useModelUsageStatsForDateRange,
-  useUserRequests,
-} from "@/hooks/use-analytics";
-import { useCreditBalance } from "@/hooks/use-credit-balance";
-import {
   calculatePercentageChange,
   formatFileSize,
   formatNumber,
@@ -23,51 +17,53 @@ import {
   getPreviousDateRange,
 } from "@/lib/utils";
 import { api } from "@/trpc/react";
-import { useAuth } from "@clerk/nextjs";
+import { useCreditBalance } from "@/hooks/use-credit-balance";
 import { Activity, CheckCircle, Eye, User, Users, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export default function DashboardPage() {
-  // State for selected time period
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("month");
-  // State for user scope toggle (false = totals, true = user-specific)
   const [isUserScope, setIsUserScope] = useState(false);
-
-  // Get current user ID from Clerk
-  const { userId } = useAuth();
   const creditBalance = useCreditBalance();
 
-  // Fetch recent users using tRPC
-  const { data: recentUsers, isLoading: usersLoading } =
-    api.users.getRecent.useQuery({
-      limit: 10,
-    });
+  const { data: viewerAccess } = api.users.getViewerAccess.useQuery();
+  const isAdmin = viewerAccess?.isAdmin ?? false;
+  const effectiveScope = isAdmin ? (isUserScope ? "my" : "all") : "my";
 
-  // Calculate date ranges based on selected period
+  const { data: recentUsers, isLoading: usersLoading } =
+    api.users.getRecent.useQuery(
+      {
+        limit: 10,
+      },
+      {
+        enabled: isAdmin,
+      },
+    );
+
   const { start: currentStart, end: currentEnd } = getDateRange(selectedPeriod);
   const { start: previousStart, end: previousEnd } =
     getPreviousDateRange(selectedPeriod);
 
-  // Fetch analytics data - use userId when user scope is enabled
-  const currentAnalytics = useModelUsageStatsForDateRange(
-    currentStart,
-    currentEnd,
-    isUserScope ? (userId ?? undefined) : undefined,
-  );
-  const previousAnalytics = useModelUsageStatsForDateRange(
-    previousStart,
-    previousEnd,
-    isUserScope ? (userId ?? undefined) : undefined,
-  );
+  const { data: currentAnalytics } =
+    api.analytics.getModelUsageStatsForDateRange.useQuery({
+      startDate: currentStart,
+      endDate: currentEnd,
+      scope: effectiveScope,
+    });
 
-  // Fetch recent requests - always call both hooks but use appropriate one
-  const allRecentRequests = useGenerationRequests({ limit: 10 });
-  const userRecentRequests = useUserRequests(userId ?? undefined, 10);
-  const recentRequests = isUserScope ? userRecentRequests : allRecentRequests;
+  const { data: previousAnalytics } =
+    api.analytics.getModelUsageStatsForDateRange.useQuery({
+      startDate: previousStart,
+      endDate: previousEnd,
+      scope: effectiveScope,
+    });
 
-  // Calculate stats from analytics data with period-over-period comparison
+  const { data: recentRequests } = api.analytics.getGenerationRequests.useQuery({
+    limit: 10,
+    scope: effectiveScope,
+  });
+
   const stats = useMemo(() => {
-    // Get current period data
     const currentData = currentAnalytics?.model_breakdown;
     const previousData = previousAnalytics?.model_breakdown;
 
@@ -112,19 +108,16 @@ export default function DashboardPage() {
       ];
     }
 
-    // Calculate current month totals
     let currentRequests = 0;
     let currentCompleted = 0;
     let currentCredits = 0;
     let currentFileSize = 0;
 
-    // Calculate last month totals
     let lastRequests = 0;
     let lastCompleted = 0;
     let lastCredits = 0;
     let lastFileSize = 0;
 
-    // Safely iterate through current month data
     for (const modelId in currentData) {
       const model = currentData[modelId];
       if (model) {
@@ -135,7 +128,6 @@ export default function DashboardPage() {
       }
     }
 
-    // Safely iterate through previous period data
     if (previousData) {
       for (const modelId in previousData) {
         const model = previousData[modelId];
@@ -155,7 +147,6 @@ export default function DashboardPage() {
     const lastSuccessRate =
       lastRequests > 0 ? Math.round((lastCompleted / lastRequests) * 100) : 0;
 
-    // Calculate percentage changes
     const requestsChange = calculatePercentageChange(
       currentRequests,
       lastRequests,
@@ -164,14 +155,8 @@ export default function DashboardPage() {
       currentSuccessRate,
       lastSuccessRate,
     );
-    const creditsChange = calculatePercentageChange(
-      currentCredits,
-      lastCredits,
-    );
-    const fileSizeChange = calculatePercentageChange(
-      currentFileSize,
-      lastFileSize,
-    );
+    const creditsChange = calculatePercentageChange(currentCredits, lastCredits);
+    const fileSizeChange = calculatePercentageChange(currentFileSize, lastFileSize);
 
     return [
       {
@@ -233,22 +218,23 @@ export default function DashboardPage() {
             </TextReveal>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            {/* User Scope Toggle */}
-            <div className="flex items-center gap-2">
+            {isAdmin ? (
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-gray-400" />
-                <span className="text-sm text-gray-400">Totals</span>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-400">Totals</span>
+                </div>
+                <Switch
+                  checked={isUserScope}
+                  onCheckedChange={setIsUserScope}
+                  aria-label="Toggle between totals and user-specific data"
+                />
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-400">My Data</span>
+                </div>
               </div>
-              <Switch
-                checked={isUserScope}
-                onCheckedChange={setIsUserScope}
-                aria-label="Toggle between totals and user-specific data"
-              />
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-gray-400" />
-                <span className="text-sm text-gray-400">My Data</span>
-              </div>
-            </div>
+            ) : null}
             <TimePeriodSelector
               selectedPeriod={selectedPeriod}
               onPeriodChange={setSelectedPeriod}
@@ -270,41 +256,35 @@ export default function DashboardPage() {
             <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
               <div className="text-xs text-gray-400">Subscription</div>
               <div className="text-lg font-semibold">
-                {creditBalance?.has_active_subscription
-                  ? "Active"
-                  : "Inactive"}
+                {creditBalance?.has_active_subscription ? "Active" : "Inactive"}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         {stats.map((stat, index) => (
           <DashboardCard key={stat.title} stat={stat} index={index} />
         ))}
       </div>
 
-      {/* Main Content Grid */}
       <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-3">
-        {/* Charts Section */}
         <div className="space-y-4 sm:space-y-6 xl:col-span-2">
           <RevenueChart
             modelAnalytics={currentAnalytics}
             timePeriod={selectedPeriod}
           />
-          <GenerationServicesStatus />
+          <GenerationServicesStatus modelAnalytics={currentAnalytics} />
         </div>
 
-        {/* Sidebar Section */}
         <div className="space-y-4 sm:space-y-6">
           <RecentActivity
             recentRequests={recentRequests}
             startDate={currentStart}
             endDate={currentEnd}
           />
-          <UsersTable users={recentUsers} isLoading={usersLoading} />
+          {isAdmin ? <UsersTable users={recentUsers} isLoading={usersLoading} /> : null}
         </div>
       </div>
     </main>

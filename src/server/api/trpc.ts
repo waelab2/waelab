@@ -10,6 +10,7 @@ import { auth } from "@clerk/nextjs/server";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { getViewerAccessByUserId } from "~/server/authz";
 
 /**
  * 1. CONTEXT
@@ -126,3 +127,21 @@ export const protectedProcedure = t.procedure
       },
     });
   });
+
+/**
+ * Admin-only procedure
+ */
+export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const viewerAccess = await getViewerAccessByUserId(ctx.userId);
+
+  if (!viewerAccess.isAdmin) {
+    throw new TRPCError({ code: "FORBIDDEN" });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      viewerAccess,
+    },
+  });
+});

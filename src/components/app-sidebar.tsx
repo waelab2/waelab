@@ -14,7 +14,12 @@ import {
   SidebarRail,
 } from "~/components/ui/sidebar";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  isAdmin,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & {
+  isAdmin: boolean;
+}) {
   const pathname = usePathname();
 
   const data = {
@@ -25,12 +30,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: Bot,
         isActive: pathname === "/dashboard",
       },
-      {
-        title: "Users",
-        url: "/dashboard/users",
-        icon: Users,
-        isActive: pathname.startsWith("/dashboard/users"),
-      },
+      ...(isAdmin
+        ? [
+            {
+              title: "Users",
+              url: "/dashboard/users",
+              icon: Users,
+              isActive: pathname.startsWith("/dashboard/users"),
+            },
+          ]
+        : []),
       {
         title: "Activity",
         url: "/dashboard/activity",
@@ -95,7 +104,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <div className="absolute inset-0 bg-[#EEEFF614] backdrop-blur-sm" />
       <SidebarContent className="relative z-10">
         <NavMain items={data.navMain} />
-        <NavMain items={data.translations} label="Translations" />
+        {isAdmin ? <NavMain items={data.translations} label="Translations" /> : null}
         {/* <NavOther other={data.other} /> */}
       </SidebarContent>
       <SidebarFooter className="relative z-10 text-white [&_*]:text-white">

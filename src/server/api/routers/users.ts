@@ -1,6 +1,11 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { getViewerAccessByUserId } from "~/server/authz";
+import {
+  adminProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from "~/server/api/trpc";
 
 interface ClerkUser {
   id: string;
@@ -25,7 +30,11 @@ interface TransformedUser {
 }
 
 export const usersRouter = createTRPCRouter({
-  getAll: protectedProcedure.query(async () => {
+  getViewerAccess: protectedProcedure.query(async ({ ctx }) => {
+    return getViewerAccessByUserId(ctx.userId);
+  }),
+
+  getAll: adminProcedure.query(async () => {
     try {
       // Fetch all users from Clerk
       const client = await clerkClient();
@@ -71,7 +80,7 @@ export const usersRouter = createTRPCRouter({
     }
   }),
 
-  getRecent: protectedProcedure
+  getRecent: adminProcedure
     .input(z.object({ limit: z.number().min(1).max(50).default(10) }))
     .query(async ({ input }) => {
       try {
@@ -145,7 +154,7 @@ export const usersRouter = createTRPCRouter({
   }),
 
   // Invitation procedures
-  createInvitation: protectedProcedure
+  createInvitation: adminProcedure
     .input(z.object({ emailAddress: z.string().email() }))
     .mutation(async ({ input }) => {
       try {
@@ -160,7 +169,7 @@ export const usersRouter = createTRPCRouter({
       }
     }),
 
-  getAllInvitations: protectedProcedure.query(async () => {
+  getAllInvitations: adminProcedure.query(async () => {
     try {
       const client = await clerkClient();
       const invitations = await client.invitations.getInvitationList({
@@ -173,7 +182,7 @@ export const usersRouter = createTRPCRouter({
     }
   }),
 
-  getInvitationStats: protectedProcedure.query(async () => {
+  getInvitationStats: adminProcedure.query(async () => {
     try {
       const client = await clerkClient();
       const invitations = await client.invitations.getInvitationList({
@@ -197,7 +206,7 @@ export const usersRouter = createTRPCRouter({
     }
   }),
 
-  revokeInvitation: protectedProcedure
+  revokeInvitation: adminProcedure
     .input(z.object({ invitationId: z.string() }))
     .mutation(async ({ input }) => {
       try {
