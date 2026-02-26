@@ -168,10 +168,12 @@ function NavigationLinks() {
                       )}
                     >
                       <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
-                      <AccentedText>{item.label}</AccentedText>
+                      <AccentedText>
+                        {"label" in item ? item.label : ""}
+                      </AccentedText>
                     </span>
                   ) : (
-                    item.label
+                    "label" in item ? item.label : ""
                   )}
                 </Link>
               </NavigationMenuLink>
@@ -239,11 +241,15 @@ function MobileNavigation() {
                 )}
               >
                 <span className="font-medium text-white">
-                  {pathname === item.href ? (
-                    <span className="text-white">{item.label}</span>
-                  ) : (
-                    item.label
-                  )}
+                  {"label" in item
+                    ? pathname === item.href
+                      ? (
+                        <span className="text-white">{item.label}</span>
+                        )
+                      : (
+                          item.label
+                        )
+                    : null}
                 </span>
               </Link>
             ),
