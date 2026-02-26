@@ -1,12 +1,17 @@
 import "~/styles/globals.css";
 
 import { type Metadata } from "next";
+import { cookies } from "next/headers";
 import { Geist } from "next/font/google";
 
 import { ClerkProvider } from "@clerk/nextjs";
+import { ConvexHttpClient } from "convex/browser";
 import { Toaster } from "sonner";
+import { api } from "../../convex/_generated/api";
 import { DirectionProvider } from "~/components/direction-provider";
+import { env } from "~/env";
 import { TranslationProvider } from "~/hooks/use-translations";
+import type { Language } from "~/lib/translations";
 import { TRPCReactProvider } from "~/trpc/react";
 import ConvexClientProvider from "./ConvexClientProvider";
 
@@ -21,16 +26,34 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const cookieStore = await cookies();
+  const languageCookie = cookieStore.get("language")?.value;
+  const initialLanguage: Language =
+    languageCookie === "ar" || languageCookie === "en" ? languageCookie : "en";
+
+  const convexClient = new ConvexHttpClient(env.NEXT_PUBLIC_CONVEX_URL);
+  const initialTranslations = await convexClient.query(
+    api.translations.getAllTranslations,
+    {},
+  );
+
   return (
-    <html lang="en" className={`${geist.variable}`}>
+    <html
+      lang={initialLanguage}
+      dir={initialLanguage === "ar" ? "rtl" : "ltr"}
+      className={`${geist.variable}`}
+    >
       <body>
         <ClerkProvider>
           <TRPCReactProvider>
             <ConvexClientProvider>
-              <TranslationProvider>
+              <TranslationProvider
+                initialLanguage={initialLanguage}
+                initialTranslations={initialTranslations}
+              >
                 <DirectionProvider>
                   {children}
                   <Toaster position="top-right" richColors />

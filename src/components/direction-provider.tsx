@@ -1,7 +1,8 @@
 "use client";
 
+import { useTranslations } from "~/hooks/use-translations";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 /**
  * Direction Provider Component
@@ -10,38 +11,10 @@ import { useEffect, useState } from "react";
  */
 export function DirectionProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [language, setLanguage] = useState<"en" | "ar">("en");
+  const { language } = useTranslations();
 
   // Check if current path is a dashboard page
   const isDashboardPage = pathname.startsWith("/dashboard");
-
-  // Load language from localStorage and listen for changes
-  useEffect(() => {
-    // Get initial language from localStorage
-    const getStoredLanguage = () => {
-      if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("language") as "en" | "ar";
-        if (stored === "en" || stored === "ar") {
-          return stored;
-        }
-      }
-      return "en";
-    };
-
-    setLanguage(getStoredLanguage());
-
-    // Poll localStorage for changes (since storage event doesn't fire in same tab)
-    const pollInterval = setInterval(() => {
-      const currentStored = getStoredLanguage();
-      if (currentStored !== language) {
-        setLanguage(currentStored);
-      }
-    }, 100); // Check every 100ms
-
-    return () => {
-      clearInterval(pollInterval);
-    };
-  }, [language]);
 
   useEffect(() => {
     // Ensure we're running on the client side and DOM is ready

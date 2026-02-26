@@ -7,6 +7,7 @@ import type {
 } from "@/lib/translations";
 import { useQuery } from "convex/react";
 import React, {
+  useCallback,
   createContext,
   useContext,
   useMemo,
@@ -25,57 +26,50 @@ const TranslationContext = createContext<TranslationContext | null>(null);
  */
 export function TranslationProvider({
   children,
+  initialLanguage = "en",
+  initialTranslations = [],
 }: {
   children: React.ReactNode;
+  initialLanguage?: Language;
+  initialTranslations?: TranslationData[];
 }) {
-  // Initialize language from localStorage if available, otherwise default to "en"
-  const [language, setLanguage] = useState<Language>(() => {
-    if (typeof window !== "undefined") {
-      const savedLanguage = localStorage.getItem("language") as Language;
-      if (savedLanguage && (savedLanguage === "en" || savedLanguage === "ar")) {
-        return savedLanguage;
-      }
-    }
-    return "en";
-  });
+  const [language, setLanguage] = useState<Language>(initialLanguage);
 
   // Load all translations from Convex
   const translationsData = useQuery(api.translations.getAllTranslations);
+  const resolvedTranslationsData = translationsData ?? initialTranslations;
 
   // Create translations lookup object
   const translations = useMemo(() => {
-    if (!translationsData) return {};
-
     const lookup: Record<string, TranslationData> = {};
-    translationsData.forEach((translation) => {
+    resolvedTranslationsData.forEach((translation) => {
       lookup[translation.key] = translation;
     });
     return lookup;
-  }, [translationsData]);
+  }, [resolvedTranslationsData]);
 
   // Translation function
-  const t = (key: string): string => {
-    // If translations are still loading, return the key as fallback
-    if (!translationsData) {
-      return key;
-    }
-
+  const t = useCallback((key: string): string => {
     const translation = translations[key];
     if (!translation) {
+      if (resolvedTranslationsData.length === 0) {
+        return key;
+      }
       throw new Error(
         `Translation key "${key}" not found in database. Please ensure all required translations are loaded.`,
       );
     }
 
     return language === "ar" ? translation.ar : translation.en;
-  };
-
-  // Language is now initialized synchronously from localStorage in useState initializer
+  }, [language, resolvedTranslationsData.length, translations]);
 
   // Save language preference to localStorage
   const handleSetLanguage = (newLanguage: Language) => {
     setLanguage(newLanguage);
-    localStorage.setItem("language", newLanguage);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("language", newLanguage);
+      document.cookie = `language=${newLanguage}; path=/; max-age=31536000; samesite=lax`;
+    }
   };
 
   const contextValue: TranslationContext = {
