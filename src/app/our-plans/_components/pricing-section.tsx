@@ -13,6 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, useClerk } from "@clerk/nextjs";
@@ -46,6 +54,8 @@ export default function PricingSection() {
   const clerk = useClerk();
   const checkoutMutation = api.plans.handlePlanCheckout.useMutation();
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+  const [isProfileRequiredModalOpen, setIsProfileRequiredModalOpen] =
+    useState(false);
   
   // Get user's active subscription (only if authenticated)
   const subscription = useUserSubscription(userId ?? "");
@@ -85,6 +95,19 @@ export default function PricingSection() {
       }
     } catch (error) {
       console.error("Error handling checkout:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === "string"
+            ? error
+            : "";
+      if (
+        errorMessage.includes(
+          "First name is required but not found in user profile",
+        )
+      ) {
+        setIsProfileRequiredModalOpen(true);
+      }
     } finally {
       setPendingPlanId(null);
     }
@@ -154,7 +177,44 @@ export default function PricingSection() {
   if (!mounted) return null;
 
   return (
-    <section className="not-prose text-ui-dark m-12 flex flex-col gap-16 text-center">
+    <>
+      <Dialog
+        open={isProfileRequiredModalOpen}
+        onOpenChange={setIsProfileRequiredModalOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {language === "ar"
+                ? "أكمل ملفك الشخصي أولاً"
+                : "Complete your profile first"}
+            </DialogTitle>
+            <DialogDescription>
+              {language === "ar"
+                ? "لا يمكننا إتمام الاشتراك حالياً لأن الاسم الأول غير موجود في ملفك الشخصي. يرجى تحديث ملفك الشخصي ثم إعادة المحاولة."
+                : "We couldn't complete your subscription because your first name is missing from your profile. Please update your profile and try again."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsProfileRequiredModalOpen(false)}
+            >
+              {language === "ar" ? "إغلاق" : "Close"}
+            </Button>
+            <Button
+              className="waelab-gradient-bg text-white"
+              onClick={() => {
+                setIsProfileRequiredModalOpen(false);
+                window.location.href = "/dashboard/profile";
+              }}
+            >
+              {language === "ar" ? "الانتقال إلى الملف الشخصي" : "Go to Profile"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <section className="not-prose text-ui-dark m-12 flex flex-col gap-16 text-center">
       <div className="flex flex-col items-center gap-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -321,6 +381,7 @@ export default function PricingSection() {
           ))}
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 }
