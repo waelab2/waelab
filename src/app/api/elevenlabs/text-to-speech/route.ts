@@ -1,9 +1,17 @@
+import { auth } from "@clerk/nextjs/server";
+import { ConvexHttpClient } from "convex/browser";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { api as convexApi } from "../../../../../convex/_generated/api";
+import { env } from "~/env";
+import { calculateCreditsForDurationSeconds } from "~/lib/constants/credits";
 import { createElevenLabsClient } from "~/lib/elevenLabsClient";
 
 // === DEBUG CONFIGURATION ===
 const DEBUG_API = true; // Set to false to disable debug logs
+const ELEVENLABS_MODEL_ID = "elevenlabs/eleven_multilingual_v2";
+const ELEVENLABS_CHARS_PER_SECOND_FLOOR = 12;
+const convexClient = new ConvexHttpClient(env.NEXT_PUBLIC_CONVEX_URL);
 
 function apiLog(message: string, data?: unknown) {
   if (DEBUG_API) {
@@ -15,6 +23,30 @@ function apiError(message: string, error?: unknown) {
   if (DEBUG_API) {
     console.error(`🎵🔄❌ [ElevenLabs API Error] ${message}`, error ?? "");
   }
+}
+
+function mapCreditError(error: unknown): NextResponse {
+  const message =
+    error instanceof Error ? error.message : "Unable to process credits";
+
+  if (
+    message.includes("Insufficient credits") ||
+    message.includes("Active subscription required")
+  ) {
+    return NextResponse.json(
+      {
+        error: message,
+      },
+      { status: 402 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      error: message,
+    },
+    { status: 500 },
+  );
 }
 
 // === REQUEST VALIDATION ===
@@ -81,6 +113,8 @@ function validateRequest(body: unknown): {
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  let reservationId: string | null = null;
+  let userId: string | null = null;
 
   apiLog("Incoming TTS request", {
     requestId,
@@ -91,6 +125,19 @@ export async function POST(request: NextRequest) {
   });
 
   try {
+    const authResult = await auth();
+    userId = authResult.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          requestId,
+        },
+        { status: 401 },
+      );
+    }
+
     // Parse request body
     let body: unknown;
     try {
@@ -138,6 +185,28 @@ export async function POST(request: NextRequest) {
 
     const { text, voice_id } = validation.data!;
 
+    const estimatedDurationSeconds = Math.max(
+      1,
+      Math.ceil(text.length / ELEVENLABS_CHARS_PER_SECOND_FLOOR),
+    );
+    const estimatedCredits = calculateCreditsForDurationSeconds(
+      ELEVENLABS_MODEL_ID,
+      estimatedDurationSeconds,
+    );
+    reservationId = `eleven_${userId}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+    try {
+      await convexClient.mutation(convexApi.credits.reserveCreditsForGeneration, {
+        userId,
+        service: "elevenlabs",
+        modelId: ELEVENLABS_MODEL_ID,
+        estimatedCredits,
+        reservationId,
+      });
+    } catch (reserveError) {
+      return mapCreditError(reserveError);
+    }
+
     apiLog("Request validation passed", {
       requestId,
       textLength: text.length,
@@ -172,6 +241,32 @@ export async function POST(request: NextRequest) {
 
     // The client interface returns a structured result with audio URL
     const { audio, metadata } = result.data;
+    const actualDurationSeconds = Math.max(
+      1,
+      (audio.duration_ms ?? estimatedDurationSeconds * 1000) / 1000,
+    );
+    const actualCredits = calculateCreditsForDurationSeconds(
+      ELEVENLABS_MODEL_ID,
+      actualDurationSeconds,
+    );
+    let creditsUsed = actualCredits;
+    try {
+      const finalizeResult = await convexClient.mutation(
+        convexApi.credits.finalizeCreditReservation,
+        {
+          userId,
+          reservationId,
+          success: true,
+          actualCredits,
+        },
+      );
+      creditsUsed = finalizeResult?.captured_credits ?? actualCredits;
+    } catch (finalizeError) {
+      apiError("Failed to finalize reservation after success", {
+        requestId,
+        finalizeError,
+      });
+    }
 
     const processingTime = Date.now() - startTime;
 
@@ -184,6 +279,7 @@ export async function POST(request: NextRequest) {
       textLength: text.length,
       charactersPerSecond: Math.round((text.length / processingTime) * 1000),
       metadata: metadata,
+      creditsUsed,
     });
 
     // Return the structured result instead of raw audio buffer
@@ -198,7 +294,10 @@ export async function POST(request: NextRequest) {
             content_type: audio.content_type,
             duration_ms: audio.duration_ms,
           },
-          metadata: metadata,
+          metadata: {
+            ...metadata,
+            credits_used: creditsUsed,
+          },
         },
         requestId,
         processingTimeMs: processingTime,
@@ -210,12 +309,27 @@ export async function POST(request: NextRequest) {
           "X-Request-ID": requestId,
           "X-Processing-Time-Ms": processingTime.toString(),
           "X-Audio-Size-Bytes": audio.file_size.toString(),
-          "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+          "Cache-Control": "no-store",
         },
       },
     );
   } catch (error) {
     const processingTime = Date.now() - startTime;
+
+    if (userId && reservationId) {
+      try {
+        await convexClient.mutation(convexApi.credits.finalizeCreditReservation, {
+          userId,
+          reservationId,
+          success: false,
+        });
+      } catch (finalizeError) {
+        apiError("Failed to release reservation after error", {
+          requestId,
+          finalizeError,
+        });
+      }
+    }
 
     apiError("TTS request failed", {
       requestId,

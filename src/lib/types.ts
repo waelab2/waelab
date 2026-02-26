@@ -53,6 +53,7 @@ export interface ElevenLabsTextToSpeechOutput {
     voice_id: string;
     character_count: number;
     generation_time_ms: number;
+    credits_used?: number;
   };
 }
 

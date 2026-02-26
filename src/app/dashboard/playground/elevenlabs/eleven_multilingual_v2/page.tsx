@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import GlowingCard from "~/components/mvpblocks/glow-card";
 import { Separator } from "~/components/ui/separator";
+import { useCreditBalance } from "~/hooks/use-credit-balance";
 import { saudiArabicVoices } from "~/lib/constants";
+import { calculateCreditsForDurationSeconds } from "~/lib/constants/credits";
 import { useTrackedElevenLabsClient } from "~/lib/trackedClients";
 import type { ElevenLabsStatus } from "~/lib/types";
 
@@ -31,17 +33,25 @@ function ElevenLabsPageContent() {
       generation_time_ms: number;
       model_id: string;
       voice_id: string;
+      credits_used?: number;
     };
   } | null>(null);
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const [estimatedCost, setEstimatedCost] = useState(0);
+  const [estimatedCredits, setEstimatedCredits] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const resultsSectionRef = useRef<HTMLDivElement>(null);
+  const creditBalance = useCreditBalance();
 
   // Calculate estimated cost based on text length
   useEffect(() => {
-    const costPerChar = 0.3 / 50; // Rough estimate: $0.30 per 50 characters
-    setEstimatedCost(text.length * costPerChar);
+    const estimatedDurationSeconds = Math.max(1, Math.ceil(text.length / 12));
+    const credits = calculateCreditsForDurationSeconds(
+      "elevenlabs/eleven_multilingual_v2",
+      estimatedDurationSeconds,
+    );
+    setEstimatedCredits(credits);
+    setEstimatedCost(credits * 0.01);
   }, [text]);
 
   useEffect(() => {
@@ -91,6 +101,18 @@ function ElevenLabsPageContent() {
       return;
     }
 
+    if (!userId) {
+      return;
+    }
+
+    if (!creditBalance?.has_active_subscription) {
+      return;
+    }
+
+    if (creditBalance.available_credits < estimatedCredits) {
+      return;
+    }
+
     setStatus("PREPARING");
     setAudioData(null);
     setError(null);
@@ -122,6 +144,19 @@ function ElevenLabsPageContent() {
       setStatus("FAILED");
     }
   }
+
+  const generateDisabledReason = !userId
+    ? "Sign In Required"
+    : !creditBalance
+      ? "Loading Credits..."
+      : !creditBalance.has_active_subscription
+        ? "Active Subscription Required"
+        : creditBalance.available_credits < estimatedCredits
+          ? "Insufficient Credits"
+          : null;
+  const shouldShowPlansLink =
+    generateDisabledReason === "Insufficient Credits" ||
+    generateDisabledReason === "Active Subscription Required";
 
   return (
     <main className="min-h-screen">
@@ -295,17 +330,61 @@ function ElevenLabsPageContent() {
             <div className="mt-6">
               <button
                 onClick={handleSubmit}
-                disabled={isLoading || !text.trim() || !selectedVoice}
+                disabled={
+                  isLoading ||
+                  !text.trim() ||
+                  !selectedVoice ||
+                  generateDisabledReason !== null
+                }
                 className="w-full rounded-lg bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] px-4 py-2 text-white transition-colors hover:from-[#D63E5F] hover:to-[#2A4A8F] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isLoading ? "Generating..." : "Generate Arabic Speech"}
+                {isLoading
+                  ? "Generating..."
+                  : generateDisabledReason ?? "Generate Arabic Speech"}
               </button>
+              {shouldShowPlansLink && (
+                <p className="mt-3 text-sm text-white/80">
+                  Generation requires an active plan with enough credits.{" "}
+                  <Link
+                    href="/our-plans"
+                    className="font-medium text-white underline"
+                  >
+                    View plans
+                  </Link>
+                </p>
+              )}
             </div>
           </div>
         </div>
 
         {/* Right Column: Cost & Actions */}
         <div className="space-y-6">
+          <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
+            <h3 className="text-lg font-semibold text-white">Credit Balance</h3>
+            <div className="mt-4 space-y-2 text-sm text-white/80">
+              <div className="flex items-center justify-between">
+                <span>Available</span>
+                <span className="font-semibold text-white">
+                  {creditBalance?.available_credits ?? 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Reserved</span>
+                <span className="font-semibold text-white">
+                  {creditBalance?.reserved_credits ?? 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-t border-white/20 pt-2">
+                <span>Status</span>
+                <span className="font-semibold text-white">
+                  {creditBalance?.has_active_subscription
+                    ? "Active Subscription"
+                    : "No Active Subscription"}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Cost Card */}
           <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
             <h3 className="text-lg font-semibold text-white">Cost Estimate</h3>
@@ -325,7 +404,7 @@ function ElevenLabsPageContent() {
                 </span>
               </div>
               <div className="mt-2 text-xs text-white/60">
-                Based on character count and model pricing
+                Estimated credits: {estimatedCredits}
               </div>
             </div>
           </div>

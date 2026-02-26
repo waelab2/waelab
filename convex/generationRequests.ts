@@ -360,6 +360,7 @@ export const updateElevenLabsRequest = mutation({
             voice_id: v.string(),
             character_count: v.number(),
             generation_time_ms: v.number(),
+            credits_used: v.optional(v.number()),
           }),
         ),
       }),
@@ -381,6 +382,7 @@ export const updateElevenLabsRequest = mutation({
           voice_id: string;
           character_count: number;
           generation_time_ms: number;
+          credits_used?: number;
         };
       };
     } = {};
@@ -669,6 +671,7 @@ export const getElevenLabsRequest = query({
               voice_id: v.string(),
               character_count: v.number(),
               generation_time_ms: v.number(),
+              credits_used: v.optional(v.number()),
             }),
           ),
         }),

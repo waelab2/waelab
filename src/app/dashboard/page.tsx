@@ -14,6 +14,7 @@ import {
   useModelUsageStatsForDateRange,
   useUserRequests,
 } from "@/hooks/use-analytics";
+import { useCreditBalance } from "@/hooks/use-credit-balance";
 import {
   calculatePercentageChange,
   formatFileSize,
@@ -34,6 +35,7 @@ export default function DashboardPage() {
 
   // Get current user ID from Clerk
   const { userId } = useAuth();
+  const creditBalance = useCreditBalance();
 
   // Fetch recent users using tRPC
   const { data: recentUsers, isLoading: usersLoading } =
@@ -251,6 +253,28 @@ export default function DashboardPage() {
               selectedPeriod={selectedPeriod}
               onPeriodChange={setSelectedPeriod}
             />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+              <div className="text-xs text-gray-400">Available Credits</div>
+              <div className="text-lg font-semibold">
+                {creditBalance?.available_credits ?? 0}
+              </div>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+              <div className="text-xs text-gray-400">Reserved Credits</div>
+              <div className="text-lg font-semibold">
+                {creditBalance?.reserved_credits ?? 0}
+              </div>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+              <div className="text-xs text-gray-400">Subscription</div>
+              <div className="text-lg font-semibold">
+                {creditBalance?.has_active_subscription
+                  ? "Active"
+                  : "Inactive"}
+              </div>
+            </div>
           </div>
         </div>
       </div>

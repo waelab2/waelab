@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
+import { useCreditBalance } from "~/hooks/use-credit-balance";
+import { calculateCreditsForDurationSeconds } from "~/lib/constants/credits";
 import { useTrackedRunwayClient } from "~/lib/trackedClients";
 import type { RunwayGen4TurboStatus } from "~/lib/types";
 
@@ -44,17 +46,18 @@ function RunwayPageContent() {
     };
   } | null>(null);
   const [estimatedCost, setEstimatedCost] = useState(0);
+  const [estimatedCredits, setEstimatedCredits] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const creditBalance = useCreditBalance();
 
   // Ref for the results section to enable auto-scrolling
   const resultsSectionRef = useRef<HTMLDivElement>(null);
 
   // Calculate estimated cost based on duration (5 credits per second)
   useEffect(() => {
-    const creditsPerSecond = 5;
-    const estimatedCredits = duration * creditsPerSecond;
-    // $10 USD = 1000 credits, so 1 credit = $0.01
-    setEstimatedCost(estimatedCredits * 0.01);
+    const credits = calculateCreditsForDurationSeconds("runway/gen4_turbo", duration);
+    setEstimatedCredits(credits);
+    setEstimatedCost(credits * 0.01);
   }, [duration]);
 
   useEffect(() => {
@@ -112,6 +115,18 @@ function RunwayPageContent() {
       return;
     }
 
+    if (!userId) {
+      return;
+    }
+
+    if (!creditBalance?.has_active_subscription) {
+      return;
+    }
+
+    if (creditBalance.available_credits < estimatedCredits) {
+      return;
+    }
+
     setStatus("PREPARING");
     setVideoData(null);
     setError(null);
@@ -155,6 +170,19 @@ function RunwayPageContent() {
       setStatus("FAILED");
     }
   }
+
+  const generateDisabledReason = !userId
+    ? "Sign In Required"
+    : !creditBalance
+      ? "Loading Credits..."
+      : !creditBalance.has_active_subscription
+        ? "Active Subscription Required"
+        : creditBalance.available_credits < estimatedCredits
+          ? "Insufficient Credits"
+          : null;
+  const shouldShowPlansLink =
+    generateDisabledReason === "Insufficient Credits" ||
+    generateDisabledReason === "Active Subscription Required";
 
   return (
     <main className="min-h-screen">
@@ -289,18 +317,57 @@ function RunwayPageContent() {
             <div className="mt-6">
               <Button
                 onClick={handleSubmit}
-                disabled={isLoading || !imageFile}
+                disabled={isLoading || !imageFile || generateDisabledReason !== null}
                 className="w-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white hover:from-[#D63E5F] hover:to-[#2A4A8F] disabled:cursor-not-allowed disabled:opacity-50"
                 size="lg"
               >
-                {isLoading ? "Generating..." : "Generate Video"}
+                {isLoading
+                  ? "Generating..."
+                  : generateDisabledReason ?? "Generate Video"}
               </Button>
+              {shouldShowPlansLink && (
+                <p className="mt-3 text-sm text-white/80">
+                  Generation requires an active plan with enough credits.{" "}
+                  <Link
+                    href="/our-plans"
+                    className="font-medium text-white underline"
+                  >
+                    View plans
+                  </Link>
+                </p>
+              )}
             </div>
           </div>
         </div>
 
         {/* Right Column: Cost Estimate */}
         <div className="space-y-6">
+          <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
+            <h3 className="text-lg font-semibold text-white">Credit Balance</h3>
+            <div className="mt-4 space-y-2 text-sm text-white/80">
+              <div className="flex items-center justify-between">
+                <span>Available</span>
+                <span className="font-semibold text-white">
+                  {creditBalance?.available_credits ?? 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Reserved</span>
+                <span className="font-semibold text-white">
+                  {creditBalance?.reserved_credits ?? 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-t border-white/20 pt-2">
+                <span>Status</span>
+                <span className="font-semibold text-white">
+                  {creditBalance?.has_active_subscription
+                    ? "Active Subscription"
+                    : "No Active Subscription"}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Cost Card */}
           <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
             <h3 className="text-lg font-semibold text-white">Cost Estimate</h3>
@@ -320,7 +387,7 @@ function RunwayPageContent() {
                 </span>
               </div>
               <div className="mt-2 text-xs text-white/60">
-                {duration * 5} credits ({duration} seconds × 5 credits/second)
+                {estimatedCredits} credits estimated
               </div>
             </div>
           </div>

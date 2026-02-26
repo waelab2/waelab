@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as credits from "../credits.js";
 import type * as crons from "../crons.js";
 import type * as generationRequests from "../generationRequests.js";
 import type * as paymentAgreements from "../paymentAgreements.js";
@@ -21,6 +22,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  credits: typeof credits;
   crons: typeof crons;
   generationRequests: typeof generationRequests;
   paymentAgreements: typeof paymentAgreements;

@@ -35,6 +35,7 @@ export default function EnhancedDynamicModelForm() {
     setLoadingModel,
     prompt,
     setPrompt,
+    setFormValues: setStoreFormValues,
   } = useGenerateStore();
 
   const [formValues, setFormValues] = useState<FormValues>({});
@@ -97,6 +98,11 @@ export default function EnhancedDynamicModelForm() {
 
     void fetchModelSchema();
   }, [model, setModelSchema, setLoadingModel, prompt]);
+
+  // Keep shared store in sync so submit handlers can use dynamic model fields.
+  useEffect(() => {
+    setStoreFormValues(formValues);
+  }, [formValues, setStoreFormValues]);
 
   const handleFieldChange = useCallback(
     (fieldName: string, value: ParameterValue) => {

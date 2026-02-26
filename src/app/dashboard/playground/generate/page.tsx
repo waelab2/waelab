@@ -6,7 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import GlowingCard from "~/components/mvpblocks/glow-card";
 import { Separator } from "~/components/ui/separator";
+import { useCreditBalance } from "~/hooks/use-credit-balance";
 import { models, type Model } from "~/lib/constants";
+import { calculateCreditsForDurationSeconds } from "~/lib/constants/credits";
 import useGenerateStore from "~/lib/stores/useGenerateStore";
 import { useTrackedFalClient } from "~/lib/trackedClients";
 import type { Result, Status, VideoGenerationInput } from "~/lib/types";
@@ -22,6 +24,7 @@ function GeneratePageContent() {
     setStatus,
     model,
     setModel,
+    formValues,
     duration,
     aspect_ratio,
     negative_prompt,
@@ -32,11 +35,13 @@ function GeneratePageContent() {
   const [result, setResult] = useState<null | Result>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [estimatedCost, setEstimatedCost] = useState(0);
+  const [estimatedCredits, setEstimatedCredits] = useState(0);
   const [videoData, setVideoData] = useState<{
     file_name: string;
     file_size: number;
     content_type: string;
   } | null>(null);
+  const creditBalance = useCreditBalance();
 
   // Ref for the results section to enable auto-scrolling
   const resultsSectionRef = useRef<HTMLDivElement>(null);
@@ -57,9 +62,18 @@ function GeneratePageContent() {
 
     if (!modelPricePerSecond) {
       setEstimatedCost(0);
+      setEstimatedCredits(0);
     } else {
-      const videoCost = modelPricePerSecond * (duration ?? 5);
+      const durationSeconds = duration ?? 5;
+      const videoCost = modelPricePerSecond * durationSeconds;
       setEstimatedCost(videoCost);
+      try {
+        setEstimatedCredits(
+          calculateCreditsForDurationSeconds(model, durationSeconds),
+        );
+      } catch {
+        setEstimatedCredits(Math.max(1, Math.ceil(durationSeconds * 5)));
+      }
     }
   }, [model, duration]);
 
@@ -102,12 +116,26 @@ function GeneratePageContent() {
   }, []);
 
   async function handleSubmit(prompt: string) {
-    setStatus("IN_QUEUE");
+    if (!userId) {
+      return;
+    }
 
-    // Build input based on what the model actually supports
-    const input: VideoGenerationInput = {
-      prompt,
+    if (!creditBalance?.has_active_subscription) {
+      return;
+    }
+
+    if (creditBalance.available_credits < estimatedCredits) {
+      return;
+    }
+
+    // Build input from dynamic schema-driven form values first.
+    const input: Partial<VideoGenerationInput> & Record<string, unknown> = {
+      ...formValues,
     };
+
+    if (typeof input.prompt !== "string" || !input.prompt.trim()) {
+      input.prompt = prompt;
+    }
 
     // Only add parameters that the model supports
     if (duration !== undefined) {
@@ -132,12 +160,22 @@ function GeneratePageContent() {
       input.prompt_optimizer = prompt_optimizer;
     }
 
+    if (
+      model.includes("image-to-video") &&
+      (typeof input.image_url !== "string" || !input.image_url.trim())
+    ) {
+      alert("This model requires an input image.");
+      return;
+    }
+
+    setStatus("IN_QUEUE");
+
     console.log(`🎬 Starting video generation with model: ${model}`);
     console.log(`🎬 Input parameters:`, input);
 
     setResult(
       subscribe(model, {
-        input,
+        input: input as VideoGenerationInput,
         pollInterval: 5000,
         logs: true,
         userId: userId ?? undefined,
@@ -147,6 +185,19 @@ function GeneratePageContent() {
       }),
     );
   }
+
+  const generateDisabledReason = !userId
+    ? "Sign In Required"
+    : !creditBalance
+      ? "Loading Credits..."
+      : !creditBalance.has_active_subscription
+        ? "Active Subscription Required"
+        : creditBalance.available_credits < estimatedCredits
+          ? "Insufficient Credits"
+          : null;
+  const shouldShowPlansLink =
+    generateDisabledReason === "Insufficient Credits" ||
+    generateDisabledReason === "Active Subscription Required";
 
   return (
     <main className="min-h-screen">
@@ -190,11 +241,50 @@ function GeneratePageContent() {
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Left Column: Form */}
         <div className="lg:col-span-2">
-          <PromptSection loading={isLoading} handleSubmit={handleSubmit} />
+          <PromptSection
+            loading={isLoading}
+            disabled={generateDisabledReason !== null}
+            disabledLabel={generateDisabledReason ?? undefined}
+            handleSubmit={handleSubmit}
+          />
+          {shouldShowPlansLink && (
+            <p className="mt-3 text-sm text-white/80">
+              Generation requires an active plan with enough credits.{" "}
+              <Link href="/our-plans" className="font-medium text-white underline">
+                View plans
+              </Link>
+            </p>
+          )}
         </div>
 
         {/* Right Column: Cost & Actions */}
         <div className="space-y-6">
+          <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
+            <h3 className="text-lg font-semibold text-white">Credit Balance</h3>
+            <div className="mt-4 space-y-2 text-sm text-white/80">
+              <div className="flex items-center justify-between">
+                <span>Available</span>
+                <span className="font-semibold text-white">
+                  {creditBalance?.available_credits ?? 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Reserved</span>
+                <span className="font-semibold text-white">
+                  {creditBalance?.reserved_credits ?? 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-t border-white/20 pt-2">
+                <span>Status</span>
+                <span className="font-semibold text-white">
+                  {creditBalance?.has_active_subscription
+                    ? "Active Subscription"
+                    : "No Active Subscription"}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Cost Card */}
           <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
             <h3 className="text-lg font-semibold text-white">Cost Estimate</h3>
@@ -212,6 +302,9 @@ function GeneratePageContent() {
                 <span className="text-xl font-bold text-white">
                   ${estimatedCost.toFixed(2)}
                 </span>
+              </div>
+              <div className="mt-2 text-xs text-white/60">
+                Estimated credits: {estimatedCredits}
               </div>
             </div>
           </div>

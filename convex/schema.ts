@@ -75,6 +75,7 @@ export default defineSchema({
             voice_id: v.string(),
             character_count: v.number(),
             generation_time_ms: v.number(),
+            credits_used: v.optional(v.number()),
           }),
         ),
       }),
@@ -110,6 +111,59 @@ export default defineSchema({
     ),
     generation_request_id: v.id("generation_requests"), // Link to main table
   }).index("by_generation_request", ["generation_request_id"]),
+
+  // Credit wallet per user
+  credit_accounts: defineTable({
+    user_id: v.string(), // Clerk user ID
+    available_credits: v.number(), // Spendable credits
+    reserved_credits: v.number(), // Temporarily reserved credits for in-flight requests
+    updated_at: v.number(),
+  }).index("by_user", ["user_id"]),
+
+  // Reservation records for idempotent reserve/finalize flow
+  credit_reservations: defineTable({
+    reservation_id: v.string(), // External/client generated reservation ID
+    user_id: v.string(), // Clerk user ID
+    service: v.union(
+      v.literal("fal"),
+      v.literal("elevenlabs"),
+      v.literal("runway"),
+    ),
+    model_id: v.string(),
+    estimated_credits: v.number(),
+    actual_credits: v.optional(v.number()),
+    status: v.union(
+      v.literal("reserved"),
+      v.literal("captured"),
+      v.literal("released"),
+    ),
+    external_request_id: v.optional(v.string()), // Provider request ID (e.g. fal request_id)
+    created_at: v.number(),
+    finalized_at: v.optional(v.number()),
+  })
+    .index("by_reservation_id", ["reservation_id"])
+    .index("by_external_request_id", ["external_request_id"])
+    .index("by_user", ["user_id"]),
+
+  // Immutable credit ledger events
+  credit_events: defineTable({
+    user_id: v.string(), // Clerk user ID
+    type: v.union(
+      v.literal("grant"),
+      v.literal("reserve"),
+      v.literal("capture"),
+      v.literal("release"),
+      v.literal("adjustment"),
+    ),
+    credits: v.number(), // Positive amount for this event type
+    balance_after: v.number(), // Available balance after applying the event
+    reference_type: v.string(), // subscription_charge, reservation, backfill, etc.
+    reference_id: v.string(), // charge ID, reservation ID, etc.
+    idempotency_key: v.string(), // Used to make repeated writes safe
+    created_at: v.number(),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_idempotency_key", ["idempotency_key"]),
 
   // Translations table for multilingual content
   translations: defineTable({

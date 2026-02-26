@@ -1,5 +1,10 @@
+import { auth } from "@clerk/nextjs/server";
+import { ConvexHttpClient } from "convex/browser";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { api as convexApi } from "../../../../../convex/_generated/api";
+import { env } from "~/env";
+import { calculateCreditsForDurationSeconds } from "~/lib/constants/credits";
 import { runwayClient } from "~/lib/runwayClient";
 import type { RunwayGen4TurboInput } from "~/lib/types";
 
@@ -13,6 +18,8 @@ interface RunwayGen4TurboRequestBody {
 
 // === DEBUG CONFIGURATION ===
 const DEBUG_RUNWAY_API = true;
+const RUNWAY_MODEL_ID = "runway/gen4_turbo";
+const convexClient = new ConvexHttpClient(env.NEXT_PUBLIC_CONVEX_URL);
 
 function debugLog(message: string, data?: unknown) {
   if (DEBUG_RUNWAY_API) {
@@ -26,8 +33,27 @@ function debugError(message: string, error?: unknown) {
   }
 }
 
+function mapCreditError(message: string, requestId: string) {
+  if (
+    message.includes("Insufficient credits") ||
+    message.includes("Active subscription required")
+  ) {
+    return NextResponse.json(
+      { error: message, requestId },
+      { status: 402 },
+    );
+  }
+
+  return NextResponse.json(
+    { error: message, requestId },
+    { status: 500 },
+  );
+}
+
 export async function POST(request: NextRequest) {
   const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  let reservationId: string | null = null;
+  let userId: string | null = null;
 
   debugLog("API request received", {
     requestId: requestId,
@@ -37,6 +63,15 @@ export async function POST(request: NextRequest) {
   });
 
   try {
+    const authResult = await auth();
+    userId = authResult.userId;
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized", requestId },
+        { status: 401 },
+      );
+    }
+
     // Parse request body
     const body = (await request.json()) as RunwayGen4TurboRequestBody;
     debugLog("Request body parsed", {
@@ -100,6 +135,28 @@ export async function POST(request: NextRequest) {
       duration: body.duration as 5 | 10,
     };
 
+    const estimatedCredits = calculateCreditsForDurationSeconds(
+      RUNWAY_MODEL_ID,
+      input.duration,
+    );
+    reservationId = `runway_${userId}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+    try {
+      await convexClient.mutation(convexApi.credits.reserveCreditsForGeneration, {
+        userId,
+        service: "runway",
+        modelId: RUNWAY_MODEL_ID,
+        estimatedCredits,
+        reservationId,
+      });
+    } catch (reserveError) {
+      const message =
+        reserveError instanceof Error
+          ? reserveError.message
+          : "Unable to process credits";
+      return mapCreditError(message, requestId);
+    }
+
     debugLog("Starting generation", {
       requestId: requestId,
       input: {
@@ -128,12 +185,60 @@ export async function POST(request: NextRequest) {
       metadata: result.data.metadata,
     });
 
+    const actualCredits = calculateCreditsForDurationSeconds(
+      RUNWAY_MODEL_ID,
+      result.data.video.duration_ms / 1000,
+    );
+    let creditsUsed = actualCredits;
+    try {
+      const finalizeResult = await convexClient.mutation(
+        convexApi.credits.finalizeCreditReservation,
+        {
+          userId,
+          reservationId,
+          success: true,
+          actualCredits,
+        },
+      );
+      creditsUsed = finalizeResult?.captured_credits ?? actualCredits;
+    } catch (finalizeError) {
+      debugError("Failed to finalize reservation after success", {
+        requestId,
+        finalizeError,
+      });
+    }
+
     return NextResponse.json({
       success: true,
-      data: result.data,
+      data: {
+        ...result.data,
+        metadata: {
+          ...(result.data.metadata ?? {
+            model_id: RUNWAY_MODEL_ID,
+            generation_id: requestId,
+            generation_time_ms: 0,
+          }),
+          credits_used: creditsUsed,
+        },
+      },
       requestId: requestId,
     });
   } catch (error) {
+    if (userId && reservationId) {
+      try {
+        await convexClient.mutation(convexApi.credits.finalizeCreditReservation, {
+          userId,
+          reservationId,
+          success: false,
+        });
+      } catch (finalizeError) {
+        debugError("Failed to release reservation after API error", {
+          requestId,
+          finalizeError,
+        });
+      }
+    }
+
     debugError("API request failed", {
       requestId: requestId,
       error: error instanceof Error ? error.message : String(error),

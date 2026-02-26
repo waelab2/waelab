@@ -17,9 +17,12 @@ export interface FalClient {
   ) => Promise<{ data: VideoGenerationOutput }>;
 }
 
-// Environment-based client selection
-export const falClient: FalClient =
-  process.env.NODE_ENV === "development" ? falMock : fal;
+// // Environment-based client selection
+// export const falClient: FalClient =
+//   process.env.NODE_ENV === "development" ? falMock : fal;
+
+// Use the real client in production
+export const falClient: FalClient = fal;
 
 // Export the type for use in components
 export type { MockFalClient };

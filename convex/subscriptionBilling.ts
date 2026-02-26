@@ -181,6 +181,17 @@ export const processRecurringBilling = internalAction({
           },
         );
 
+        // Grant (reset) monthly credits for the successful recurring charge.
+        await ctx.runMutation(
+          internal.credits.grantPlanCreditsForChargeInternal,
+          {
+            userId: subscription.user_id,
+            planId: subscription.plan_id,
+            chargeId: chargeData.id,
+            source: "recurring_billing",
+          },
+        );
+
         console.log(
           `Successfully billed subscription ${subscription._id} for user ${subscription.user_id}`,
         );

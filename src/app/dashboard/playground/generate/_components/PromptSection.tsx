@@ -6,9 +6,13 @@ import EnhancedDynamicModelForm from "./EnhancedDynamicModelForm";
 
 export default function PromptSection({
   loading,
+  disabled = false,
+  disabledLabel,
   handleSubmit,
 }: {
   loading: boolean;
+  disabled?: boolean;
+  disabledLabel?: string;
   handleSubmit: (prompt: string) => void;
 }) {
   const { prompt } = useGenerateStore();
@@ -37,11 +41,15 @@ export default function PromptSection({
         <div className="mt-6">
           <Button
             onClick={handleGenerate}
-            disabled={loading || !prompt.trim()}
+            disabled={loading || !prompt.trim() || disabled}
             className="w-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white hover:from-[#D63E5F] hover:to-[#2A4A8F] disabled:cursor-not-allowed disabled:opacity-50"
             size="lg"
           >
-            {loading ? "Generating..." : "Generate Video"}
+            {loading
+              ? "Generating..."
+              : disabled
+                ? (disabledLabel ?? "Unavailable")
+                : "Generate Video"}
           </Button>
         </div>
       </div>

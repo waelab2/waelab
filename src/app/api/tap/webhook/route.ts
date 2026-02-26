@@ -265,6 +265,14 @@ export async function POST(request: NextRequest) {
             currency: currency,
             nextBillingDate: nextBillingDate,
           });
+
+          // Reset user credits to the plan allowance after a successful charge.
+          await convexClient.mutation(api.credits.grantPlanCreditsForCharge, {
+            userId: userId,
+            planId: planId,
+            chargeId: charge.id,
+            source: "tap_webhook",
+          });
         }
       } catch (error) {
         console.error("Error processing webhook:", error);
@@ -303,4 +311,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

@@ -7,6 +7,10 @@ import type {
 } from "~/lib/types";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
+import {
+  calculateCreditsForDurationSeconds,
+  parseDurationSeconds,
+} from "./constants/credits";
 import { falClient } from "./falClient";
 
 // Type definitions for tracking results
@@ -90,10 +94,19 @@ export function useTrackedFalClient() {
       // Update tracking with final result after completion
       if (trackingResult && result?.data) {
         const generationTime = Date.now() - startTime;
+        const durationSeconds = parseDurationSeconds(input.duration, 5);
+        let creditsUsed: number;
+        try {
+          creditsUsed = calculateCreditsForDurationSeconds(model, durationSeconds);
+        } catch {
+          creditsUsed = Math.max(1, Math.ceil(durationSeconds * 5));
+        }
+
         void updateGenerationRequest({
           generation_request_id: trackingResult.generation_request_id,
           status: "completed",
           generation_time_ms: generationTime,
+          credits_used: creditsUsed,
           file_size: result.data.video?.file_size,
         });
 
@@ -208,6 +221,7 @@ export function useTrackedElevenLabsClient() {
             generation_time_ms: number;
             model_id: string;
             voice_id: string;
+            credits_used?: number;
           };
         };
       };
@@ -225,6 +239,7 @@ export function useTrackedElevenLabsClient() {
           generation_request_id: trackingResult.generation_request_id,
           status: "completed",
           generation_time_ms: generationTime,
+          credits_used: result.data.metadata?.credits_used,
           file_size: result.data.audio?.file_size,
         });
 
@@ -423,7 +438,9 @@ export function useTrackedRunwayClient() {
       // Update tracking with final result after completion
       if (trackingResult && result?.data) {
         const generationTime = Date.now() - startTime;
-        const creditsUsed = input.duration * 5; // 5 credits per second
+        const creditsUsed =
+          result.data.metadata?.credits_used ??
+          calculateCreditsForDurationSeconds("runway/gen4_turbo", input.duration);
 
         void updateGenerationRequest({
           generation_request_id: trackingResult.generation_request_id,
