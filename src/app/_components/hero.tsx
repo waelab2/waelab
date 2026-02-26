@@ -1,8 +1,8 @@
 "use client";
 
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 import { Authenticated, Unauthenticated } from "convex/react";
-import { ArrowRightIcon, MenuIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, MenuIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -117,46 +117,67 @@ function NavigationLinks() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
   const { t } = useTranslations();
+  const { userId } = useAuth();
+  const links = [
+    ...nav_links.map((link) => ({ href: link.href, label: t(link.labelKey) })),
+    ...(userId
+      ? [{ href: "/dashboard", label: language === "ar" ? "لوحة التحكم" : "Dashboard" }]
+      : []),
+  ];
+  const navigationItems = [
+    ...links,
+    { href: "__language__" as const, labelKey: "" as const },
+  ];
+  const displayItems =
+    language === "ar" ? [...navigationItems].reverse() : navigationItems;
 
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList className="hidden lg:flex">
-        {nav_links.map((link) => (
-          <NavigationMenuItem key={link.href}>
-            <NavigationMenuLink
-              asChild
-              className={cn(
-                navigationMenuTriggerStyle(),
-                "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
-              )}
-            >
-              <Link
-                href={link.href}
-                className="text-white hover:text-white focus:text-white active:text-white"
-              >
-                {pathname === link.href ? (
-                  <span className="flex items-center gap-2">
-                    <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
-                    <AccentedText>{t(link.labelKey)}</AccentedText>
-                  </span>
-                ) : (
-                  t(link.labelKey)
+        {displayItems.map((item) =>
+          item.href === "__language__" ? (
+            <NavigationMenuItem key="language-switcher">
+              <button
+                onClick={toggleLanguage}
+                className={cn(
+                  navigationMenuTriggerStyle(),
+                  "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
                 )}
-              </Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-        ))}
-        <NavigationMenuItem>
-          <button
-            onClick={toggleLanguage}
-            className={cn(
-              navigationMenuTriggerStyle(),
-              "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
-            )}
-          >
-            {language === "en" ? "العربية" : "English"}
-          </button>
-        </NavigationMenuItem>
+              >
+                {language === "en" ? "العربية" : "English"}
+              </button>
+            </NavigationMenuItem>
+          ) : (
+            <NavigationMenuItem key={item.href}>
+              <NavigationMenuLink
+                asChild
+                className={cn(
+                  navigationMenuTriggerStyle(),
+                  "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
+                )}
+              >
+                <Link
+                  href={item.href}
+                  className="text-white hover:text-white focus:text-white active:text-white"
+                >
+                  {pathname === item.href ? (
+                    <span
+                      className={cn(
+                        "flex items-center gap-2",
+                        language === "ar" && "flex-row-reverse",
+                      )}
+                    >
+                      <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                      <AccentedText>{item.label}</AccentedText>
+                    </span>
+                  ) : (
+                    item.label
+                  )}
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          ),
+        )}
       </NavigationMenuList>
     </NavigationMenu>
   );
@@ -166,6 +187,19 @@ function MobileNavigation() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
   const { t } = useTranslations();
+  const { userId } = useAuth();
+  const links = [
+    ...nav_links.map((link) => ({ href: link.href, label: t(link.labelKey) })),
+    ...(userId
+      ? [{ href: "/dashboard", label: language === "ar" ? "لوحة التحكم" : "Dashboard" }]
+      : []),
+  ];
+  const navigationItems = [
+    ...links,
+    { href: "__language__" as const, labelKey: "" as const },
+  ];
+  const displayItems =
+    language === "ar" ? [...navigationItems].reverse() : navigationItems;
 
   return (
     <Sheet>
@@ -183,33 +217,37 @@ function MobileNavigation() {
           <SheetTitle className="text-left text-white">Navigation</SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col space-y-4">
-          {nav_links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white",
-                pathname === link.href &&
-                  "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white",
-              )}
-            >
-              <span className="font-medium text-white">
-                {pathname === link.href ? (
-                  <span className="text-white">{t(link.labelKey)}</span>
-                ) : (
-                  t(link.labelKey)
+          {displayItems.map((item) =>
+            item.href === "__language__" ? (
+              <button
+                key="language-switcher"
+                onClick={toggleLanguage}
+                className="flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white"
+              >
+                <span className="font-medium text-white">
+                  {language === "en" ? "العربية" : "English"}
+                </span>
+              </button>
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white",
+                  pathname === item.href &&
+                    "bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white",
                 )}
-              </span>
-            </Link>
-          ))}
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white"
-          >
-            <span className="font-medium text-white">
-              {language === "en" ? "العربية" : "English"}
-            </span>
-          </button>
+              >
+                <span className="font-medium text-white">
+                  {pathname === item.href ? (
+                    <span className="text-white">{item.label}</span>
+                  ) : (
+                    item.label
+                  )}
+                </span>
+              </Link>
+            ),
+          )}
         </nav>
 
         {/* Authentication Section */}
@@ -235,7 +273,12 @@ function MobileNavigation() {
                     className="grow-1 rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white hover:opacity-90"
                     size="lg"
                   >
-                    {t("nav.login")} <ArrowRightIcon className="ml-2 h-4 w-4" />
+                    {t("nav.login")}
+                    {language === "ar" ? (
+                      <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                    ) : (
+                      <ArrowRightIcon className="ml-2 h-4 w-4" />
+                    )}
                   </Button>
                 </SignInButton>
               </div>

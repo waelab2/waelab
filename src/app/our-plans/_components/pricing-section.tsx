@@ -25,7 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
 import { useEffect, useState } from "react";
 import GradientBordered from "~/components/gradient-bordered";
@@ -206,7 +206,7 @@ export default function PricingSection() {
               className="waelab-gradient-bg text-white"
               onClick={() => {
                 setIsProfileRequiredModalOpen(false);
-                window.location.href = "/dashboard/profile";
+                clerk.openUserProfile();
               }}
             >
               {language === "ar" ? "الانتقال إلى الملف الشخصي" : "Go to Profile"}
@@ -271,7 +271,10 @@ export default function PricingSection() {
               whileHover={{ y: -5 }}
               className="flex"
             >
-              <Card className="bg-secondary/20 relative h-full w-full border border-[#73748525] text-left transition-all duration-300 hover:shadow-lg">
+              <Card
+                dir={language === "ar" ? "rtl" : "ltr"}
+                className={`bg-secondary/20 relative h-full w-full border border-[#73748525] transition-all duration-300 hover:shadow-lg ${language === "ar" ? "text-right" : "text-left"}`}
+              >
                 <CardHeader>
                   {/* Current Plan Badge */}
                   {hasActiveSubscription && currentPlanId === plan.id && (
@@ -322,7 +325,12 @@ export default function PricingSection() {
 
                   {/* Description */}
                   <CardDescription>
-                    <p className="text-ui-grey text-sm">{plan.description}</p>
+                    <p
+                      dir={language === "ar" ? "rtl" : "ltr"}
+                      className={`text-ui-grey text-sm ${language === "ar" ? "text-right" : "text-left"}`}
+                    >
+                      {plan.description}
+                    </p>
                   </CardDescription>
                 </CardHeader>
                 <Separator className="my-2 h-0.25" />
@@ -333,7 +341,7 @@ export default function PricingSection() {
                       initial={{ opacity: 0, x: -5 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: 0.5 + index * 0.05 }}
-                      className="flex items-center gap-2 text-sm"
+                      className={`flex items-center gap-2 text-sm ${language === "ar" ? "flex-row-reverse text-right" : "text-left"}`}
                     >
                       <div className="waelab-gradient-bg flex h-5 w-5 items-center justify-center rounded-full">
                         <Check className="h-3.5 w-3.5 text-white" />
@@ -355,7 +363,9 @@ export default function PricingSection() {
                   >
                     {pendingPlanId === plan.id ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2
+                          className={`${language === "ar" ? "ml-2" : "mr-2"} h-4 w-4 animate-spin`}
+                        />
                         {language === "ar" ? "جاري المعالجة..." : "Loading..."}
                       </>
                     ) : hasActiveSubscription && currentPlanId === plan.id ? (
@@ -371,7 +381,11 @@ export default function PricingSection() {
                     ) : (
                       <>
                         {plan.cta}
-                        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                        {language === "ar" ? (
+                          <ArrowLeft className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" />
+                        ) : (
+                          <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                        )}
                       </>
                     )}
                   </Button>

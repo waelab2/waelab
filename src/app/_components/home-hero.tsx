@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 import { Authenticated, Unauthenticated } from "convex/react";
 import { ArrowLeftIcon, ArrowRightIcon, MenuIcon } from "lucide-react";
 import Image from "next/image";
@@ -136,6 +136,7 @@ function NavigationLinks() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
   const { t } = useTranslations();
+  const { userId } = useAuth();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -147,6 +148,9 @@ function NavigationLinks() {
     { href: "/our-services", label: t("nav.our_services") },
     { href: "/our-plans", label: t("nav.our_plans") },
     { href: "/contact-us", label: t("nav.contact_us") },
+    ...(userId
+      ? [{ href: "/dashboard", label: language === "ar" ? "لوحة التحكم" : "Dashboard" }]
+      : []),
   ];
 
   // Create navigation items with language switcher
@@ -218,6 +222,7 @@ function MobileNavigation() {
   const pathname = usePathname();
   const { language, toggleLanguage } = useLanguageToggle();
   const { t } = useTranslations();
+  const { userId } = useAuth();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -229,6 +234,9 @@ function MobileNavigation() {
     { href: "/our-services", label: t("nav.our_services") },
     { href: "/our-plans", label: t("nav.our_plans") },
     { href: "/contact-us", label: t("nav.contact_us") },
+    ...(userId
+      ? [{ href: "/dashboard", label: language === "ar" ? "لوحة التحكم" : "Dashboard" }]
+      : []),
   ];
 
   // Create navigation items with language switcher
@@ -329,7 +337,12 @@ function MobileNavigation() {
                     className="grow-1 rounded-full bg-gradient-to-r from-[#E9476E] to-[#3B5DA8] text-white hover:opacity-90"
                     size="lg"
                   >
-                    {t("nav.login")} <ArrowRightIcon className="ml-2 h-4 w-4" />
+                    {t("nav.login")}
+                    {language === "ar" ? (
+                      <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                    ) : (
+                      <ArrowRightIcon className="ml-2 h-4 w-4" />
+                    )}
                   </Button>
                 </SignInButton>
               </div>
