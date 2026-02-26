@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { TextReveal } from "@/components/ui/text-reveal";
 import { api } from "@/trpc/react";
-import { Mail, Users } from "lucide-react";
+import { Mail, RefreshCw, Users } from "lucide-react";
 import { useState } from "react";
 import { InvitationsTable } from "./_components/InvitationsTable";
 import { InviteUserModal } from "./_components/InviteUserModal";
@@ -12,13 +12,31 @@ import { UsersTableWithStats } from "./_components/UsersTableWithStats";
 
 export default function UsersPage() {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const utils = api.useUtils();
 
   // Fetch all users using tRPC
-  const { data: users, isLoading: usersLoading } = api.users.getAll.useQuery();
+  const {
+    data: users,
+    isLoading: usersLoading,
+    isRefetching: usersRefetching,
+  } = api.users.getAll.useQuery();
 
   // Fetch invitation stats
-  const { data: invitationStats, isLoading: invitationStatsLoading } =
-    api.users.getInvitationStats.useQuery();
+  const {
+    data: invitationStats,
+    isLoading: invitationStatsLoading,
+    isRefetching: invitationsRefetching,
+  } = api.users.getInvitationStats.useQuery();
+
+  const isRefreshing = usersRefetching || invitationsRefetching;
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      utils.users.getAll.invalidate(),
+      utils.users.getInvitationStats.invalidate(),
+      utils.users.getAllInvitations.invalidate(),
+    ]);
+  };
 
   return (
     <main className="flex flex-col gap-6 py-6 text-white">
@@ -38,6 +56,19 @@ export default function UsersPage() {
             >
               Manage and monitor all platform users and their activity.
             </TextReveal>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+              onClick={() => void handleRefresh()}
+              disabled={isRefreshing}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </Button>
           </div>
         </div>
       </div>

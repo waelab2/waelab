@@ -1,11 +1,16 @@
 import { clerkClient } from "@clerk/nextjs/server";
+import { ConvexHttpClient } from "convex/browser";
 import { z } from "zod";
+import { api as convexApi } from "../../../../convex/_generated/api";
+import { env } from "~/env";
 import { getViewerAccessByUserId } from "~/server/authz";
 import {
   adminProcedure,
   createTRPCRouter,
   protectedProcedure,
 } from "~/server/api/trpc";
+
+const convexClient = new ConvexHttpClient(env.NEXT_PUBLIC_CONVEX_URL);
 
 interface ClerkUser {
   id: string;
@@ -219,6 +224,60 @@ export const usersRouter = createTRPCRouter({
         console.error("Error revoking invitation:", error);
         throw new Error("Failed to revoke invitation");
       }
+    }),
+
+  releaseReservedCreditsForUser: adminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        service: z.enum(["fal", "elevenlabs", "runway"]).optional(),
+        reason: z.string().min(3),
+        confirmed: z.literal(true),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      console.log("[SUPPORT_ACTION] releaseReservedCreditsForUser", {
+        adminUserId: ctx.userId,
+        targetUserId: input.userId,
+        service: input.service ?? "all",
+        reason: input.reason,
+      });
+
+      return convexClient.mutation(
+        convexApi.credits.releaseReservedCreditsForUser,
+        {
+          userId: input.userId,
+          service: input.service,
+        },
+      );
+    }),
+
+  grantPlanCreditsForUser: adminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        planId: z.enum(["starter", "pro", "premium"]),
+        reason: z.string().min(3),
+        confirmed: z.literal(true),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const chargeId = `support_${Date.now()}_${ctx.userId}_${input.userId}`;
+
+      console.log("[SUPPORT_ACTION] grantPlanCreditsForUser", {
+        adminUserId: ctx.userId,
+        targetUserId: input.userId,
+        planId: input.planId,
+        reason: input.reason,
+        chargeId,
+      });
+
+      return convexClient.mutation(convexApi.credits.grantPlanCreditsForCharge, {
+        userId: input.userId,
+        planId: input.planId,
+        chargeId,
+        source: "support_manual_grant",
+      });
     }),
 });
 
