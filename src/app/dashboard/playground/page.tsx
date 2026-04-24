@@ -2,7 +2,7 @@
 
 import { TextReveal } from "@/components/ui/text-reveal";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { models } from "~/lib/constants";
@@ -71,6 +71,23 @@ export default function PlaygroundPage() {
             generation and text-to-speech
           </TextReveal>
         </div>
+
+        <Link
+          href="/dashboard/playground/tavus"
+          className="animate-fade-in animate-delay-150 group flex items-start gap-4 rounded-lg border border-white/20 bg-white/10 p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-[#E9476E] hover:to-[#3B5DA8] hover:text-white hover:shadow-none"
+        >
+          <div className="rounded-full bg-white/20 p-2 group-hover:bg-white/30">
+            <UserRound className="h-5 w-5 text-white" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-white group-hover:text-white">
+              Tavus — talking head from script
+            </h2>
+            <p className="text-sm text-white/80 group-hover:text-white">
+              Turn a script into an avatar video (English or Arabic replica).
+            </p>
+          </div>
+        </Link>
 
         {/* Search Bar and Model Count */}
         <div className="animate-fade-in animate-delay-200 flex items-center justify-between">

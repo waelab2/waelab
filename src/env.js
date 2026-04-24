@@ -10,6 +10,9 @@ export const env = createEnv({
     FAL_KEY: z.string(),
     ELEVENLABS_API_KEY: z.string(),
     RUNWAY_API_KEY: z.string(),
+    TAVUS_API_KEY: z.string(),
+    TAVUS_REPLICA_ID_EN: z.string(),
+    TAVUS_REPLICA_ID_AR: z.string(),
     CLERK_SECRET_KEY: z.string(),
     // TAP_SECRET_KEY takes precedence if set (allows easy swapping for debugging)
     // Otherwise falls back to TEST_SECRET_KEY or LIVE_SECRET_KEY
@@ -41,6 +44,9 @@ export const env = createEnv({
     FAL_KEY: process.env.FAL_KEY,
     ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
     RUNWAY_API_KEY: process.env.RUNWAY_API_KEY,
+    TAVUS_API_KEY: process.env.TAVUS_API_KEY,
+    TAVUS_REPLICA_ID_EN: process.env.TAVUS_REPLICA_ID_EN,
+    TAVUS_REPLICA_ID_AR: process.env.TAVUS_REPLICA_ID_AR,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     TAP_SECRET_KEY: process.env.TAP_SECRET_KEY,
     TEST_SECRET_KEY: process.env.TEST_SECRET_KEY,
