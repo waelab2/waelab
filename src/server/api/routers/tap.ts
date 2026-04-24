@@ -14,6 +14,18 @@ export class TapSaveCardNotEnabledError extends Error {
 }
 
 /**
+ * Thrown when Tap returns error 1105 (customer id invalid).
+ * Common when switching API keys (test vs live): customer IDs are not shared across modes.
+ */
+export class TapInvalidCustomerIdError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TapInvalidCustomerIdError";
+    Object.setPrototypeOf(this, TapInvalidCustomerIdError.prototype);
+  }
+}
+
+/**
  * Get the Tap secret key to use.
  * Priority: TAP_SECRET_KEY > TEST_SECRET_KEY > LIVE_SECRET_KEY
  * This allows easy swapping without code changes - just set TAP_SECRET_KEY to override.
@@ -389,13 +401,23 @@ export async function createCharge(
     if (!response.ok) {
       const errorText = await response.text();
       let errorData: {
-        errors?: Array<{ message?: string; code?: string | number; field?: string }>;
+        errors?: Array<{
+          message?: string;
+          description?: string;
+          code?: string | number;
+          field?: string;
+        }>;
         message?: string;
       };
-      
+
       try {
         errorData = JSON.parse(errorText) as {
-          errors?: Array<{ message?: string; code?: string | number; field?: string }>;
+          errors?: Array<{
+            message?: string;
+            description?: string;
+            code?: string | number;
+            field?: string;
+          }>;
           message?: string;
         };
       } catch {
@@ -415,17 +437,25 @@ export async function createCharge(
         },
       });
 
+      const firstErr = errorData.errors?.[0];
       const errorMessage =
-        errorData.errors?.[0]?.message ??
+        firstErr?.message ??
+        firstErr?.description ??
         errorData.message ??
         `Tap API error: ${response.status} ${response.statusText}`;
 
       // Include error code and field if available
-      const errorCode = errorData.errors?.[0]?.code;
-      const errorField = errorData.errors?.[0]?.field;
-      
+      const errorCode = firstErr?.code;
+      const errorField = firstErr?.field;
+
       // Provide helpful error message for common error codes
       let fullErrorMessage = errorMessage;
+      const isInvalidCustomer =
+        errorCode === "1105" || errorCode === 1105;
+      if (isInvalidCustomer) {
+        fullErrorMessage = `Tap customer id is not valid for this API key (test and live customers are separate). Original error: ${errorMessage}`;
+        throw new TapInvalidCustomerIdError(fullErrorMessage);
+      }
       const isSaveCardNotEnabled = errorCode === "1108" || errorCode === 1108;
       if (isSaveCardNotEnabled) {
         fullErrorMessage = `Save Card feature is not enabled on your Tap merchant account. Please contact your Tap account manager to enable the "Save Card" feature. Original error: ${errorMessage}`;

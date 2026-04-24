@@ -15,6 +15,7 @@ export const storePaymentAgreement = mutation({
       v.literal("INSTALLMENT"),
       v.literal("MILESTONE"),
       v.literal("ORDER"),
+      v.literal("SAVED_CARD"),
     ),
     userId: v.string(),
   },
@@ -222,6 +223,7 @@ export const getPaymentAgreementByTapId = query({
         v.literal("INSTALLMENT"),
         v.literal("MILESTONE"),
         v.literal("ORDER"),
+        v.literal("SAVED_CARD"),
       ),
       status: v.union(
         v.literal("active"),
@@ -304,6 +306,7 @@ export const getPaymentAgreementById = internalQuery({
         v.literal("INSTALLMENT"),
         v.literal("MILESTONE"),
         v.literal("ORDER"),
+        v.literal("SAVED_CARD"),
       ),
       status: v.union(
         v.literal("active"),

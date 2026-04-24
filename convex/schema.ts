@@ -183,6 +183,7 @@ export default defineSchema({
       v.literal("INSTALLMENT"),
       v.literal("MILESTONE"),
       v.literal("ORDER"),
+      v.literal("SAVED_CARD"),
     ),
     status: v.union(
       v.literal("active"),

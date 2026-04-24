@@ -46,6 +46,37 @@ interface TapWebhookEvent {
   };
 }
 
+/** Must match Convex `payment_agreements.contract_type` union */
+type StoredTapContractType =
+  | "UNSCHEDULED"
+  | "SUBSCRIPTION"
+  | "INSTALLMENT"
+  | "MILESTONE"
+  | "ORDER"
+  | "SAVED_CARD";
+
+const STORED_TAP_CONTRACT_TYPES = new Set<string>([
+  "UNSCHEDULED",
+  "SUBSCRIPTION",
+  "INSTALLMENT",
+  "MILESTONE",
+  "ORDER",
+  "SAVED_CARD",
+]);
+
+function toStoredContractType(raw: unknown): StoredTapContractType {
+  if (typeof raw === "string" && STORED_TAP_CONTRACT_TYPES.has(raw)) {
+    return raw as StoredTapContractType;
+  }
+  if (raw != null && raw !== "") {
+    console.warn(
+      "Unknown Tap payment_agreement.contract.type; using UNSCHEDULED:",
+      raw,
+    );
+  }
+  return "UNSCHEDULED";
+}
+
 // Tap actually sends the charge object directly, not wrapped in an event
 // This interface represents the actual webhook payload structure
 interface TapWebhookChargePayload extends TapWebhookCharge {
@@ -228,13 +259,9 @@ export async function POST(request: NextRequest) {
               tapPaymentAgreementId: paymentAgreementId,
               tapCustomerId: tapCustomerId,
               tapCardId: charge.payment_agreement.contract?.id,
-              contractType:
-                (charge.payment_agreement.contract?.type as
-                  | "UNSCHEDULED"
-                  | "SUBSCRIPTION"
-                  | "INSTALLMENT"
-                  | "MILESTONE"
-                  | "ORDER") ?? "UNSCHEDULED",
+              contractType: toStoredContractType(
+                charge.payment_agreement.contract?.type,
+              ),
               userId: userId,
             },
           );

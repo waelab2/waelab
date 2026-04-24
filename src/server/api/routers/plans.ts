@@ -5,7 +5,12 @@ import { env } from "~/env";
 import { getPlanPrice } from "~/lib/constants/plans";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { api as convexApi } from "../../../../convex/_generated/api";
-import { createCharge, createTapCustomer, TapSaveCardNotEnabledError } from "./tap";
+import {
+  createCharge,
+  createTapCustomer,
+  TapInvalidCustomerIdError,
+  TapSaveCardNotEnabledError,
+} from "./tap";
 
 const convexClient = new ConvexHttpClient(env.NEXT_PUBLIC_CONVEX_URL);
 
@@ -48,9 +53,10 @@ export const plansRouter = createTRPCRouter({
           const tapCustomer = await createTapCustomer(ctx.userId);
           tapCustomerId = tapCustomer.customer.id;
 
-          // Store the Tap customer ID in user's privateMetadata
+          // Store the Tap customer ID in user's privateMetadata (merge — do not wipe other keys)
           await client.users.updateUser(ctx.userId, {
             privateMetadata: {
+              ...(user.privateMetadata as Record<string, unknown>),
               tap_customer_id: tapCustomerId,
             },
           });
@@ -65,43 +71,94 @@ export const plansRouter = createTRPCRouter({
           plan_id: input.planId,
         };
 
-        // Try with save_card first; if Save Card is not enabled on Tap account, retry without it
-        let transactionUrl: string;
-        try {
-          transactionUrl = await createCharge(
-            tapCustomerId,
-            amount,
-            input.language,
-            {
-              saveCard: true,
-              agreementType: "subscription",
-              metadata,
-            },
-          );
-          console.log(
-            "Tap charge created with payment agreement, transaction URL:",
-            transactionUrl,
-          );
-        } catch (chargeError) {
-          if (chargeError instanceof TapSaveCardNotEnabledError) {
-            console.warn(
-              "Save Card not enabled on Tap account; retrying charge without save_card",
-            );
-            transactionUrl = await createCharge(
-              tapCustomerId,
+        const chargeWithSaveCardFallback = async (
+          customerId: string,
+        ): Promise<string> => {
+          try {
+            const url = await createCharge(
+              customerId,
               amount,
               input.language,
               {
-                saveCard: false,
+                saveCard: true,
+                agreementType: "subscription",
                 metadata,
               },
             );
             console.log(
-              "Tap charge created (no card saved), transaction URL:",
-              transactionUrl,
+              "First charge attempt succeeded (save_card + subscription agreement). Transaction URL:",
+              url,
             );
-          } else {
+            return url;
+          } catch (chargeError) {
+            console.error(
+              "First charge attempt (save_card) failed — error response:",
+              {
+                name:
+                  chargeError instanceof Error
+                    ? chargeError.name
+                    : typeof chargeError,
+                message:
+                  chargeError instanceof Error
+                    ? chargeError.message
+                    : String(chargeError),
+                error: chargeError,
+              },
+            );
+            if (chargeError instanceof TapSaveCardNotEnabledError) {
+              console.warn(
+                "Save Card not enabled on Tap account; retrying charge without save_card",
+              );
+              const url = await createCharge(
+                customerId,
+                amount,
+                input.language,
+                {
+                  saveCard: false,
+                  metadata,
+                },
+              );
+              console.log(
+                "Tap charge created (no card saved), transaction URL:",
+                url,
+              );
+              return url;
+            }
             throw chargeError;
+          }
+        };
+
+        let transactionUrl: string;
+        try {
+          transactionUrl = await chargeWithSaveCardFallback(tapCustomerId);
+        } catch (checkoutError) {
+          if (checkoutError instanceof TapInvalidCustomerIdError) {
+            console.warn(
+              "Stored Tap customer id is invalid for the current API key (e.g. test id with live key). Clearing id and creating a new Tap customer once.",
+            );
+            const userAfterError = await client.users.getUser(ctx.userId);
+            const clearedMeta = {
+              ...(userAfterError.privateMetadata as Record<string, unknown>),
+            };
+            delete clearedMeta.tap_customer_id;
+            await client.users.updateUser(ctx.userId, {
+              privateMetadata: clearedMeta,
+            });
+            const tapCustomer = await createTapCustomer(ctx.userId);
+            tapCustomerId = tapCustomer.customer.id;
+            await client.users.updateUser(ctx.userId, {
+              privateMetadata: {
+                ...clearedMeta,
+                tap_customer_id: tapCustomerId,
+              },
+            });
+            console.log(
+              "Tap customer recreated for current API key:",
+              tapCustomerId,
+            );
+            transactionUrl = await chargeWithSaveCardFallback(tapCustomerId);
+          } else {
+            throw checkoutError;
           }
         }
 
