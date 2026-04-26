@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { Switch } from "@/components/ui/switch";
 import { TextReveal } from "@/components/ui/text-reveal";
 import { api } from "@/trpc/react";
@@ -17,7 +18,10 @@ import {
   Volume2,
   XCircle,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+/** Poll Tavus finalize + refetch activity while script-to-video jobs may still be running. */
+const PENDING_TAVUS_RECOVERY_MS = 10_000;
 
 const formatTimeAgo = (timestamp: number): string => {
   const now = Date.now();
@@ -72,15 +76,75 @@ const formatDate = (timestamp: number): string => {
 
 export default function ActivityPage() {
   const [isUserScope, setIsUserScope] = useState(false);
+  const { userId } = useAuth();
+  const utils = api.useUtils();
 
   const { data: viewerAccess } = api.users.getViewerAccess.useQuery();
   const isAdmin = viewerAccess?.isAdmin ?? false;
   const effectiveScope = isAdmin ? (isUserScope ? "my" : "all") : "my";
 
-  const { data: requests } = api.analytics.getGenerationRequests.useQuery({
-    limit: 100,
-    scope: effectiveScope,
-  });
+  const { data: requests } = api.analytics.getGenerationRequests.useQuery(
+    {
+      limit: 100,
+      scope: effectiveScope,
+    },
+    {
+      refetchInterval: (query) => {
+        const rows = query.state.data;
+        if (!rows || !userId) return false;
+        const hasRecoverablePendingTavus = rows.some(
+          (r) =>
+            r.service === "tavus" &&
+            r.status === "pending" &&
+            (effectiveScope === "my" || r.user_id === userId),
+        );
+        return hasRecoverablePendingTavus ? PENDING_TAVUS_RECOVERY_MS : false;
+      },
+    },
+  );
+
+  const recoverablePendingTavusVideoIds = useMemo(() => {
+    if (!requests || !userId) return [];
+    const ids = requests
+      .filter((r) => {
+        if (r.service !== "tavus" || r.status !== "pending") return false;
+        if (effectiveScope === "my") return true;
+        return r.user_id === userId;
+      })
+      .map((r) => r.request_id.trim())
+      .filter((id) => id.length > 0);
+    return [...new Set(ids)];
+  }, [requests, userId, effectiveScope]);
+
+  useEffect(() => {
+    if (recoverablePendingTavusVideoIds.length === 0 || !userId) return;
+
+    const sync = async () => {
+      let didFinalize = false;
+      for (const videoId of recoverablePendingTavusVideoIds) {
+        try {
+          const res = await fetch("/api/tavus/video/finalize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ videoId }),
+          });
+          if (res.ok) didFinalize = true;
+        } catch {
+          /* ignore network errors */
+        }
+      }
+      if (didFinalize) {
+        await utils.analytics.getGenerationRequests.invalidate({
+          limit: 100,
+          scope: effectiveScope,
+        });
+      }
+    };
+
+    void sync();
+    const timer = setInterval(() => void sync(), PENDING_TAVUS_RECOVERY_MS);
+    return () => clearInterval(timer);
+  }, [recoverablePendingTavusVideoIds, userId, effectiveScope, utils]);
 
   const groupedRequests = useMemo(() => {
     if (!requests) return {};
