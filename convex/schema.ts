@@ -231,6 +231,8 @@ export default defineSchema({
     reservation_id: v.string(),
     language: v.union(v.literal("en"), v.literal("ar")),
     input_kind: v.union(v.literal("script"), v.literal("audio")),
+    /** Links to `generation_requests` for activity / dashboard analytics. */
+    generation_request_id: v.optional(v.id("generation_requests")),
     credits_finalized: v.boolean(),
     created_at: v.number(),
     finalized_at: v.optional(v.number()),
@@ -238,4 +240,15 @@ export default defineSchema({
     .index("by_video_id", ["video_id"])
     .index("by_user", ["user_id"])
     .index("by_reservation_id", ["reservation_id"]),
+
+  /** BYO audio blobs uploaded for Tavus (Convex storage); used for signed URLs. */
+  tavus_byo_audio: defineTable({
+    user_id: v.string(),
+    storage_id: v.id("_storage"),
+    byte_size: v.number(),
+    content_type: v.string(),
+    created_at: v.number(),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_storage_id", ["storage_id"]),
 });

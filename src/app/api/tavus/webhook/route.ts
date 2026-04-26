@@ -70,5 +70,23 @@ export async function POST(request: NextRequest) {
     /* non-fatal */
   }
 
+  try {
+    const details = parsed.status_details;
+    await convexClient.mutation(
+      convexApi.generationRequests.completeTavusGenerationTracking,
+      {
+        videoId: parsed.video_id,
+        outcome: success ? "completed" : "failed",
+        credits_used: success ? TAVUS_VIDEO_ESTIMATED_CREDITS : 0,
+        error_message:
+          success || typeof details !== "string" || !details.trim()
+            ? undefined
+            : details.trim(),
+      },
+    );
+  } catch {
+    /* analytics non-fatal */
+  }
+
   return new NextResponse("OK", { status: 200 });
 }

@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { FileUpload } from "~/components/ui/file-upload";
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
 import { useCreditBalance } from "~/hooks/use-credit-balance";
@@ -90,6 +91,7 @@ export default function TavusTalkingHeadPage() {
   const creditBalance = useCreditBalance();
   const [script, setScript] = useState("");
   const [audioUrl, setAudioUrl] = useState("");
+  const [audioFile, setAudioFile] = useState<File | null>(null);
   const [inputMode, setInputMode] = useState<InputMode>("script");
   const [language, setLanguage] = useState<TavusLanguage>("en");
   const [videoId, setVideoId] = useState<string | null>(null);
@@ -135,6 +137,12 @@ export default function TavusTalkingHeadPage() {
     pollStartedAt.current = null;
     creditsFinalizedRef.current = false;
   }, []);
+
+  useEffect(() => {
+    if (inputMode === "script") {
+      setAudioFile(null);
+    }
+  }, [inputMode]);
 
   const fetchStatus = useCallback(async (id: string) => {
     const res = await fetch(
@@ -307,12 +315,9 @@ export default function TavusTalkingHeadPage() {
         setError("Enter a script to generate.");
         return;
       }
-    } else {
-      const u = audioUrl.trim();
-      if (!u) {
-        setError("Enter a public .mp3 or .wav URL (bring-your-own audio).");
-        return;
-      }
+    } else if (!audioUrl.trim() && !audioFile) {
+      setError("Upload an MP3/WAV file or enter a public audio URL.");
+      return;
     }
 
     if (advTransparentBg && !advFast) {
@@ -329,6 +334,40 @@ export default function TavusTalkingHeadPage() {
       return;
     }
 
+    let resolvedAudioUrl = audioUrl.trim();
+    if (inputMode === "audio" && audioFile) {
+      setIsSubmitting(true);
+      setError(null);
+      try {
+        const fd = new FormData();
+        fd.append("file", audioFile);
+        const up = await fetch("/api/tavus/upload-audio", {
+          method: "POST",
+          body: fd,
+        });
+        const upJson = (await up.json()) as {
+          error?: string;
+          audioUrl?: string;
+        };
+        if (!up.ok) {
+          setError(upJson.error ?? "Audio upload failed");
+          setIsSubmitting(false);
+          return;
+        }
+        const url = upJson.audioUrl?.trim();
+        if (!url) {
+          setError("Upload did not return an audio URL");
+          setIsSubmitting(false);
+          return;
+        }
+        resolvedAudioUrl = url;
+      } catch {
+        setError("Audio upload failed. Try again.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     resetForNewRun();
     setIsSubmitting(true);
     setError(null);
@@ -339,7 +378,7 @@ export default function TavusTalkingHeadPage() {
       inputMode,
       ...(inputMode === "script"
         ? { script: script.trim() }
-        : { audioUrl: audioUrl.trim() }),
+        : { audioUrl: resolvedAudioUrl }),
       ...(advanced ? { advanced } : {}),
     };
 
@@ -396,8 +435,8 @@ export default function TavusTalkingHeadPage() {
             ? !script.trim() || scriptTooLong
               ? "Enter a valid script"
               : null
-            : !audioUrl.trim()
-              ? "Enter audio URL"
+            : !audioUrl.trim() && !audioFile
+              ? "Upload audio or enter URL"
               : null;
 
   const shouldShowPlansLink =
@@ -472,8 +511,9 @@ export default function TavusTalkingHeadPage() {
                 Video Generation
               </h2>
               <p className="mb-6 text-sm text-white/80">
-                Configure script or audio URL, language, and optional advanced
-                Tavus options.
+                Configure script or bring-your-own audio (upload MP3/WAV or
+                paste a public URL), language, and optional advanced Tavus
+                options.
               </p>
 
               <div className="mb-6 space-y-3">
@@ -593,20 +633,42 @@ export default function TavusTalkingHeadPage() {
                   ) : null}
                 </div>
               ) : (
-                <div className="mb-6 space-y-3">
-                  <Label
-                    htmlFor="tavus-audio"
-                    className="text-sm font-medium text-white/80"
-                  >
-                    Public audio URL (.mp3 or .wav)
-                  </Label>
-                  <Input
-                    id="tavus-audio"
-                    value={audioUrl}
-                    onChange={(e) => setAudioUrl(e.target.value)}
-                    placeholder="https://…"
-                    className="border-white/20 bg-white/10 text-white placeholder:text-white/40"
-                  />
+                <div className="mb-6 space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-white/80">
+                      Upload audio (MP3 or WAV, max 25 MB)
+                    </Label>
+                    <FileUpload
+                      value={audioFile}
+                      onChange={(f) => {
+                        setAudioFile(f);
+                        if (f) setAudioUrl("");
+                      }}
+                      accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,.mp3,.wav"
+                      maxSize={25 * 1024 * 1024}
+                      preview={false}
+                      placeholder="Click or drag MP3 / WAV"
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="tavus-audio"
+                      className="text-sm font-medium text-white/80"
+                    >
+                      Or public audio URL (.mp3 or .wav)
+                    </Label>
+                    <Input
+                      id="tavus-audio"
+                      value={audioUrl}
+                      onChange={(e) => {
+                        setAudioUrl(e.target.value);
+                        if (e.target.value.trim()) setAudioFile(null);
+                      }}
+                      placeholder="https://…"
+                      className="border-white/20 bg-white/10 text-white placeholder:text-white/40"
+                    />
+                  </div>
                 </div>
               )}
 

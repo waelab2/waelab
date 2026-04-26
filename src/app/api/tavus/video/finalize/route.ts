@@ -114,5 +114,23 @@ export async function POST(request: NextRequest) {
     /* non-fatal */
   }
 
+  try {
+    const details = tavus.data.status_details;
+    await convexClient.mutation(
+      convexApi.generationRequests.completeTavusGenerationTracking,
+      {
+        videoId,
+        outcome: success ? "completed" : "failed",
+        credits_used: success ? TAVUS_VIDEO_ESTIMATED_CREDITS : 0,
+        error_message:
+          success || typeof details !== "string" || !details.trim()
+            ? undefined
+            : details.trim(),
+      },
+    );
+  } catch {
+    /* analytics non-fatal */
+  }
+
   return NextResponse.json({ ok: true, success, status, requestId });
 }

@@ -249,6 +249,21 @@ export async function POST(request: NextRequest) {
     /* non-fatal */
   }
 
+  let generationRequestId: string | undefined;
+  try {
+    generationRequestId = await convexClient.mutation(
+      convexApi.generationRequests.createGenerationRequest,
+      {
+        service: "tavus",
+        model_id: TAVUS_VIDEO_MODEL_ID,
+        user_id: userId,
+        request_id: videoId,
+      },
+    );
+  } catch {
+    /* analytics non-fatal */
+  }
+
   try {
     await convexClient.mutation(convexApi.tavusVideoJobs.createJob, {
       userId,
@@ -256,6 +271,7 @@ export async function POST(request: NextRequest) {
       reservationId,
       language: parsed.data.language,
       inputKind: parsed.data.inputMode,
+      generationRequestId,
     });
   } catch {
     /* job row is for webhook/finalize; log in production */

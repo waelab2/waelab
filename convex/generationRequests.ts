@@ -254,6 +254,59 @@ export const updateGenerationRequest = mutation({
 });
 
 /**
+ * Mark a Tavus `generation_requests` row completed or failed when the video job ends.
+ * Idempotent if the row is no longer `pending` (e.g. finalize + webhook race).
+ */
+export const completeTavusGenerationTracking = mutation({
+  args: {
+    videoId: v.string(),
+    outcome: v.union(v.literal("completed"), v.literal("failed")),
+    credits_used: v.optional(v.number()),
+    file_size: v.optional(v.number()),
+    error_message: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const job = await ctx.db
+      .query("tavus_video_jobs")
+      .withIndex("by_video_id", (q) => q.eq("video_id", args.videoId))
+      .first();
+    if (!job?.generation_request_id) {
+      return null;
+    }
+    const gen = await ctx.db.get(job.generation_request_id);
+    if (gen?.status !== "pending") {
+      return null;
+    }
+    const completedAt = Date.now();
+    const generation_time_ms = completedAt - job.created_at;
+    const patch: {
+      status: "completed" | "failed";
+      completed_at: number;
+      generation_time_ms: number;
+      credits_used?: number;
+      file_size?: number;
+      error_message?: string;
+    } = {
+      status: args.outcome,
+      completed_at: completedAt,
+      generation_time_ms,
+    };
+    if (args.credits_used !== undefined) {
+      patch.credits_used = args.credits_used;
+    }
+    if (args.file_size !== undefined) {
+      patch.file_size = args.file_size;
+    }
+    if (args.error_message !== undefined) {
+      patch.error_message = args.error_message;
+    }
+    await ctx.db.patch(job.generation_request_id, patch);
+    return null;
+  },
+});
+
+/**
  * Create a fal.ai specific request record
  */
 export const createFalRequest = mutation({

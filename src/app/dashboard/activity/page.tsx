@@ -8,6 +8,7 @@ import {
   Activity,
   CheckCircle,
   Clock,
+  Mic,
   Play,
   Settings,
   User,
@@ -39,6 +40,8 @@ const getServiceInfo = (service: string) => {
       return { icon: Volume2, color: "text-green-500", label: "ElevenLabs" };
     case "runway":
       return { icon: Play, color: "text-purple-500", label: "Runway" };
+    case "tavus":
+      return { icon: Mic, color: "text-rose-400", label: "Tavus" };
     default:
       return { icon: Settings, color: "text-gray-500", label: "Unknown" };
   }

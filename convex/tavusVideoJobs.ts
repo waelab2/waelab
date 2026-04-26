@@ -17,6 +17,7 @@ export const createJob = mutation({
     reservationId: v.string(),
     language: v.union(v.literal("en"), v.literal("ar")),
     inputKind: v.union(v.literal("script"), v.literal("audio")),
+    generationRequestId: v.optional(v.id("generation_requests")),
   },
   returns: v.id("tavus_video_jobs"),
   handler: async (ctx, args) => {
@@ -26,6 +27,7 @@ export const createJob = mutation({
       reservation_id: args.reservationId,
       language: args.language,
       input_kind: args.inputKind,
+      generation_request_id: args.generationRequestId,
       credits_finalized: false,
       created_at: Date.now(),
     });
@@ -44,7 +46,9 @@ export const getJobForUser = query({
       user_id: v.string(),
       video_id: v.string(),
       reservation_id: v.string(),
+      generation_request_id: v.optional(v.id("generation_requests")),
       credits_finalized: v.boolean(),
+      created_at: v.number(),
     }),
   ),
   handler: async (ctx, args) => {
@@ -60,7 +64,9 @@ export const getJobForUser = query({
       user_id: job.user_id,
       video_id: job.video_id,
       reservation_id: job.reservation_id,
+      generation_request_id: job.generation_request_id,
       credits_finalized: job.credits_finalized,
+      created_at: job.created_at,
     };
   },
 });
