@@ -27,6 +27,7 @@ import { useAuth, useClerk } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import Image, { type StaticImageData } from "next/image";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import GradientBordered from "~/components/gradient-bordered";
 import { getPlanPrice, getYearlyPrice } from "~/lib/constants/plans";
@@ -50,6 +51,7 @@ interface Plan {
 
 export default function PricingSection() {
   const { t, language } = useTranslations();
+  const pathname = usePathname();
   const { userId, isLoaded } = useAuth();
   const clerk = useClerk();
   const checkoutMutation = api.plans.handlePlanCheckout.useMutation();
@@ -79,7 +81,7 @@ export default function PricingSection() {
     // If not authenticated, open Clerk's sign-in (same as clicking SignInButton)
     if (!userId) {
       clerk.openSignIn({
-        redirectUrl: "/our-plans",
+        redirectUrl: `${pathname}#plans`,
       });
       return;
     }

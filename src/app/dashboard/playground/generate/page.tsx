@@ -250,7 +250,7 @@ function GeneratePageContent() {
           {shouldShowPlansLink && (
             <p className="mt-3 text-sm text-white/80">
               Generation requires an active plan with enough credits.{" "}
-              <Link href="/our-plans" className="font-medium text-white underline">
+              <Link href="/#plans" className="font-medium text-white underline">
                 View plans
               </Link>
             </p>

@@ -24,7 +24,10 @@ export default function CommonServicesSection() {
   return (
     <>
       {!showServiceInfo && (
-        <section className="text-ui-dark mx-4 my-8 flex flex-col items-center gap-4 md:mx-12 md:my-12 lg:my-24">
+        <section
+          id="services"
+          className="text-ui-dark mx-4 my-8 flex flex-col items-center gap-4 md:mx-12 md:my-12 lg:my-24"
+        >
           {pathname === "/" && (
             <SectionTitle
               title={t("common_services_section.title")}

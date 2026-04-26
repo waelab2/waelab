@@ -1,7 +1,12 @@
-import { type NavLink } from "./nav-links";
+/** Paths that use the compact marketing `Hero` layout (may redirect to `/`). */
+export type MarketingHeroPath =
+  | "/about-us"
+  | "/our-services"
+  | "/our-plans"
+  | "/contact-us";
 
 export const hero_contents: Record<
-  Exclude<NavLink["href"], "/">,
+  MarketingHeroPath,
   {
     en: { small_title: string; main_title: string };
     ar: { small_title: string; main_title: string };

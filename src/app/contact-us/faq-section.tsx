@@ -152,7 +152,10 @@ export default function FaqSection() {
   ];
 
   return (
-    <section className="text-ui-dark mx-4 my-8 sm:mx-8 sm:my-12 md:mx-12 md:my-16 lg:my-24">
+    <section
+      id="faq"
+      className="text-ui-dark mx-4 my-8 sm:mx-8 sm:my-12 md:mx-12 md:my-16 lg:my-24"
+    >
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -177,7 +180,7 @@ export default function FaqSection() {
 
           {/* Because this component is borrowed by home page */}
           {pathname === "/" && (
-            <Link href="/contact-us#faq">
+            <Link href="/#faq">
               <Button
                 className="waelab-gradient-bg min-w-32 rounded-full py-3 text-sm text-white shadow-none transition-all duration-300 hover:text-white hover:shadow-md sm:min-w-40 sm:py-4 sm:text-base lg:min-w-48 lg:py-6"
                 type="button"

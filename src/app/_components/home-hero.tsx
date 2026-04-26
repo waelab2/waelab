@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import AccentedText from "~/components/accented-text";
+import { LanguageGlobeButton } from "~/components/language-globe-button";
 import NavigationAuthPart from "~/components/navigation-auth-part";
 import PrimaryAccentedButton from "~/components/primary-accented-button";
 import { Button } from "~/components/ui/button";
@@ -120,22 +121,9 @@ function ContentBox({ children }: { children: React.ReactNode }) {
   );
 }
 
-type NavigationLinkItem = {
-  type: "link";
-  href: string;
-  label: string;
-};
-
-type LanguageSwitcherItem = {
-  type: "language-switcher";
-};
-
-type NavigationItem = NavigationLinkItem | LanguageSwitcherItem;
-
 function NavigationLinks() {
   const pathname = usePathname();
-  const { language, toggleLanguage } = useLanguageToggle();
-  const { t } = useTranslations();
+  const { language } = useLanguageToggle();
   const { userId } = useAuth();
   const [isClient, setIsClient] = useState(false);
 
@@ -143,74 +131,46 @@ function NavigationLinks() {
     setIsClient(true);
   }, []);
   const links = [
-    { href: "/", label: t("nav.home") },
-    { href: "/about-us", label: t("nav.about_us") },
-    { href: "/our-services", label: t("nav.our_services") },
-    { href: "/our-plans", label: t("nav.our_plans") },
-    { href: "/contact-us", label: t("nav.contact_us") },
     ...(userId
       ? [{ href: "/dashboard", label: language === "ar" ? "لوحة التحكم" : "Dashboard" }]
       : []),
   ];
 
-  // Create navigation items with language switcher
-  const navigationItems: NavigationItem[] = [
-    ...links.map((link) => ({ type: "link" as const, ...link })),
-    { type: "language-switcher" as const },
-  ];
-
-  // Reverse order for RTL (Arabic)
   const displayItems =
-    isClient && language === "ar"
-      ? [...navigationItems].reverse()
-      : navigationItems;
+    isClient && language === "ar" ? [...links].reverse() : links;
+
+  if (displayItems.length === 0) {
+    return null;
+  }
 
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList className="hidden lg:flex">
         {displayItems.map((item) => (
-          <NavigationMenuItem
-            key={item.type === "link" ? item.href : "language-switcher"}
-          >
-            {item.type === "link" ? (
-              <NavigationMenuLink
-                asChild
-                className={cn(
-                  navigationMenuTriggerStyle(),
-                  "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
-                )}
+          <NavigationMenuItem key={item.href}>
+            <NavigationMenuLink
+              asChild
+              className={cn(
+                navigationMenuTriggerStyle(),
+                "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
+              )}
+            >
+              <Link
+                href={item.href}
+                className="text-white hover:text-white focus:text-white active:text-white"
               >
-                <Link
-                  href={item.href}
-                  className="text-white hover:text-white focus:text-white active:text-white"
-                >
-                  {pathname === item.href ? (
-                    <span
-                      className={`flex items-center gap-2 ${isClient && language === "ar" ? "flex-row-reverse" : ""}`}
-                    >
-                      <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
-                      <AccentedText>{item.label}</AccentedText>
-                    </span>
-                  ) : (
-                    item.label
-                  )}
-                </Link>
-              </NavigationMenuLink>
-            ) : (
-              <button
-                onClick={toggleLanguage}
-                className={cn(
-                  navigationMenuTriggerStyle(),
-                  "bg-transparent text-sm font-semibold text-white hover:bg-transparent hover:text-white focus:bg-transparent focus:text-white focus:outline-none active:text-white sm:text-base",
+                {pathname === item.href ? (
+                  <span
+                    className={`flex items-center gap-2 ${isClient && language === "ar" ? "flex-row-reverse" : ""}`}
+                  >
+                    <div className="waelab-gradient-bg h-2 w-2 rounded-full" />
+                    <AccentedText>{item.label}</AccentedText>
+                  </span>
+                ) : (
+                  item.label
                 )}
-              >
-                {!isClient
-                  ? "English"
-                  : language === "en"
-                    ? "العربية"
-                    : "English"}
-              </button>
-            )}
+              </Link>
+            </NavigationMenuLink>
           </NavigationMenuItem>
         ))}
       </NavigationMenuList>
@@ -220,7 +180,7 @@ function NavigationLinks() {
 
 function MobileNavigation() {
   const pathname = usePathname();
-  const { language, toggleLanguage } = useLanguageToggle();
+  const { language } = useLanguageToggle();
   const { t } = useTranslations();
   const { userId } = useAuth();
   const [isClient, setIsClient] = useState(false);
@@ -229,27 +189,13 @@ function MobileNavigation() {
     setIsClient(true);
   }, []);
   const links = [
-    { href: "/", label: t("nav.home") },
-    { href: "/about-us", label: t("nav.about_us") },
-    { href: "/our-services", label: t("nav.our_services") },
-    { href: "/our-plans", label: t("nav.our_plans") },
-    { href: "/contact-us", label: t("nav.contact_us") },
     ...(userId
       ? [{ href: "/dashboard", label: language === "ar" ? "لوحة التحكم" : "Dashboard" }]
       : []),
   ];
 
-  // Create navigation items with language switcher
-  const navigationItems: NavigationItem[] = [
-    ...links.map((link) => ({ type: "link" as const, ...link })),
-    { type: "language-switcher" as const },
-  ];
-
-  // Reverse order for RTL (Arabic)
   const displayItems =
-    isClient && language === "ar"
-      ? [...navigationItems].reverse()
-      : navigationItems;
+    isClient && language === "ar" ? [...links].reverse() : links;
 
   // Prevent hydration mismatch by only rendering Sheet on client
   if (!isClient) {
@@ -276,9 +222,9 @@ function MobileNavigation() {
         <SheetHeader>
           <SheetTitle className="text-left text-white">Navigation</SheetTitle>
         </SheetHeader>
-        <nav className="flex flex-col space-y-4">
-          {displayItems.map((item) =>
-            item.type === "link" ? (
+        {displayItems.length > 0 ? (
+          <nav className="flex flex-col space-y-4">
+            {displayItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -296,29 +242,16 @@ function MobileNavigation() {
                   )}
                 </span>
               </Link>
-            ) : (
-              <button
-                key="language-switcher"
-                onClick={toggleLanguage}
-                className="flex items-center gap-3 rounded-lg px-4 py-3 text-white transition-colors hover:bg-[#333] hover:text-white"
-              >
-                <span className="font-medium text-white">
-                  {!isClient
-                    ? "English"
-                    : language === "en"
-                      ? "العربية"
-                      : "English"}
-                </span>
-              </button>
-            ),
-          )}
-        </nav>
+            ))}
+          </nav>
+        ) : null}
 
         {/* Authentication Section */}
         <div className="border-t border-[#333] px-4 py-8">
           <div className="flex flex-col space-y-3">
             <Unauthenticated>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <LanguageGlobeButton className="hover:bg-[#333]" />
                 <SignUpButton>
                   <Button
                     variant="ghost"
@@ -348,7 +281,8 @@ function MobileNavigation() {
               </div>
             </Unauthenticated>
             <Authenticated>
-              <div className="flex items-center justify-center py-2">
+              <div className="flex items-center justify-center gap-3 py-2">
+                <LanguageGlobeButton className="hover:bg-[#333]" />
                 <UserButton />
               </div>
             </Authenticated>

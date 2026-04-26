@@ -3,6 +3,7 @@
 import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Authenticated, Unauthenticated } from "convex/react";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import { LanguageGlobeButton } from "~/components/language-globe-button";
 import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/hooks/use-translations";
 
@@ -10,7 +11,8 @@ export default function NavigationAuthPart() {
   const { t, language } = useTranslations();
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-1 sm:gap-2">
+      <LanguageGlobeButton />
       <Unauthenticated>
         <SignUpButton>
           <Button

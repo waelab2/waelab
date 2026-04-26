@@ -74,14 +74,14 @@ export default function Footer() {
 
   const toExploreLinks = [
     { text: t("footer.nav.home"), href: "/" },
-    { text: t("footer.nav.about_us"), href: "/about-us" },
-    { text: t("footer.nav.our_services"), href: "/our-services" },
-    { text: t("footer.nav.our_plans"), href: "/our-plans" },
+    { text: t("footer.nav.about_us"), href: "/#about" },
+    { text: t("footer.nav.our_services"), href: "/#services" },
+    { text: t("footer.nav.our_plans"), href: "/#plans" },
   ];
 
   const helpAndServicesLinks = [
-    { text: t("footer.nav.contact_us"), href: "/contact-us" },
-    { text: t("footer.nav.qa"), href: "/contact-us#faq" },
+    { text: t("footer.nav.contact_us"), href: "/#faq" },
+    { text: t("footer.nav.qa"), href: "/#faq" },
     { text: t("footer.nav.how_it_works"), href: "#" },
   ];
 

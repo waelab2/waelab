@@ -329,7 +329,7 @@ function RunwayPageContent() {
                 <p className="mt-3 text-sm text-white/80">
                   Generation requires an active plan with enough credits.{" "}
                   <Link
-                    href="/our-plans"
+                    href="/#plans"
                     className="font-medium text-white underline"
                   >
                     View plans

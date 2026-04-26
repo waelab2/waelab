@@ -1,8 +1,20 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
 
+/** Marketing routes folded into `/`; pages kept on disk for a later relaunch. */
+const isDisabledMarketingRoute = createRouteMatcher([
+  "/about-us(.*)",
+  "/our-services(.*)",
+  "/our-plans(.*)",
+  "/contact-us(.*)",
+]);
+
 export default clerkMiddleware(async (auth, req) => {
+  if (isDisabledMarketingRoute(req)) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
   if (isProtectedRoute(req)) await auth.protect();
 });
 

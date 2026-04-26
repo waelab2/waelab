@@ -13,7 +13,10 @@ export default function AboutSection() {
   const { language } = useLanguageToggle();
 
   return (
-    <section className="text-ui-dark relative px-8 py-12 md:px-12 lg:pt-24 lg:pb-0">
+    <section
+      id="about"
+      className="text-ui-dark relative px-8 py-12 md:px-12 lg:pt-24 lg:pb-0"
+    >
       <Image src={AboutUsBackground} alt="about-us-bg" fill className="-z-10" />
 
       {/* Mobile: Stack vertically (content first, then image), Desktop: Side by side */}
