@@ -106,7 +106,6 @@ export default function TavusTalkingHeadPage() {
   const resultsSectionRef = useRef<HTMLDivElement>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [advVideoName, setAdvVideoName] = useState("");
-  const [advCallbackUrl, setAdvCallbackUrl] = useState("");
   const [advFast, setAdvFast] = useState(false);
   const [advTransparentBg, setAdvTransparentBg] = useState(false);
   const [advWatermarkUrl, setAdvWatermarkUrl] = useState("");
@@ -267,9 +266,6 @@ export default function TavusTalkingHeadPage() {
     const advanced: Record<string, unknown> = {};
     if (advVideoName.trim()) {
       advanced.videoName = advVideoName.trim();
-    }
-    if (advCallbackUrl.trim()) {
-      advanced.callbackUrl = advCallbackUrl.trim();
     }
     if (advFast) {
       advanced.fast = true;
@@ -469,9 +465,7 @@ export default function TavusTalkingHeadPage() {
             Generate Video
           </h1>
           <p className="mt-2 text-sm text-white/80">
-            Recorded avatar video from script or audio (not live CVI).{" "}
-            {TAVUS_VIDEO_ESTIMATED_CREDITS} credits per job (reserved at start,
-            captured or released when the job ends).
+            Create a talking-head video from a script or your own audio.
           </p>
           <div className="mt-4 space-y-2">
             <Link
@@ -546,18 +540,6 @@ export default function TavusTalkingHeadPage() {
                     العربية
                   </Button>
                 </div>
-                <p className="text-xs text-white/65">
-                  Tavus lists Arabic among supported TTS languages, but{" "}
-                  <code className="rounded bg-black/30 px-1">POST /v2/videos</code>{" "}
-                  has no language field: Arabic only works if{" "}
-                  <code className="rounded bg-black/30 px-1">
-                    TAVUS_REPLICA_ID_AR
-                  </code>{" "}
-                  is a replica whose voice supports Arabic. If script mode fails,
-                  try{" "}
-                  <strong className="text-white/90">Bring-your-own audio</strong>{" "}
-                  with MP3/WAV from your own Arabic TTS.
-                </p>
               </div>
 
               <div className="mb-6 space-y-3">
@@ -693,21 +675,6 @@ export default function TavusTalkingHeadPage() {
                     <Input
                       value={advVideoName}
                       onChange={(e) => setAdvVideoName(e.target.value)}
-                      className="border-white/20 bg-white/10 text-white"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-sm font-medium text-white/80">
-                      Tavus callback URL (optional)
-                    </Label>
-                    <p className="text-xs text-white/55">
-                      If set, Tavus POSTs completion to this URL. Credits still
-                      finalize here when polling sees a terminal status.
-                    </p>
-                    <Input
-                      value={advCallbackUrl}
-                      onChange={(e) => setAdvCallbackUrl(e.target.value)}
-                      placeholder="https://…"
                       className="border-white/20 bg-white/10 text-white"
                     />
                   </div>
@@ -974,12 +941,12 @@ export default function TavusTalkingHeadPage() {
             <div className="rounded-xl bg-white/10 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm">
               <h3 className="text-lg font-semibold text-white">Quick Actions</h3>
               <div className="mt-4 space-y-3">
-                <button
-                  type="button"
-                  className="w-full rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                <Link
+                  href="/dashboard/activity"
+                  className="flex w-full items-center justify-center rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20"
                 >
                   View History
-                </button>
+                </Link>
               </div>
             </div>
           </div>
