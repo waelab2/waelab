@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { api as convexApi } from "../../../../../convex/_generated/api";
+import type { Id } from "../../../../../convex/_generated/dataModel";
 import { env } from "~/env";
 import {
   TAVUS_VIDEO_ESTIMATED_CREDITS,
@@ -298,7 +299,7 @@ export async function POST(request: NextRequest) {
     /* non-fatal */
   }
 
-  let generationRequestId: string | undefined;
+  let generationRequestId: Id<"generation_requests"> | undefined;
   try {
     generationRequestId = await convexClient.mutation(
       convexApi.generationRequests.createGenerationRequest,

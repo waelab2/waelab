@@ -1,5 +1,5 @@
 import { fal } from "@fal-ai/client";
-import { falMock, type MockFalClient } from "./mocks/falMock";
+import type { MockFalClient } from "./mocks/falMock";
 
 // Type that unifies both real and mock clients
 import type { VideoGenerationInput, VideoGenerationOutput } from "~/lib/types";
