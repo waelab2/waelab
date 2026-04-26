@@ -20,7 +20,9 @@ export const analyticsRouter = createTRPCRouter({
     .input(
       z.object({
         limit: z.number().min(1).max(200).optional(),
-        service: z.enum(["fal", "elevenlabs", "runway"]).optional(),
+        service: z
+          .enum(["fal", "elevenlabs", "runway", "tavus"])
+          .optional(),
         status: z.enum(["pending", "completed", "failed"]).optional(),
         scope: scopeSchema.optional(),
       }),
@@ -44,7 +46,9 @@ export const analyticsRouter = createTRPCRouter({
       z.object({
         startDate: z.number(),
         endDate: z.number(),
-        service: z.enum(["fal", "elevenlabs", "runway"]).optional(),
+        service: z
+          .enum(["fal", "elevenlabs", "runway", "tavus"])
+          .optional(),
         scope: scopeSchema.optional(),
       }),
     )

@@ -14,6 +14,7 @@ const serviceValidator = v.union(
   v.literal("fal"),
   v.literal("elevenlabs"),
   v.literal("runway"),
+  v.literal("tavus"),
 );
 
 type ReadCtx = Pick<QueryCtx, "db"> | Pick<MutationCtx, "db">;
@@ -516,24 +517,28 @@ export const finalizeCreditReservation = mutation({
     v.null(),
   ),
   handler: async (ctx, args) => {
-    if (!args.reservationId && !args.externalRequestId) {
+    const reservationId = args.reservationId;
+    const externalRequestId = args.externalRequestId;
+    if (reservationId === undefined && externalRequestId === undefined) {
       throw new Error("Either reservationId or externalRequestId is required");
     }
 
-    const reservation =
-      args.reservationId !== undefined
-        ? await ctx.db
-            .query("credit_reservations")
-            .withIndex("by_reservation_id", (q) =>
-              q.eq("reservation_id", args.reservationId!),
-            )
-            .first()
-        : await ctx.db
-            .query("credit_reservations")
-            .withIndex("by_external_request_id", (q) =>
-              q.eq("external_request_id", args.externalRequestId!),
-            )
-            .first();
+    let reservation = null;
+    if (reservationId !== undefined) {
+      reservation = await ctx.db
+        .query("credit_reservations")
+        .withIndex("by_reservation_id", (q) =>
+          q.eq("reservation_id", reservationId),
+        )
+        .first();
+    } else {
+      reservation = await ctx.db
+        .query("credit_reservations")
+        .withIndex("by_external_request_id", (q) =>
+          q.eq("external_request_id", externalRequestId),
+        )
+        .first();
+    }
 
     if (!reservation) {
       return null;

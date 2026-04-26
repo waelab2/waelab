@@ -230,7 +230,9 @@ export const usersRouter = createTRPCRouter({
     .input(
       z.object({
         userId: z.string(),
-        service: z.enum(["fal", "elevenlabs", "runway"]).optional(),
+        service: z
+          .enum(["fal", "elevenlabs", "runway", "tavus"])
+          .optional(),
         reason: z.string().min(3),
         confirmed: z.literal(true),
       }),

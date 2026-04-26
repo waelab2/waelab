@@ -175,6 +175,7 @@ export const createGenerationRequest = mutation({
       v.literal("fal"),
       v.literal("elevenlabs"),
       v.literal("runway"),
+      v.literal("tavus"),
     ),
     model_id: v.string(),
     user_id: v.optional(v.string()),
@@ -484,7 +485,12 @@ export const getGenerationRequests = query({
   args: {
     limit: v.optional(v.number()),
     service: v.optional(
-      v.union(v.literal("fal"), v.literal("elevenlabs"), v.literal("runway")),
+      v.union(
+        v.literal("fal"),
+        v.literal("elevenlabs"),
+        v.literal("runway"),
+        v.literal("tavus"),
+      ),
     ),
     user_id: v.optional(v.string()),
     status: v.optional(
@@ -503,6 +509,7 @@ export const getGenerationRequests = query({
         v.literal("fal"),
         v.literal("elevenlabs"),
         v.literal("runway"),
+        v.literal("tavus"),
       ),
       model_id: v.string(),
       request_id: v.string(),
@@ -572,6 +579,7 @@ export const getGenerationRequest = query({
         v.literal("fal"),
         v.literal("elevenlabs"),
         v.literal("runway"),
+        v.literal("tavus"),
       ),
       model_id: v.string(),
       request_id: v.string(),
@@ -760,6 +768,7 @@ export const getRequestsByModel = query({
         v.literal("fal"),
         v.literal("elevenlabs"),
         v.literal("runway"),
+        v.literal("tavus"),
       ),
       model_id: v.string(),
       request_id: v.string(),
@@ -794,7 +803,12 @@ export const getModelUsageStats = query({
   args: {
     user_id: v.optional(v.string()),
     service: v.optional(
-      v.union(v.literal("fal"), v.literal("elevenlabs"), v.literal("runway")),
+      v.union(
+        v.literal("fal"),
+        v.literal("elevenlabs"),
+        v.literal("runway"),
+        v.literal("tavus"),
+      ),
     ),
   },
   returns: v.object({
@@ -895,7 +909,12 @@ export const getUsageStats = query({
   args: {
     user_id: v.optional(v.string()),
     service: v.optional(
-      v.union(v.literal("fal"), v.literal("elevenlabs"), v.literal("runway")),
+      v.union(
+        v.literal("fal"),
+        v.literal("elevenlabs"),
+        v.literal("runway"),
+        v.literal("tavus"),
+      ),
     ),
   },
   returns: v.object({
@@ -910,6 +929,7 @@ export const getUsageStats = query({
       fal: v.number(),
       elevenlabs: v.number(),
       runway: v.number(),
+      tavus: v.number(),
     }),
   }),
   handler: async (ctx, args) => {
@@ -947,6 +967,7 @@ export const getUsageStats = query({
         fal: requests.filter((r) => r.service === "fal").length,
         elevenlabs: requests.filter((r) => r.service === "elevenlabs").length,
         runway: requests.filter((r) => r.service === "runway").length,
+        tavus: requests.filter((r) => r.service === "tavus").length,
       },
     };
 
@@ -986,6 +1007,7 @@ export const getUsageStatsForMultipleUsers = query({
       fal: v.number(),
       elevenlabs: v.number(),
       runway: v.number(),
+      tavus: v.number(),
     }),
   }),
   handler: async (ctx, args) => {
@@ -1020,6 +1042,7 @@ export const getUsageStatsForMultipleUsers = query({
         elevenlabs: allRequests.filter((r) => r.service === "elevenlabs")
           .length,
         runway: allRequests.filter((r) => r.service === "runway").length,
+        tavus: allRequests.filter((r) => r.service === "tavus").length,
       },
     };
 
@@ -1049,7 +1072,12 @@ export const getUsageStatsForDateRange = query({
     end_date: v.number(),
     user_id: v.optional(v.string()),
     service: v.optional(
-      v.union(v.literal("fal"), v.literal("elevenlabs"), v.literal("runway")),
+      v.union(
+        v.literal("fal"),
+        v.literal("elevenlabs"),
+        v.literal("runway"),
+        v.literal("tavus"),
+      ),
     ),
   },
   returns: v.object({
@@ -1064,6 +1092,7 @@ export const getUsageStatsForDateRange = query({
       fal: v.number(),
       elevenlabs: v.number(),
       runway: v.number(),
+      tavus: v.number(),
     }),
   }),
   handler: async (ctx, args) => {
@@ -1113,6 +1142,7 @@ export const getUsageStatsForDateRange = query({
         elevenlabs: filteredRequests.filter((r) => r.service === "elevenlabs")
           .length,
         runway: filteredRequests.filter((r) => r.service === "runway").length,
+        tavus: filteredRequests.filter((r) => r.service === "tavus").length,
       },
     };
 
@@ -1142,7 +1172,12 @@ export const getModelUsageStatsForDateRange = query({
     end_date: v.number(),
     user_id: v.optional(v.string()),
     service: v.optional(
-      v.union(v.literal("fal"), v.literal("elevenlabs"), v.literal("runway")),
+      v.union(
+        v.literal("fal"),
+        v.literal("elevenlabs"),
+        v.literal("runway"),
+        v.literal("tavus"),
+      ),
     ),
   },
   returns: v.object({

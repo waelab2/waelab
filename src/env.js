@@ -13,6 +13,8 @@ export const env = createEnv({
     TAVUS_API_KEY: z.string(),
     TAVUS_REPLICA_ID_EN: z.string(),
     TAVUS_REPLICA_ID_AR: z.string(),
+    /** Optional: verifies `GET/POST /api/tavus/webhook?token=…` if you wire that URL yourself */
+    TAVUS_WEBHOOK_SECRET: z.string().optional(),
     CLERK_SECRET_KEY: z.string(),
     // TAP_SECRET_KEY takes precedence if set (allows easy swapping for debugging)
     // Otherwise falls back to TEST_SECRET_KEY or LIVE_SECRET_KEY
@@ -47,6 +49,7 @@ export const env = createEnv({
     TAVUS_API_KEY: process.env.TAVUS_API_KEY,
     TAVUS_REPLICA_ID_EN: process.env.TAVUS_REPLICA_ID_EN,
     TAVUS_REPLICA_ID_AR: process.env.TAVUS_REPLICA_ID_AR,
+    TAVUS_WEBHOOK_SECRET: process.env.TAVUS_WEBHOOK_SECRET,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     TAP_SECRET_KEY: process.env.TAP_SECRET_KEY,
     TEST_SECRET_KEY: process.env.TEST_SECRET_KEY,

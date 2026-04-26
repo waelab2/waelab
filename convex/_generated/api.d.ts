@@ -13,6 +13,7 @@ import type * as crons from "../crons.js";
 import type * as generationRequests from "../generationRequests.js";
 import type * as paymentAgreements from "../paymentAgreements.js";
 import type * as subscriptionBilling from "../subscriptionBilling.js";
+import type * as tavusVideoJobs from "../tavusVideoJobs.js";
 import type * as translations from "../translations.js";
 
 import type {
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   generationRequests: typeof generationRequests;
   paymentAgreements: typeof paymentAgreements;
   subscriptionBilling: typeof subscriptionBilling;
+  tavusVideoJobs: typeof tavusVideoJobs;
   translations: typeof translations;
 }>;
 

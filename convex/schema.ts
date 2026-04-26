@@ -8,6 +8,7 @@ export default defineSchema({
       v.literal("fal"),
       v.literal("elevenlabs"),
       v.literal("runway"),
+      v.literal("tavus"),
     ),
     model_id: v.string(), // Specific model used (e.g., "fal-ai/kling-video/v2.1/master/text-to-video")
     request_id: v.string(), // Auto-generated unique ID to prevent conflicts
@@ -128,6 +129,7 @@ export default defineSchema({
       v.literal("fal"),
       v.literal("elevenlabs"),
       v.literal("runway"),
+      v.literal("tavus"),
     ),
     model_id: v.string(),
     estimated_credits: v.number(),
@@ -222,4 +224,18 @@ export default defineSchema({
     .index("by_next_billing_date", ["next_billing_date"])
     .index("by_status", ["status"])
     .index("by_user_and_status", ["user_id", "status"]),
+
+  tavus_video_jobs: defineTable({
+    user_id: v.string(),
+    video_id: v.string(),
+    reservation_id: v.string(),
+    language: v.union(v.literal("en"), v.literal("ar")),
+    input_kind: v.union(v.literal("script"), v.literal("audio")),
+    credits_finalized: v.boolean(),
+    created_at: v.number(),
+    finalized_at: v.optional(v.number()),
+  })
+    .index("by_video_id", ["video_id"])
+    .index("by_user", ["user_id"])
+    .index("by_reservation_id", ["reservation_id"]),
 });

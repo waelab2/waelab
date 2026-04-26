@@ -27,13 +27,14 @@ export interface UsageStats {
     fal: number;
     elevenlabs: number;
     runway: number;
+    tavus: number;
   };
 }
 
 export interface GenerationRequest {
   _id: string;
   _creationTime: number;
-  service: "fal" | "elevenlabs" | "runway";
+  service: "fal" | "elevenlabs" | "runway" | "tavus";
   model_id: string;
   request_id: string;
   user_id?: string;
@@ -65,7 +66,7 @@ export function useUserAnalytics(userId?: string): UsageStats | undefined {
  * Hook to get model-specific analytics
  */
 export function useModelAnalytics(
-  service?: "fal" | "elevenlabs" | "runway",
+  service?: "fal" | "elevenlabs" | "runway" | "tavus",
 ): ModelAnalytics | undefined {
   const result = useQuery(
     api.generationRequests.getModelUsageStats,
@@ -118,7 +119,7 @@ export function useRequestsByModel(
  * Hook to get all generation requests with optional filtering
  */
 export function useGenerationRequests(filters?: {
-  service?: "fal" | "elevenlabs" | "runway";
+  service?: "fal" | "elevenlabs" | "runway" | "tavus";
   status?: "pending" | "completed" | "failed";
   limit?: number;
 }): GenerationRequest[] | undefined {
@@ -140,7 +141,7 @@ export function useUsageStatsForDateRange(
   startDate: number,
   endDate: number,
   userId?: string,
-  service?: "fal" | "elevenlabs" | "runway",
+  service?: "fal" | "elevenlabs" | "runway" | "tavus",
 ): UsageStats | undefined {
   const result = useQuery(api.generationRequests.getUsageStatsForDateRange, {
     start_date: startDate,
@@ -163,7 +164,7 @@ export function useModelUsageStatsForDateRange(
   startDate: number,
   endDate: number,
   userId?: string,
-  service?: "fal" | "elevenlabs" | "runway",
+  service?: "fal" | "elevenlabs" | "runway" | "tavus",
 ): ModelAnalytics | undefined {
   const result = useQuery(
     api.generationRequests.getModelUsageStatsForDateRange,

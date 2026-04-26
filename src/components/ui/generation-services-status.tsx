@@ -12,6 +12,7 @@ import {
   HardDrive,
   TrendingUp,
   Users,
+  Video,
   Zap,
 } from "lucide-react";
 import { memo, useMemo } from "react";
@@ -91,6 +92,13 @@ export const GenerationServicesStatus = memo(
             percentage: 0,
           },
           {
+            label: "Tavus Video",
+            status: "Loading...",
+            color: "text-gray-400",
+            icon: Video,
+            percentage: 0,
+          },
+          {
             label: "Request Queue",
             status: "Loading...",
             color: "text-gray-400",
@@ -104,7 +112,9 @@ export const GenerationServicesStatus = memo(
       const { total_requests, average_generation_time_ms, pending_requests } =
         totals;
 
-      const getServiceMetrics = (service: "fal" | "elevenlabs" | "runway") => {
+      const getServiceMetrics = (
+        service: "fal" | "elevenlabs" | "runway" | "tavus",
+      ) => {
         const serviceModels = Object.entries(model_breakdown).filter(
           ([modelId]) => modelId.includes(service),
         );
@@ -145,6 +155,7 @@ export const GenerationServicesStatus = memo(
       const falMetrics = getServiceMetrics("fal");
       const elevenLabsMetrics = getServiceMetrics("elevenlabs");
       const runwayMetrics = getServiceMetrics("runway");
+      const tavusMetrics = getServiceMetrics("tavus");
 
       const queueHealth =
         pending_requests < 10
@@ -186,6 +197,14 @@ export const GenerationServicesStatus = memo(
           icon: Zap,
           percentage: runwayMetrics.successRate,
           value: `${runwayMetrics.successRate}% success`,
+        },
+        {
+          label: "Tavus Video",
+          status: tavusMetrics.isHealthy ? "Healthy" : "Issues",
+          color: tavusMetrics.isHealthy ? "text-green-500" : "text-yellow-500",
+          icon: Video,
+          percentage: tavusMetrics.successRate,
+          value: `${tavusMetrics.successRate}% success`,
         },
         {
           label: "Request Queue",
