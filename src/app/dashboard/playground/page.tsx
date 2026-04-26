@@ -2,10 +2,15 @@
 
 import { TextReveal } from "@/components/ui/text-reveal";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Search, Sparkles, UserRound } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { models } from "~/lib/constants";
+import { USD_PER_CREDIT } from "~/lib/constants/credits";
+import {
+  isFlatJobPlaygroundModel,
+  playgroundModels,
+  type PlaygroundModel,
+} from "~/lib/constants/playground-models";
 
 export default function PlaygroundPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,10 +18,10 @@ export default function PlaygroundPage() {
   const [modelsParent] = useAutoAnimate();
 
   const filteredModels = useMemo(() => {
-    if (!searchQuery.trim()) return models;
+    if (!searchQuery.trim()) return playgroundModels;
 
     const query = searchQuery.toLowerCase();
-    return models.filter(
+    return playgroundModels.filter(
       (model) =>
         model.name.toLowerCase().includes(query) ||
         model.id.toLowerCase().includes(query),
@@ -24,7 +29,7 @@ export default function PlaygroundPage() {
   }, [searchQuery]);
 
   const modelsByCategory = useMemo(() => {
-    const categorized: Record<string, (typeof models)[number][]> = {};
+    const categorized: Record<string, PlaygroundModel[]> = {};
 
     filteredModels.forEach((model) => {
       const category = model.category;
@@ -42,19 +47,22 @@ export default function PlaygroundPage() {
   } as const;
 
   // Function to get the correct URL for a model
-  function getModelUrl(model: (typeof models)[number]): string {
+  function getModelUrl(model: PlaygroundModel): string {
+    if (model.id.startsWith("tavus/")) {
+      return "/dashboard/playground/tavus";
+    }
     if (model.id.startsWith("elevenlabs/")) {
       // ElevenLabs models go to their specific page
       const modelPath = model.id.replace("elevenlabs/", "");
       return `/dashboard/playground/elevenlabs/${modelPath}`;
-    } else if (model.id.startsWith("runway/")) {
+    }
+    if (model.id.startsWith("runway/")) {
       // Runway models go to their specific page
       const modelPath = model.id.replace("runway/", "");
       return `/dashboard/playground/runway/${modelPath}`;
-    } else {
-      // fal.ai models go to the generate page
-      return `/dashboard/playground/generate?model=${encodeURIComponent(model.id)}`;
     }
+    // fal.ai models go to the generate page
+    return `/dashboard/playground/generate?model=${encodeURIComponent(model.id)}`;
   }
   return (
     <main className="flex flex-col gap-6 py-6">
@@ -72,23 +80,6 @@ export default function PlaygroundPage() {
           </TextReveal>
         </div>
 
-        <Link
-          href="/dashboard/playground/tavus"
-          className="animate-fade-in animate-delay-150 group flex items-start gap-4 rounded-lg border border-white/20 bg-white/10 p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-[#E9476E] hover:to-[#3B5DA8] hover:text-white hover:shadow-none"
-        >
-          <div className="rounded-full bg-white/20 p-2 group-hover:bg-white/30">
-            <UserRound className="h-5 w-5 text-white" />
-          </div>
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-white group-hover:text-white">
-              Tavus — talking head from script
-            </h2>
-            <p className="text-sm text-white/80 group-hover:text-white">
-              Turn a script into an avatar video (English or Arabic replica).
-            </p>
-          </div>
-        </Link>
-
         {/* Search Bar and Model Count */}
         <div className="animate-fade-in animate-delay-200 flex items-center justify-between">
           <div className="relative max-w-md">
@@ -102,7 +93,7 @@ export default function PlaygroundPage() {
             />
           </div>
           <div className="text-sm text-white/80">
-            {filteredModels.length} of {models.length} models
+            {filteredModels.length} of {playgroundModels.length} models
           </div>
         </div>
       </div>
@@ -167,9 +158,23 @@ export default function PlaygroundPage() {
                             {model.name}
                           </h3>
 
-                          {/* Price per second */}
+                          {/* Price */}
                           <div className="text-sm text-white/80 transition-colors group-hover:text-white">
-                            ${model.price_per_second}/sec
+                            {isFlatJobPlaygroundModel(model) ? (
+                              <>
+                                {model.flat_job_credits} credits per job
+                                <span className="text-white/60">
+                                  {" "}
+                                  (~$
+                                  {(
+                                    model.flat_job_credits * USD_PER_CREDIT
+                                  ).toFixed(2)}
+                                  )
+                                </span>
+                              </>
+                            ) : (
+                              <>${model.price_per_second}/sec</>
+                            )}
                           </div>
                         </div>
                       </Link>
