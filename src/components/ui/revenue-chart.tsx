@@ -68,6 +68,13 @@ export const RevenueChart = memo(
             color: "bg-purple-500",
             icon: Play,
           },
+          {
+            service: "Tavus",
+            value: 0,
+            requests: 0,
+            color: "bg-rose-500",
+            icon: Video,
+          },
         ];
       }
 
@@ -105,6 +112,13 @@ export const RevenueChart = memo(
           requests: serviceData.runway?.requests ?? 0,
           color: "bg-purple-500",
           icon: Play,
+        },
+        {
+          service: "Tavus",
+          value: serviceData.tavus?.credits ?? 0,
+          requests: serviceData.tavus?.requests ?? 0,
+          color: "bg-rose-500",
+          icon: Video,
         },
       ];
     }, [modelAnalytics]);
@@ -145,7 +159,7 @@ export const RevenueChart = memo(
 
         {/* Service Chart Area */}
         <div className="relative mb-4 h-64 rounded-lg p-4">
-          <div className="flex h-full items-end justify-between gap-3">
+          <div className="flex h-full items-end justify-between gap-1.5 sm:gap-3">
             {chartData.map((item, index) => {
               const Icon = item.icon;
               return (
