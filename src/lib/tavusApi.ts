@@ -236,6 +236,250 @@ export async function tavusCreateVideo(input: {
   return { ok: true, data: parsed };
 }
 
+export type TavusReplicaListItem = {
+  replica_id: string;
+  replica_name: string;
+  thumbnail_video_url?: string;
+  status?: string;
+  model_name?: string;
+  replica_type?: "user" | "system";
+};
+
+type TavusListReplicasBody = {
+  data?: unknown;
+  total_count?: number;
+};
+
+function parseReplicaListItem(
+  value: unknown,
+): TavusReplicaListItem | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const id = value.replica_id;
+  const name = value.replica_name;
+  if (typeof id !== "string" || !id.trim()) {
+    return null;
+  }
+  if (typeof name !== "string" || !name.trim()) {
+    return null;
+  }
+  const thumbnail = value.thumbnail_video_url;
+  const status = value.status;
+  const modelName = value.model_name;
+  const replicaType = value.replica_type;
+  return {
+    replica_id: id.trim(),
+    replica_name: name.trim(),
+    ...(typeof thumbnail === "string" && thumbnail.trim()
+      ? { thumbnail_video_url: thumbnail.trim() }
+      : {}),
+    ...(typeof status === "string" && status.trim()
+      ? { status: status.trim() }
+      : {}),
+    ...(typeof modelName === "string" && modelName.trim()
+      ? { model_name: modelName.trim() }
+      : {}),
+    ...(replicaType === "user" || replicaType === "system"
+      ? { replica_type: replicaType }
+      : {}),
+  };
+}
+
+export async function tavusListReplicasPage(input: {
+  apiKey: string;
+  page?: number;
+  limit?: number;
+  replicaType: "user" | "system";
+}): Promise<
+  | { ok: true; data: TavusReplicaListItem[]; total_count: number }
+  | { ok: false; status: number; message: string }
+> {
+  const page = input.page ?? 1;
+  const limit = input.limit ?? 100;
+  const u = new URL(`${TAVUS_API_BASE}/v2/replicas`);
+  u.searchParams.set("replica_type", input.replicaType);
+  u.searchParams.set("page", String(page));
+  u.searchParams.set("limit", String(limit));
+  u.searchParams.set("verbose", "true");
+
+  const res = await fetch(u.toString(), {
+    method: "GET",
+    headers: { "x-api-key": input.apiKey },
+  });
+
+  let body: unknown;
+  try {
+    body = (await res.json()) as unknown;
+  } catch {
+    body = null;
+  }
+
+  if (!res.ok) {
+    return {
+      ok: false,
+      status: res.status,
+      message: readTavusErrorMessage(body),
+    };
+  }
+
+  if (!isRecord(body)) {
+    return {
+      ok: false,
+      status: 502,
+      message: "Unexpected response from Tavus when listing replicas",
+    };
+  }
+
+  const b = body as TavusListReplicasBody;
+  const rawList = b.data;
+  if (!Array.isArray(rawList)) {
+    return {
+      ok: false,
+      status: 502,
+      message: "Unexpected response from Tavus when listing replicas",
+    };
+  }
+
+  const data: TavusReplicaListItem[] = [];
+  for (const item of rawList) {
+    const parsed = parseReplicaListItem(item);
+    if (parsed) {
+      data.push(parsed);
+    }
+  }
+  const total = b.total_count;
+  const total_count = typeof total === "number" && total >= 0 ? total : data.length;
+
+  return { ok: true, data, total_count };
+}
+
+/**
+ * Fetches every page of replicas for the given type (Tavus paginates list results).
+ */
+export async function tavusListAllReplicasByType(input: {
+  apiKey: string;
+  replicaType: "user" | "system";
+}): Promise<
+  | { ok: true; data: TavusReplicaListItem[] }
+  | { ok: false; status: number; message: string }
+> {
+  const limit = 100;
+  const all: TavusReplicaListItem[] = [];
+  let page = 1;
+  for (;;) {
+    const result = await tavusListReplicasPage({
+      apiKey: input.apiKey,
+      replicaType: input.replicaType,
+      page,
+      limit,
+    });
+    if (!result.ok) {
+      return result;
+    }
+    all.push(...result.data);
+    if (result.data.length === 0) {
+      break;
+    }
+    if (all.length >= result.total_count) {
+      break;
+    }
+    page += 1;
+    if (page > 500) {
+      break;
+    }
+  }
+  return { ok: true, data: all };
+}
+
+export type TavusGetReplicaSuccess = {
+  replica_id: string;
+  replica_name: string;
+  status: string;
+  replica_type?: "user" | "system";
+};
+
+function parseGetReplica(
+  body: unknown,
+  expectVerbose: boolean,
+): TavusGetReplicaSuccess | null {
+  if (!isRecord(body)) {
+    return null;
+  }
+  const id = body.replica_id;
+  const name = body.replica_name;
+  const status = body.status;
+  if (typeof id !== "string" || !id.trim()) {
+    return null;
+  }
+  if (typeof name !== "string" || !name.trim()) {
+    return null;
+  }
+  if (typeof status !== "string" || !status.trim()) {
+    return null;
+  }
+  const replicaType = body.replica_type;
+  const out: TavusGetReplicaSuccess = {
+    replica_id: id.trim(),
+    replica_name: name.trim(),
+    status: status.trim(),
+  };
+  if (replicaType === "user" || replicaType === "system") {
+    return { ...out, replica_type: replicaType };
+  }
+  if (expectVerbose) {
+    return null;
+  }
+  return out;
+}
+
+export async function tavusGetReplica(input: {
+  apiKey: string;
+  replicaId: string;
+  verbose: boolean;
+}): Promise<
+  | { ok: true; data: TavusGetReplicaSuccess }
+  | { ok: false; status: number; message: string }
+> {
+  const u = new URL(
+    `${TAVUS_API_BASE}/v2/replicas/${encodeURIComponent(input.replicaId)}`,
+  );
+  if (input.verbose) {
+    u.searchParams.set("verbose", "true");
+  }
+
+  const res = await fetch(u.toString(), {
+    method: "GET",
+    headers: { "x-api-key": input.apiKey },
+  });
+
+  let body: unknown;
+  try {
+    body = (await res.json()) as unknown;
+  } catch {
+    body = null;
+  }
+
+  if (!res.ok) {
+    return {
+      ok: false,
+      status: res.status,
+      message: readTavusErrorMessage(body),
+    };
+  }
+
+  const parsed = parseGetReplica(body, input.verbose);
+  if (!parsed) {
+    return {
+      ok: false,
+      status: 502,
+      message: "Unexpected response from Tavus when fetching replica",
+    };
+  }
+
+  return { ok: true, data: parsed };
+}
+
 export async function tavusGetVideo(input: {
   apiKey: string;
   videoId: string;

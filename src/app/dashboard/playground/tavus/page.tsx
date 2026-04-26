@@ -2,10 +2,17 @@
 
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronDown, Play, User } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GlowingCard from "~/components/mvpblocks/glow-card";
 import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import {
   Collapsible,
   CollapsibleContent,
@@ -28,6 +35,7 @@ import { USD_PER_CREDIT } from "~/lib/constants/credits";
 import { tavusPlaygroundModel } from "~/lib/constants/playground-models";
 import { TAVUS_VIDEO_ESTIMATED_CREDITS } from "~/lib/constants/tavus";
 import type { TavusVideoStatus } from "~/lib/tavusApi";
+import { cn } from "~/lib/utils";
 
 const MAX_SCRIPT_CHARS = 12_000;
 const POLL_MS = 4000;
@@ -37,6 +45,27 @@ const SELECT_DEFAULT = "__default";
 
 type TavusLanguage = "en" | "ar";
 type InputMode = "script" | "audio";
+
+type StockReplicaOption = {
+  replicaId: string;
+  name: string;
+  thumbnailUrl?: string;
+  modelName?: string;
+};
+
+function replicaInitials(name: string): string {
+  const t = name.trim();
+  if (!t) {
+    return "—";
+  }
+  const words = t.split(/\s+/);
+  if (words.length >= 2) {
+    const a = words[0]?.[0] ?? "";
+    const b = words[1]?.[0] ?? "";
+    return `${a}${b}`.toUpperCase() || "—";
+  }
+  return t.slice(0, 2).toUpperCase() || "—";
+}
 
 type CreateJson = {
   requestId?: string;
@@ -94,6 +123,12 @@ export default function TavusTalkingHeadPage() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [inputMode, setInputMode] = useState<InputMode>("script");
   const [language, setLanguage] = useState<TavusLanguage>("en");
+  const [stockReplicas, setStockReplicas] = useState<StockReplicaOption[]>([]);
+  const [replicasLoading, setReplicasLoading] = useState(true);
+  const [replicasError, setReplicasError] = useState<string | null>(null);
+  const [replicaModalOpen, setReplicaModalOpen] = useState(false);
+  const [previewReplicaId, setPreviewReplicaId] = useState<string | null>(null);
+  const [selectedReplicaId, setSelectedReplicaId] = useState("");
   const [videoId, setVideoId] = useState<string | null>(null);
   const [status, setStatus] = useState<TavusVideoStatus | null>(null);
   const [hostedUrl, setHostedUrl] = useState<string | null>(null);
@@ -126,6 +161,16 @@ export default function TavusTalkingHeadPage() {
   const estimatedCredits = TAVUS_VIDEO_ESTIMATED_CREDITS;
   const estimatedCost = estimatedCredits * USD_PER_CREDIT;
 
+  const replicasReversed = useMemo(
+    () => [...stockReplicas].reverse(),
+    [stockReplicas],
+  );
+
+  const selectedReplica = useMemo(
+    () => stockReplicas.find((r) => r.replicaId === selectedReplicaId),
+    [stockReplicas, selectedReplicaId],
+  );
+
   const resetForNewRun = useCallback(() => {
     setVideoId(null);
     setStatus(null);
@@ -142,6 +187,53 @@ export default function TavusTalkingHeadPage() {
       setAudioFile(null);
     }
   }, [inputMode]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      setReplicasLoading(true);
+      setReplicasError(null);
+      try {
+        const res = await fetch("/api/tavus/replicas");
+        const data = (await res.json()) as {
+          error?: string;
+          replicas?: StockReplicaOption[];
+        };
+        if (!res.ok) {
+          if (!cancelled) {
+            setReplicasError(data.error ?? "Failed to load stock replicas");
+            setStockReplicas([]);
+          }
+          return;
+        }
+        const list = data.replicas ?? [];
+        if (!cancelled) {
+          setStockReplicas(list);
+          setSelectedReplicaId((prev) => {
+            if (prev && list.some((r) => r.replicaId === prev)) {
+              return prev;
+            }
+            // Default matches first row in reversed UI = last in API list
+            return list.length > 0
+              ? list[list.length - 1]!.replicaId
+              : "";
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setReplicasError("Network error while loading stock replicas");
+          setStockReplicas([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setReplicasLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const fetchStatus = useCallback(async (id: string) => {
     const res = await fetch(
@@ -170,7 +262,7 @@ export default function TavusTalkingHeadPage() {
     if (data.status === "error") {
       setError(
         data.statusDetails ??
-          "Video generation failed. Check Tavus dashboard and replica/voice for Arabic.",
+          "Video generation failed. Check Tavus dashboard, replica, and audio.",
       );
     }
   }, []);
@@ -371,6 +463,7 @@ export default function TavusTalkingHeadPage() {
     const advanced = buildAdvancedPayload();
     const body: Record<string, unknown> = {
       language,
+      replicaId: selectedReplicaId,
       inputMode,
       ...(inputMode === "script"
         ? { script: script.trim() }
@@ -427,13 +520,19 @@ export default function TavusTalkingHeadPage() {
         ? "Active Subscription Required"
         : !enoughCredits
           ? "Insufficient Credits"
-          : inputMode === "script"
-            ? !script.trim() || scriptTooLong
-              ? "Enter a valid script"
-              : null
-            : !audioUrl.trim() && !audioFile
-              ? "Upload audio or enter URL"
-              : null;
+          : replicasLoading
+            ? "Loading stock replicas…"
+            : replicasError
+              ? "Failed to load stock replicas"
+              : !selectedReplicaId
+                ? "Select a stock replica"
+                : inputMode === "script"
+                  ? !script.trim() || scriptTooLong
+                    ? "Enter a valid script"
+                    : null
+                  : !audioUrl.trim() && !audioFile
+                    ? "Upload audio or enter URL"
+                    : null;
 
   const shouldShowPlansLink =
     generateDisabledReason === "Insufficient Credits" ||
@@ -512,7 +611,177 @@ export default function TavusTalkingHeadPage() {
 
               <div className="mb-6 space-y-3">
                 <Label className="text-sm font-medium text-white/80">
-                  Language / replica
+                  Stock presenter
+                </Label>
+                {replicasLoading ? (
+                  <p className="text-sm text-white/60">Loading stock replicas…</p>
+                ) : replicasError ? (
+                  <p className="text-sm text-red-300">{replicasError}</p>
+                ) : stockReplicas.length === 0 ? (
+                  <p className="text-sm text-amber-200/90">
+                    No completed stock replicas from Tavus. Check your API key
+                    and the developer portal.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-3 rounded-lg border border-white/20 bg-white/5 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-white/50">Stock presenter</p>
+                      <p
+                        className="truncate text-sm font-medium text-white"
+                        title={selectedReplica?.name}
+                      >
+                        {selectedReplica?.name ?? "—"}
+                      </p>
+                      {selectedReplica?.replicaId ? (
+                        <p className="mt-0.5 font-mono text-[10px] text-white/40">
+                          {selectedReplica.replicaId}
+                        </p>
+                      ) : null}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="shrink-0 border-white/30 text-white hover:bg-white/10"
+                      onClick={() => {
+                        setPreviewReplicaId(null);
+                        setReplicaModalOpen(true);
+                      }}
+                    >
+                      {selectedReplicaId ? "Change" : "Choose…"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <Dialog
+                open={replicaModalOpen}
+                onOpenChange={(open) => {
+                  setReplicaModalOpen(open);
+                  if (!open) {
+                    setPreviewReplicaId(null);
+                  }
+                }}
+              >
+                <DialogContent
+                  className="max-h-[min(90vh,880px)] max-w-4xl overflow-y-auto border-white/20 bg-zinc-950/98 text-white"
+                >
+                  <DialogHeader>
+                    <DialogTitle className="text-white">
+                      Choose a stock presenter
+                    </DialogTitle>
+                    <DialogDescription className="text-white/65">
+                      The list is reversed from the default API order. Use play
+                      to load a preview clip; only one preview streams at a time
+                      to save data.
+                    </DialogDescription>
+                  </DialogHeader>
+                  {replicasReversed.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+                      {replicasReversed.map((r) => {
+                        const isSelected = r.replicaId === selectedReplicaId;
+                        const isPreviewing = previewReplicaId === r.replicaId;
+                        return (
+                          <div
+                            key={r.replicaId}
+                            className={cn(
+                              "overflow-hidden rounded-lg border bg-black/30 transition-shadow",
+                              isSelected
+                                ? "border-white/60 ring-2 ring-white/30"
+                                : "border-white/15",
+                            )}
+                          >
+                            <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-900/80">
+                              {r.thumbnailUrl && isPreviewing ? (
+                                <video
+                                  key={r.replicaId}
+                                  className="h-full w-full object-cover"
+                                  src={r.thumbnailUrl}
+                                  muted
+                                  playsInline
+                                  loop
+                                  autoPlay
+                                  controls={false}
+                                  preload="auto"
+                                />
+                              ) : r.thumbnailUrl ? (
+                                <button
+                                  type="button"
+                                  className="group relative h-full w-full"
+                                  onClick={() => {
+                                    setPreviewReplicaId((prev) =>
+                                      prev === r.replicaId ? null : r.replicaId,
+                                    );
+                                  }}
+                                >
+                                  <div
+                                    className="absolute inset-0 bg-gradient-to-b from-zinc-700/60 to-zinc-950/95"
+                                    aria-hidden
+                                  />
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-2">
+                                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition group-hover:bg-white/30">
+                                      <Play
+                                        className="ml-0.5 h-5 w-5 text-white"
+                                        fill="currentColor"
+                                      />
+                                    </span>
+                                    <span className="text-[10px] text-white/70">
+                                      Play preview
+                                    </span>
+                                  </div>
+                                </button>
+                              ) : (
+                                <div
+                                  className="flex h-full w-full flex-col items-center justify-center gap-1.5 bg-gradient-to-b from-zinc-600/50 to-zinc-900/90 px-3"
+                                  title="No preview URL from Tavus"
+                                >
+                                  <User
+                                    className="h-9 w-9 text-white/30"
+                                    strokeWidth={1.2}
+                                    aria-hidden
+                                  />
+                                  <span className="line-clamp-1 text-center text-sm font-medium text-white/55">
+                                    {replicaInitials(r.name)}
+                                  </span>
+                                </div>
+                              )}
+                              {r.modelName ? (
+                                <span className="absolute bottom-2 left-2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white/95">
+                                  {r.modelName}
+                                </span>
+                              ) : null}
+                            </div>
+                            <div className="border-t border-white/10 p-2.5">
+                              <p className="line-clamp-2 text-sm font-medium leading-tight text-white">
+                                {r.name}
+                              </p>
+                              <p className="mt-1 font-mono text-[10px] text-white/45">
+                                {r.replicaId}
+                              </p>
+                              <Button
+                                type="button"
+                                className="mt-2.5 w-full"
+                                size="sm"
+                                variant={isSelected ? "default" : "secondary"}
+                                onClick={() => {
+                                  setSelectedReplicaId(r.replicaId);
+                                  setReplicaModalOpen(false);
+                                  setPreviewReplicaId(null);
+                                }}
+                              >
+                                {isSelected ? "Selected" : "Use this one"}
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </DialogContent>
+              </Dialog>
+
+              <div className="mb-6 space-y-3">
+                <Label className="text-sm font-medium text-white/80">
+                  Script &amp; TTS language
                 </Label>
                 <div className="flex flex-wrap gap-2">
                   <Button

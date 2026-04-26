@@ -10,7 +10,11 @@ import {
   TAVUS_VIDEO_MODEL_ID,
 } from "~/lib/constants/tavus";
 import type { TavusCreateVideoPayload } from "~/lib/tavusApi";
-import { tavusCreateVideo, tavusGetVideo } from "~/lib/tavusApi";
+import {
+  tavusCreateVideo,
+  tavusGetReplica,
+  tavusGetVideo,
+} from "~/lib/tavusApi";
 
 const MAX_SCRIPT_CHARS = 12_000;
 
@@ -34,6 +38,8 @@ const advancedSchema = z
 const postBodySchema = z
   .object({
     language: z.enum(["en", "ar"]),
+    /** Stock (system) replica from Tavus — see GET /api/tavus/replicas */
+    replicaId: z.string().min(1).max(64),
     inputMode: z.enum(["script", "audio"]),
     script: z.string().max(MAX_SCRIPT_CHARS).optional(),
     audioUrl: z.string().url().optional(),
@@ -133,10 +139,53 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const replicaId =
-    parsed.data.language === "en"
-      ? env.TAVUS_REPLICA_ID_EN
-      : env.TAVUS_REPLICA_ID_AR;
+  const replicaCheck = await tavusGetReplica({
+    apiKey: env.TAVUS_API_KEY,
+    replicaId: parsed.data.replicaId.trim(),
+    verbose: true,
+  });
+
+  if (!replicaCheck.ok) {
+    return NextResponse.json(
+      {
+        error:
+          replicaCheck.status === 404
+            ? "Replica not found"
+            : replicaCheck.message,
+        requestId,
+      },
+      {
+        status:
+          replicaCheck.status === 404
+            ? 400
+            : replicaCheck.status >= 400 && replicaCheck.status < 600
+              ? replicaCheck.status
+              : 502,
+      },
+    );
+  }
+
+  if (replicaCheck.data.replica_type !== "system") {
+    return NextResponse.json(
+      {
+        error: "Only stock (system) replicas can be used from this app.",
+        requestId,
+      },
+      { status: 400 },
+    );
+  }
+
+  if (replicaCheck.data.status !== "completed") {
+    return NextResponse.json(
+      {
+        error: "Replica is not ready (training not completed).",
+        requestId,
+      },
+      { status: 400 },
+    );
+  }
+
+  const replicaId = replicaCheck.data.replica_id;
 
   const callbackUrl = parsed.data.advanced?.callbackUrl?.trim()
     ? parsed.data.advanced.callbackUrl.trim()

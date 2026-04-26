@@ -11,8 +11,6 @@ export const env = createEnv({
     ELEVENLABS_API_KEY: z.string(),
     RUNWAY_API_KEY: z.string(),
     TAVUS_API_KEY: z.string(),
-    TAVUS_REPLICA_ID_EN: z.string(),
-    TAVUS_REPLICA_ID_AR: z.string(),
     /** Optional: verifies `GET/POST /api/tavus/webhook?token=…` if you wire that URL yourself */
     TAVUS_WEBHOOK_SECRET: z.string().optional(),
     CLERK_SECRET_KEY: z.string(),
@@ -47,8 +45,6 @@ export const env = createEnv({
     ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
     RUNWAY_API_KEY: process.env.RUNWAY_API_KEY,
     TAVUS_API_KEY: process.env.TAVUS_API_KEY,
-    TAVUS_REPLICA_ID_EN: process.env.TAVUS_REPLICA_ID_EN,
-    TAVUS_REPLICA_ID_AR: process.env.TAVUS_REPLICA_ID_AR,
     TAVUS_WEBHOOK_SECRET: process.env.TAVUS_WEBHOOK_SECRET,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     TAP_SECRET_KEY: process.env.TAP_SECRET_KEY,

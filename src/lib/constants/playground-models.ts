@@ -34,7 +34,7 @@ export const tavusPlaygroundModel = {
   flat_job_credits: TAVUS_VIDEO_ESTIMATED_CREDITS,
   price_per_second: 0,
   description:
-    "Recorded avatar video from script or your own audio URL (English or Arabic replica).",
+    "Recorded avatar video from script or your own audio URL; pick a stock Tavus replica on the generation page.",
   generation_time_minutes: null,
 } as const satisfies TavusPlaygroundModel;
 
