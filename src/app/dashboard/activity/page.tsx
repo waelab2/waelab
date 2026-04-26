@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { GenerationOutputMediaPreview } from "@/components/ui/generation-output-media";
 import { Switch } from "@/components/ui/switch";
 import { TextReveal } from "@/components/ui/text-reveal";
 import { api } from "@/trpc/react";
@@ -9,7 +10,6 @@ import {
   Activity,
   CheckCircle,
   Clock,
-  Mic,
   Play,
   Settings,
   User,
@@ -45,7 +45,7 @@ const getServiceInfo = (service: string) => {
     case "runway":
       return { icon: Play, color: "text-purple-500", label: "Runway" };
     case "tavus":
-      return { icon: Mic, color: "text-rose-400", label: "Tavus" };
+      return { icon: Video, color: "text-rose-400", label: "Tavus" };
     default:
       return { icon: Settings, color: "text-gray-500", label: "Unknown" };
   }
@@ -300,46 +300,57 @@ export default function ActivityPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-800/40 p-4 transition-colors hover:bg-gray-700/50"
+                        className="flex flex-col gap-3 rounded-lg border border-gray-700 bg-gray-800/40 p-4 transition-colors hover:bg-gray-700/50"
                       >
-                        <div className={`rounded-lg bg-gray-700/50 p-2`}>
-                          <ServiceIcon
-                            className={`h-5 w-5 ${serviceInfo.color}`}
-                          />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="mb-1 flex items-center gap-2">
-                            <div className="text-sm font-medium text-white">
-                              {serviceInfo.label} Generation
-                            </div>
-                            <StatusIcon
-                              className={`h-3 w-3 ${statusInfo.color}`}
+                        <div className="flex items-center gap-4">
+                          <div className={`rounded-lg bg-gray-700/50 p-2`}>
+                            <ServiceIcon
+                              className={`h-5 w-5 ${serviceInfo.color}`}
                             />
                           </div>
-                          <div className="truncate text-xs text-gray-400">
-                            Model: {request.model_id}
+                          <div className="min-w-0 flex-1">
+                            <div className="mb-1 flex items-center gap-2">
+                              <div className="text-sm font-medium text-white">
+                                {serviceInfo.label} Generation
+                              </div>
+                              <StatusIcon
+                                className={`h-3 w-3 ${statusInfo.color}`}
+                              />
+                            </div>
+                            <div className="truncate text-xs text-gray-400">
+                              Model: {request.model_id}
+                            </div>
+                            <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
+                              <span>ID: {request.request_id}</span>
+                              {request.credits_used !== undefined && (
+                                <span>Credits: {request.credits_used}</span>
+                              )}
+                              {request.file_size !== undefined && (
+                                <span>
+                                  Size:{" "}
+                                  {(request.file_size / 1024 / 1024).toFixed(2)}
+                                  MB
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div className="mt-1 flex items-center gap-4 text-xs text-gray-500">
-                            <span>ID: {request.request_id}</span>
-                            {request.credits_used !== undefined && (
-                              <span>Credits: {request.credits_used}</span>
-                            )}
-                            {request.file_size !== undefined && (
-                              <span>
-                                Size: {(request.file_size / 1024 / 1024).toFixed(2)}
-                                MB
-                              </span>
-                            )}
+                          <div className="shrink-0 text-right">
+                            <div className="text-xs text-gray-400">
+                              {formatTimeAgo(request.created_at)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {formatDate(request.created_at)}
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">
-                            {formatTimeAgo(request.created_at)}
+                        {request.status === "completed" ? (
+                          <div className="border-t border-gray-700/80 pt-3">
+                            <p className="mb-2 text-xs font-medium text-gray-400">
+                              Playback
+                            </p>
+                            <GenerationOutputMediaPreview request={request} />
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {formatDate(request.created_at)}
-                          </div>
-                        </div>
+                        ) : null}
                       </motion.div>
                     );
                   })}

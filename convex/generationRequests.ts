@@ -1,5 +1,75 @@
 import { v } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
+import type { QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
+
+/** Playback URL from service-specific tables (not Tavus — URL resolved via API on client). */
+async function outputMediaForGenerationRequest(
+  ctx: QueryCtx,
+  r: Doc<"generation_requests">,
+): Promise<{
+  output_media_url?: string;
+  output_media_kind?: "video" | "audio";
+}> {
+  if (r.status !== "completed") {
+    return {};
+  }
+  if (r.service === "tavus") {
+    return {};
+  }
+  if (r.service === "fal") {
+    const row = await ctx.db
+      .query("fal_requests")
+      .withIndex("by_generation_request", (q) =>
+        q.eq("generation_request_id", r._id),
+      )
+      .first();
+    const url = row?.output?.video.url;
+    if (url) {
+      return { output_media_url: url, output_media_kind: "video" };
+    }
+    return {};
+  }
+  if (r.service === "runway") {
+    const row = await ctx.db
+      .query("runway_requests")
+      .withIndex("by_generation_request", (q) =>
+        q.eq("generation_request_id", r._id),
+      )
+      .first();
+    const url = row?.output?.video.url;
+    if (url) {
+      return { output_media_url: url, output_media_kind: "video" };
+    }
+    return {};
+  }
+  if (r.service === "elevenlabs") {
+    const row = await ctx.db
+      .query("elevenlabs_requests")
+      .withIndex("by_generation_request", (q) =>
+        q.eq("generation_request_id", r._id),
+      )
+      .first();
+    const url = row?.output?.audio.url;
+    if (url) {
+      return { output_media_url: url, output_media_kind: "audio" };
+    }
+    return {};
+  }
+  return {};
+}
+
+async function enrichGenerationRequestsWithOutputMedia(
+  ctx: QueryCtx,
+  requests: Doc<"generation_requests">[],
+) {
+  return await Promise.all(
+    requests.map(async (r) => ({
+      ...r,
+      ...(await outputMediaForGenerationRequest(ctx, r)),
+    })),
+  );
+}
 
 // === UTILITY FUNCTIONS ===
 
@@ -578,6 +648,10 @@ export const getGenerationRequests = query({
       credits_used: v.optional(v.number()),
       file_size: v.optional(v.number()),
       error_message: v.optional(v.string()),
+      output_media_url: v.optional(v.string()),
+      output_media_kind: v.optional(
+        v.union(v.literal("video"), v.literal("audio")),
+      ),
     }),
   ),
   handler: async (ctx, args) => {
@@ -589,7 +663,7 @@ export const getGenerationRequests = query({
         .withIndex("by_service", (q) => q.eq("service", service))
         .order("desc")
         .take(args.limit ?? 50);
-      return requests;
+      return await enrichGenerationRequestsWithOutputMedia(ctx, requests);
     } else if (args.user_id) {
       const userId = args.user_id;
       const requests = await ctx.db
@@ -597,7 +671,7 @@ export const getGenerationRequests = query({
         .withIndex("by_user", (q) => q.eq("user_id", userId))
         .order("desc")
         .take(args.limit ?? 50);
-      return requests;
+      return await enrichGenerationRequestsWithOutputMedia(ctx, requests);
     } else if (args.status) {
       const status = args.status;
       const requests = await ctx.db
@@ -605,7 +679,7 @@ export const getGenerationRequests = query({
         .withIndex("by_status", (q) => q.eq("status", status))
         .order("desc")
         .take(args.limit ?? 50);
-      return requests;
+      return await enrichGenerationRequestsWithOutputMedia(ctx, requests);
     }
 
     // No filters - get all requests
@@ -613,7 +687,7 @@ export const getGenerationRequests = query({
       .query("generation_requests")
       .order("desc")
       .take(args.limit ?? 50);
-    return requests;
+    return await enrichGenerationRequestsWithOutputMedia(ctx, requests);
   },
 });
 

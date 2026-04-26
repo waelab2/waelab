@@ -45,6 +45,9 @@ export interface GenerationRequest {
   credits_used?: number;
   file_size?: number;
   error_message?: string;
+  /** From joined service row (fal/runway/elevenlabs). Tavus uses client fetch. */
+  output_media_url?: string;
+  output_media_kind?: "video" | "audio";
 }
 
 /**

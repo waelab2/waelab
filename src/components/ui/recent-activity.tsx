@@ -1,11 +1,11 @@
 "use client";
 
 import type { GenerationRequest } from "@/hooks/use-analytics";
+import { GenerationOutputMediaPreview } from "@/components/ui/generation-output-media";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
   Clock,
-  Mic,
   Play,
   Settings,
   Video,
@@ -38,7 +38,7 @@ const getServiceInfo = (service: string) => {
     case "runway":
       return { icon: Play, color: "text-purple-500", label: "Runway" };
     case "tavus":
-      return { icon: Mic, color: "text-rose-400", label: "Tavus" };
+      return { icon: Video, color: "text-rose-400", label: "Tavus" };
     default:
       return { icon: Settings, color: "text-gray-500", label: "Unknown" };
   }
@@ -118,25 +118,35 @@ export const RecentActivity = memo(
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-700/50"
+                  className="flex flex-col gap-2 rounded-lg p-2 transition-colors hover:bg-gray-700/50"
                 >
-                  <div className={`rounded-lg bg-gray-700/50 p-2`}>
-                    <ServiceIcon className={`h-4 w-4 ${serviceInfo.color}`} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-white">
-                      {serviceInfo.label} Generation
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-lg bg-gray-700/50 p-2`}>
+                      <ServiceIcon className={`h-4 w-4 ${serviceInfo.color}`} />
                     </div>
-                    <div className="truncate text-xs text-gray-400">
-                      {request.model_id}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-white">
+                        {serviceInfo.label} Generation
+                      </div>
+                      <div className="truncate text-xs text-gray-400">
+                        {request.model_id}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <StatusIcon className={`h-3 w-3 ${statusInfo.color}`} />
+                      <div className="text-xs text-gray-400">
+                        {formatTimeAgo(request.created_at)}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <StatusIcon className={`h-3 w-3 ${statusInfo.color}`} />
-                    <div className="text-xs text-gray-400">
-                      {formatTimeAgo(request.created_at)}
+                  {request.status === "completed" ? (
+                    <div className="pl-11">
+                      <GenerationOutputMediaPreview
+                        compact
+                        request={request}
+                      />
                     </div>
-                  </div>
+                  ) : null}
                 </motion.div>
               );
             })}
